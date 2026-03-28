@@ -11,10 +11,12 @@ public class GameBootstrap : MonoBehaviour
 {
     private GameObject playerCar;
     private PartsDatabase partsDB;
+    private List<MonsterData> monsterDataList = new List<MonsterData>();
 
     private void Awake()
     {
         CreatePartsDatabase();
+        CreateMonsterDatabase();
         CreatePlayer();
         CreateCamera();
         CreateGameManager();
@@ -88,6 +90,34 @@ public class GameBootstrap : MonoBehaviour
         return part;
     }
 
+    // ─── Monster Database ───
+    private void CreateMonsterDatabase()
+    {
+        // Monster 1 - 기본 몬스터
+        var monster1 = ScriptableObject.CreateInstance<MonsterData>();
+        monster1.monsterName = "Zombie";
+        monster1.sprite = Resources.Load<Sprite>("monster_1");
+        monster1.health = 20f;
+        monster1.moveSpeed = 1.5f;
+        monster1.contactDamage = 10f;
+        monster1.expDrop = 2;
+        monster1.goldDrop = 5;
+        monster1.scale = 0.333f;
+        monsterDataList.Add(monster1);
+
+        // Monster 2 - 빠르고 약한 몬스터
+        var monster2 = ScriptableObject.CreateInstance<MonsterData>();
+        monster2.monsterName = "Runner";
+        monster2.sprite = Resources.Load<Sprite>("monster_2");
+        monster2.health = 12f;
+        monster2.moveSpeed = 2.5f;
+        monster2.contactDamage = 7f;
+        monster2.expDrop = 1;
+        monster2.goldDrop = 3;
+        monster2.scale = 0.267f;
+        monsterDataList.Add(monster2);
+    }
+
     // ─── Player ───
     private void CreatePlayer()
     {
@@ -95,10 +125,14 @@ public class GameBootstrap : MonoBehaviour
         playerCar.tag = "Player";
         playerCar.layer = LayerMask.NameToLayer("Default");
 
-        // Sprite
+        // Sprite - 실제 차량 이미지 사용
         var sr = playerCar.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateCarSprite(Color.cyan);
+        var carSprite = Resources.Load<Sprite>("car_1");
+        sr.sprite = carSprite != null ? carSprite : CreateCarSprite(Color.cyan);
         sr.sortingOrder = 10;
+        // 500x500 이미지를 게임 크기에 맞게 스케일 조정
+        if (carSprite != null)
+            playerCar.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
 
         // Collider
         var col = playerCar.AddComponent<BoxCollider2D>();
@@ -107,7 +141,7 @@ public class GameBootstrap : MonoBehaviour
         // Rigidbody
         var rb = playerCar.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
-        rb.drag = 3f;
+        rb.drag = 0f;
         rb.freezeRotation = true;
 
         // Scripts
@@ -127,7 +161,7 @@ public class GameBootstrap : MonoBehaviour
     private void CreateCamera()
     {
         Camera.main.backgroundColor = new Color(0.1f, 0.1f, 0.15f);
-        Camera.main.orthographicSize = 8f;
+        Camera.main.orthographicSize = 12f;
         var follow = Camera.main.gameObject.AddComponent<CameraFollow>();
         follow.target = playerCar.transform;
     }
@@ -145,53 +179,67 @@ public class GameBootstrap : MonoBehaviour
     {
         var spawnerObj = new GameObject("EnemySpawner");
         var spawner = spawnerObj.AddComponent<EnemySpawner>();
-        spawner.enemyPrefab = CreateEnemyPrefab();
+
+        // 각 몬스터 타입별 프리팹 생성
+        foreach (var data in monsterDataList)
+        {
+            spawner.enemyPrefabs.Add(CreateEnemyPrefab());
+            spawner.monsterDataList.Add(data);
+        }
+
+        // fallback: 몬스터 데이터가 없으면 기본 적 프리팹 사용
+        if (spawner.enemyPrefabs.Count == 0)
+        {
+            spawner.enemyPrefab = CreateEnemyPrefab();
+        }
     }
 
     // ─── Background ───
     private void CreateBackground()
     {
-        // Create a grid of road tiles
-        int gridSize = 10;
-        float tileSize = 6f;
+        var mapSprite = Resources.Load<Sprite>("map_1");
 
-        for (int x = -gridSize; x <= gridSize; x++)
+        if (mapSprite != null)
         {
-            for (int y = -gridSize; y <= gridSize; y++)
-            {
-                var tile = new GameObject($"Tile_{x}_{y}");
-                tile.transform.position = new Vector3(x * tileSize, y * tileSize, 0);
+            // map_1 이미지를 타일링하여 배경으로 사용
+            int gridSize = 4;
+            float tileSize = mapSprite.bounds.size.x;
 
-                var sr = tile.AddComponent<SpriteRenderer>();
-                sr.sprite = CreateSquareSprite();
-                sr.color = (x + y) % 2 == 0
-                    ? new Color(0.15f, 0.15f, 0.2f)
-                    : new Color(0.12f, 0.12f, 0.17f);
-                sr.sortingOrder = -10;
-                tile.transform.localScale = new Vector3(tileSize, tileSize, 1);
+            for (int x = -gridSize; x <= gridSize; x++)
+            {
+                for (int y = -gridSize; y <= gridSize; y++)
+                {
+                    var tile = new GameObject($"BG_{x}_{y}");
+                    tile.transform.position = new Vector3(x * tileSize, y * tileSize, 0);
+
+                    var sr = tile.AddComponent<SpriteRenderer>();
+                    sr.sprite = mapSprite;
+                    sr.sortingOrder = -10;
+                }
             }
         }
-
-        // Road lines
-        for (int i = -gridSize; i <= gridSize; i++)
+        else
         {
-            // Horizontal
-            var hLine = new GameObject($"HLine_{i}");
-            var hSr = hLine.AddComponent<SpriteRenderer>();
-            hSr.sprite = CreateSquareSprite();
-            hSr.color = new Color(0.3f, 0.3f, 0.15f, 0.3f);
-            hSr.sortingOrder = -9;
-            hLine.transform.position = new Vector3(0, i * tileSize, 0);
-            hLine.transform.localScale = new Vector3(gridSize * tileSize * 2, 0.05f, 1);
+            // Fallback: 단색 배경
+            int gridSize = 10;
+            float tileSize = 6f;
 
-            // Vertical
-            var vLine = new GameObject($"VLine_{i}");
-            var vSr = vLine.AddComponent<SpriteRenderer>();
-            vSr.sprite = CreateSquareSprite();
-            vSr.color = new Color(0.3f, 0.3f, 0.15f, 0.3f);
-            vSr.sortingOrder = -9;
-            vLine.transform.position = new Vector3(i * tileSize, 0, 0);
-            vLine.transform.localScale = new Vector3(0.05f, gridSize * tileSize * 2, 1);
+            for (int x = -gridSize; x <= gridSize; x++)
+            {
+                for (int y = -gridSize; y <= gridSize; y++)
+                {
+                    var tile = new GameObject($"Tile_{x}_{y}");
+                    tile.transform.position = new Vector3(x * tileSize, y * tileSize, 0);
+
+                    var sr = tile.AddComponent<SpriteRenderer>();
+                    sr.sprite = CreateSquareSprite();
+                    sr.color = (x + y) % 2 == 0
+                        ? new Color(0.15f, 0.15f, 0.2f)
+                        : new Color(0.12f, 0.12f, 0.17f);
+                    sr.sortingOrder = -10;
+                    tile.transform.localScale = new Vector3(tileSize, tileSize, 1);
+                }
+            }
         }
     }
 
@@ -491,9 +539,12 @@ public class GameBootstrap : MonoBehaviour
         enemy.tag = "Enemy";
 
         var sr = enemy.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateCarSprite(Color.red);
-        sr.color = Color.red;
+        var enemyCarSprite = Resources.Load<Sprite>("car_2");
+        sr.sprite = enemyCarSprite != null ? enemyCarSprite : CreateCarSprite(Color.red);
         sr.sortingOrder = 8;
+        // 500x500 이미지를 게임 크기에 맞게 스케일 조정
+        if (enemyCarSprite != null)
+            enemy.transform.localScale = new Vector3(0.375f, 0.375f, 1f);
 
         var col = enemy.AddComponent<BoxCollider2D>();
         col.size = new Vector2(0.8f, 1.2f);
@@ -504,7 +555,7 @@ public class GameBootstrap : MonoBehaviour
         rb.freezeRotation = true;
 
         var ai = enemy.AddComponent<EnemyAI>();
-        ai.moveSpeed = 3f;
+        ai.moveSpeed = 1.5f;
 
         var eh = enemy.AddComponent<EnemyHealth>();
         eh.maxHealth = 20f;

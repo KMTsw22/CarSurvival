@@ -98,7 +98,7 @@ public class AutoAttack : MonoBehaviour
 
     private void FireEMP(int level)
     {
-        float radius = 3f + level;
+        float radius = 10f + level;
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
         foreach (var hit in hits)
         {

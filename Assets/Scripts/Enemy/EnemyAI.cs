@@ -53,7 +53,7 @@ public class EnemyAI : MonoBehaviour
         rb.velocity = direction * moveSpeed * slowMultiplier;
 
         // Rotate to face player
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + 90f;
         transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
