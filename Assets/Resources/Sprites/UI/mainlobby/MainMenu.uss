@@ -176,11 +176,15 @@
 }
 
 .stage-name {
-    color: white;
+    color: rgb(255, 240, 150);
     font-size: 250%;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     margin-bottom: 2%;
+    -unity-font-definition: url("project://database/Assets/Resources/Fonts/BebasNeue-Regular.ttf");
+    -unity-text-outline-width: 2%;
+    -unity-text-outline-color: rgb(40, 20, 0);
+    text-shadow: 3% 3% 2% rgba(0, 0, 0, 0.8);
 }
 
 .map-preview {
