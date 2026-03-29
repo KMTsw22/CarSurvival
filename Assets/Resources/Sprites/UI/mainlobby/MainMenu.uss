@@ -288,16 +288,17 @@
     flex-grow: 1;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 5% 0;
+    justify-content: flex-start;
+    padding-top: 5%;
 }
 
 .nav-icon {
     width: 35%;
     height: 45%;
-    background-color: rgb(80, 80, 80);
+    background-color: rgba(0, 0, 0, 0);
     border-radius: 10%;
     margin-bottom: 3%;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .nav-active {
@@ -305,7 +306,27 @@
 }
 
 .nav-active .nav-icon {
-    background-color: rgb(60, 30, 0);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.nav-shop-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Shop.png");
+}
+
+.nav-parts-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Parts.png");
+}
+
+.nav-battle-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Battle.png");
+}
+
+.nav-paint-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Palet.png");
+}
+
+.nav-upgrade-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Upgrade.png");
 }
 
 .nav-label {
