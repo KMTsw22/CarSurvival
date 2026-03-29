@@ -40,6 +40,8 @@
     background-color: rgb(80, 80, 80);
     border-width: 3%;
     border-color: rgb(255, 200, 0);
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Person.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .profile-info {
@@ -312,7 +314,7 @@
 }
 
 .coin-icon-img {
-    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Yellow 1.png");
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Gold.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
