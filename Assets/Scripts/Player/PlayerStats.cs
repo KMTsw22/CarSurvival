@@ -4,13 +4,20 @@ using System.Collections.Generic;
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("Base Stats")]
+    [Header("Base Stats (TB_Car 기반)")]
     public float maxHealth = 100f;
     public float currentHealth;
     public float moveSpeed = 5f;
     public float attackSpeed = 1f;
     public float damage = 10f;
     public float defense = 0f;
+
+    // TB_Car에서 로드한 기본 스탯 (RecalculateStats에서 사용)
+    [HideInInspector] public float baseMaxHealth;
+    [HideInInspector] public float baseMoveSpeed;
+    [HideInInspector] public float baseAtkSpeed;
+    [HideInInspector] public float baseDamage;
+    [HideInInspector] public string currentCarId = "CAR_001";
 
     [Header("Fuel")]
     public float maxFuel = 600f; // 10 minutes in seconds
@@ -19,8 +26,8 @@ public class PlayerStats : MonoBehaviour
     [Header("Experience")]
     public int currentExp = 0;
     public int level = 1;
-    public int expToNextLevel = 10;
-    public float expGrowthRate = 1.2f;
+    public int expToNextLevel = 30; // TB_Level 레벨1 기준
+    [HideInInspector] public int accumulatedExp = 0; // 누적 경험치
 
     [Header("Currency")]
     public int gold = 0;
@@ -40,6 +47,36 @@ public class PlayerStats : MonoBehaviour
 
     private void Start()
     {
+        var tm = TableManager.Instance;
+
+        // TB_Car에서 기본 스탯 로드
+        var carData = tm.GetCar(currentCarId);
+        if (carData != null)
+        {
+            baseMaxHealth = carData.base_hp;
+            baseMoveSpeed = carData.base_speed;
+            baseAtkSpeed = carData.base_atk_speed;
+            baseDamage = carData.base_damage;
+
+            maxHealth = baseMaxHealth;
+            moveSpeed = baseMoveSpeed;
+            attackSpeed = baseAtkSpeed;
+            damage = baseDamage;
+        }
+        else
+        {
+            // 테이블 없으면 기본값 사용
+            baseMaxHealth = maxHealth;
+            baseMoveSpeed = moveSpeed;
+            baseAtkSpeed = attackSpeed;
+            baseDamage = damage;
+        }
+
+        // TB_Level 테이블에서 레벨1 경험치 로드
+        var levelData = tm.GetLevel(1);
+        if (levelData != null)
+            expToNextLevel = levelData.required_exp_gap;
+
         currentHealth = maxHealth;
         currentFuel = maxFuel;
         NotifyAll();
@@ -69,11 +106,43 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 테이블 ID로 차량 변경. Garage에서 호출.
+    /// </summary>
+    public void InitFromCarTable(string carId)
+    {
+        currentCarId = carId;
+        var carData = TableManager.Instance.GetCar(carId);
+        if (carData == null) return;
+
+        baseMaxHealth = carData.base_hp;
+        baseMoveSpeed = carData.base_speed;
+        baseAtkSpeed = carData.base_atk_speed;
+        baseDamage = carData.base_damage;
+
+        maxHealth = baseMaxHealth;
+        moveSpeed = baseMoveSpeed;
+        attackSpeed = baseAtkSpeed;
+        damage = baseDamage;
+        currentHealth = maxHealth;
+
+        RecalculateStats();
+        NotifyAll();
+    }
+
+    /// <summary>
+    /// 기존 ScriptableObject 방식 호환용 (레거시)
+    /// </summary>
     public void InitFromCarData(CarData carData)
     {
-        maxHealth = carData.maxHealth;
-        moveSpeed = carData.moveSpeed;
-        attackSpeed *= carData.attackCooldownMultiplier;
+        baseMaxHealth = carData.maxHealth;
+        baseMoveSpeed = carData.moveSpeed;
+        baseAtkSpeed = carData.attackCooldownMultiplier;
+        baseDamage = damage;
+
+        maxHealth = baseMaxHealth;
+        moveSpeed = baseMoveSpeed;
+        attackSpeed *= baseAtkSpeed;
         defense = carData.defenseMultiplier;
         currentHealth = maxHealth;
         NotifyAll();
@@ -104,7 +173,12 @@ public class PlayerStats : MonoBehaviour
         {
             currentExp -= expToNextLevel;
             level++;
-            expToNextLevel = Mathf.RoundToInt(expToNextLevel * expGrowthRate);
+
+            // TB_Level 테이블에서 다음 레벨 경험치 조회
+            var nextLevel = TableManager.Instance.GetLevel(level);
+            if (nextLevel != null)
+                expToNextLevel = nextLevel.required_exp_gap;
+
             pendingLevelUps++;
         }
 
@@ -173,10 +247,10 @@ public class PlayerStats : MonoBehaviour
             bonusDefense += part.data.defenseBonus * multiplier;
         }
 
-        moveSpeed = 5f * (1f + bonusSpeed / 100f);
-        attackSpeed = 1f * (1f + bonusAttackSpeed / 100f);
-        damage = 10f * (1f + bonusDamage / 100f);
-        maxHealth = 100f * (1f + bonusHealth / 100f);
+        moveSpeed = baseMoveSpeed * (1f + bonusSpeed / 100f);
+        attackSpeed = baseAtkSpeed * (1f + bonusAttackSpeed / 100f);
+        damage = baseDamage * (1f + bonusDamage / 100f);
+        maxHealth = baseMaxHealth * (1f + bonusHealth / 100f);
         defense = Mathf.Clamp01(bonusDefense / 100f);
     }
 

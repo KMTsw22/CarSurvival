@@ -15,6 +15,9 @@ public class GameBootstrap : MonoBehaviour
 
     private void Awake()
     {
+        // 테이블 데이터 로드 (가장 먼저)
+        TableManager.Instance.LoadAll();
+
         CreatePartsDatabase();
         CreateMonsterDatabase();
         CreatePlayer();
@@ -25,97 +28,120 @@ public class GameBootstrap : MonoBehaviour
         CreateBackground();
     }
 
-    // ─── Parts Database ───
+    // ─── Parts Database (테이블 기반) ───
     private void CreatePartsDatabase()
     {
         partsDB = ScriptableObject.CreateInstance<PartsDatabase>();
+        var tm = TableManager.Instance;
 
-        // Engine parts
-        partsDB.allParts.Add(CreatePart("Turbocharger", "Move Speed +12%", PartsCategory.Engine,
-            speedBonus: 12f));
-        partsDB.allParts.Add(CreatePart("Supercharger", "Attack Speed +15%", PartsCategory.Engine,
-            attackSpeedBonus: 15f));
-        partsDB.allParts.Add(CreatePart("NOS Booster", "3s Invincible Dash (CD 20s)", PartsCategory.Special,
-            speedBonus: 8f));
-        partsDB.allParts.Add(CreatePart("Lightweight Chassis", "Speed +8%, HP -5%", PartsCategory.Engine,
-            speedBonus: 8f, healthBonus: -5f));
-
-        // Weapon parts
-        partsDB.allParts.Add(CreatePart("Missile Launcher", "Fire homing missiles", PartsCategory.Weapon,
-            damageBonus: 15f, weaponType: WeaponType.MissileLauncher));
-        partsDB.allParts.Add(CreatePart("EMP Pulse", "Stun nearby enemies", PartsCategory.Weapon,
-            damageBonus: 10f, weaponType: WeaponType.EMPPulse));
-        partsDB.allParts.Add(CreatePart("Oil Slick", "Slow enemies behind you", PartsCategory.Weapon,
-            weaponType: WeaponType.OilSlick));
-        partsDB.allParts.Add(CreatePart("Machine Gun+", "Increased bullet damage", PartsCategory.Weapon,
-            damageBonus: 20f));
-        partsDB.allParts.Add(CreatePart("Mine Drop", "Drop mines on your path", PartsCategory.Weapon,
-            damageBonus: 10f, weaponType: WeaponType.MineDrop));
-
-        // Defense parts
-        partsDB.allParts.Add(CreatePart("Run-Flat Tire", "Damage Taken -20%", PartsCategory.Defense,
-            defenseBonus: 20f));
-        partsDB.allParts.Add(CreatePart("Reinforced Body", "Max HP +30%", PartsCategory.Defense,
-            healthBonus: 30f));
-        partsDB.allParts.Add(CreatePart("Side Ram", "Reflect collision damage", PartsCategory.Defense,
-            defenseBonus: 10f));
-
-        // Special parts
-        partsDB.allParts.Add(CreatePart("Drafting", "Speed +25% near enemies", PartsCategory.Special,
-            speedBonus: 10f));
-        partsDB.allParts.Add(CreatePart("Auto Repair Kit", "Regen 1% HP/s", PartsCategory.Special,
-            healthRegen: 0.01f));
-        partsDB.allParts.Add(CreatePart("Radar", "Show enemies on minimap", PartsCategory.Special,
-            speedBonus: 3f));
+        // 드랍 ��능한 파츠만 (진화 파츠 제외)
+        foreach (var row in tm.GetDroppableParts())
+        {
+            partsDB.allParts.Add(CreatePartFromTable(row));
+        }
     }
 
-    private PartsData CreatePart(string name, string desc, PartsCategory category,
-        float speedBonus = 0, float attackSpeedBonus = 0, float damageBonus = 0,
-        float healthBonus = 0, float defenseBonus = 0, float healthRegen = 0,
-        WeaponType weaponType = WeaponType.None)
+    private PartsData CreatePartFromTable(PartRow row)
     {
         var part = ScriptableObject.CreateInstance<PartsData>();
-        part.partName = name;
-        part.description = desc;
-        part.category = category;
+        part.partName = row.part_name;
+        part.description = row.effect_desc;
+        part.category = ParseEnum<PartsCategory>(row.category);
         part.grade = PartsGrade.Common;
-        part.speedBonus = speedBonus;
-        part.attackSpeedBonus = attackSpeedBonus;
-        part.damageBonus = damageBonus;
-        part.healthBonus = healthBonus;
-        part.defenseBonus = defenseBonus;
-        part.healthRegenPerSecond = healthRegen;
-        part.weaponType = weaponType;
-        part.maxLevel = 3;
+        part.maxLevel = row.max_level;
+
+        // effect_type에 따라 적절한 보너�� 필드에 base_value 할당
+        switch (row.effect_type)
+        {
+            case "SpeedUp":
+                part.speedBonus = row.base_value;
+                break;
+            case "AtkSpeedUp":
+                part.attackSpeedBonus = row.base_value;
+                break;
+            case "DamageUp":
+                part.damageBonus = row.base_value;
+                break;
+            case "HpUp":
+                part.healthBonus = row.base_value;
+                break;
+            case "DefenseUp":
+                part.defenseBonus = row.base_value;
+                break;
+            case "HpRegen":
+                part.healthRegenPerSecond = row.base_value / 100f;
+                break;
+            case "CollisionReflect":
+                part.defenseBonus = row.base_value;
+                break;
+        }
+
+        // 특수 케이스: 경량화 섀시 (속도+, 체력-)
+        if (row.part_id == "PART_004")
+            part.healthBonus = -5f;
+
+        part.hasActiveAbility = row.has_active;
+        part.abilityCooldown = row.cooldown;
+        part.abilityDuration = row.duration;
+        part.weaponType = ParseWeaponType(row.weapon_type);
+
         return part;
     }
 
-    // ─── Monster Database ───
+    private T ParseEnum<T>(string value) where T : struct
+    {
+        if (System.Enum.TryParse<T>(value, true, out var result))
+            return result;
+        return default;
+    }
+
+    private WeaponType ParseWeaponType(string value)
+    {
+        return value switch
+        {
+            "MachineGun" => WeaponType.MachineGun,
+            "Missile" => WeaponType.MissileLauncher,
+            "EMP" => WeaponType.EMPPulse,
+            "OilSlick" => WeaponType.OilSlick,
+            "Mine" => WeaponType.MineDrop,
+            _ => WeaponType.None,
+        };
+    }
+
+    // ─── Monster Database (테이블 기반) ───
     private void CreateMonsterDatabase()
     {
-        // Monster 1 - 기본 몬스터
-        var monster1 = ScriptableObject.CreateInstance<MonsterData>();
-        monster1.monsterName = "Zombie";
-        monster1.sprite = Resources.Load<Sprite>("monster_1");
-        monster1.health = 20f;
-        monster1.moveSpeed = 1.5f;
-        monster1.contactDamage = 10f;
-        monster1.expDrop = 2;
-        monster1.goldDrop = 5;
-        monster1.scale = 0.333f;
-        monsterDataList.Add(monster1);
+        var tm = TableManager.Instance;
 
-        // Monster 2 - 빠르고 약한 몬스터
-        var monster2 = ScriptableObject.CreateInstance<MonsterData>();
-        monster2.monsterName = "Runner";
-        monster2.sprite = Resources.Load<Sprite>("monster_2");
-        monster2.health = 12f;
-        monster2.moveSpeed = 2.5f;
-        monster2.contactDamage = 7f;
-        monster2.expDrop = 1;
-        monster2.goldDrop = 3;
-        monster2.scale = 0.267f;
-        monsterDataList.Add(monster2);
+        foreach (var row in tm.Monsters)
+        {
+            var monster = ScriptableObject.CreateInstance<MonsterData>();
+            monster.monsterName = row.mon_name;
+            monster.health = row.base_hp;
+            monster.moveSpeed = row.base_speed;
+            monster.contactDamage = row.contact_damage;
+            monster.scale = row.scale;
+
+            // 드랍 정보는 TB_MonsterDrop에서 가져옴
+            var drop = tm.GetMonsterDrop(row.mon_id);
+            if (drop != null)
+            {
+                monster.expDrop = drop.exp_amount;
+                monster.goldDrop = drop.gold_amount;
+            }
+
+            // 스프라이트 로드 시도 (Sprites/Monsters/ 하위 폴더 우선, 없으면 원본 경로)
+            var sprite = Resources.Load<Sprite>("Sprites/Monsters/" + row.sprite_key)
+                         ?? Resources.Load<Sprite>(row.sprite_key);
+            if (sprite != null)
+                monster.sprite = sprite;
+
+            // 색조
+            if (ColorUtility.TryParseHtmlString(row.tint_color, out var color))
+                monster.tintColor = color;
+
+            monsterDataList.Add(monster);
+        }
     }
 
     // ─── Player ───
@@ -127,7 +153,7 @@ public class GameBootstrap : MonoBehaviour
 
         // Sprite - 실제 차량 이미지 사용
         var sr = playerCar.AddComponent<SpriteRenderer>();
-        var carSprite = Resources.Load<Sprite>("car_1");
+        var carSprite = Resources.Load<Sprite>("Sprites/Cars/car_1");
         sr.sprite = carSprite != null ? carSprite : CreateCarSprite(Color.cyan);
         sr.sortingOrder = 10;
         // 500x500 이미지를 게임 크기에 맞게 스케일 조정
@@ -197,7 +223,7 @@ public class GameBootstrap : MonoBehaviour
     // ─── Background ───
     private void CreateBackground()
     {
-        var mapSprite = Resources.Load<Sprite>("map_1");
+        var mapSprite = Resources.Load<Sprite>("Sprites/Maps/map_1");
 
         if (mapSprite != null)
         {
@@ -539,12 +565,11 @@ public class GameBootstrap : MonoBehaviour
         enemy.tag = "Enemy";
 
         var sr = enemy.AddComponent<SpriteRenderer>();
-        var enemyCarSprite = Resources.Load<Sprite>("car_2");
+        var enemyCarSprite = Resources.Load<Sprite>("Sprites/Cars/car_2");
         sr.sprite = enemyCarSprite != null ? enemyCarSprite : CreateCarSprite(Color.red);
         sr.sortingOrder = 8;
-        // 500x500 이미지를 게임 크기에 맞게 스케일 조정
-        if (enemyCarSprite != null)
-            enemy.transform.localScale = new Vector3(0.375f, 0.375f, 1f);
+        // 스케일은 ApplyMonsterData에서 data.scale로 설정됨 — 프리팹은 1로 둠
+        enemy.transform.localScale = Vector3.one;
 
         var col = enemy.AddComponent<BoxCollider2D>();
         col.size = new Vector2(0.8f, 1.2f);

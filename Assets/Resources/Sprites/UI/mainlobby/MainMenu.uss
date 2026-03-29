@@ -1,0 +1,367 @@
+/* ================================================
+   MainLobby UI Stylesheet
+   모바일 세로(9:16~9:19) 비율 기준 — 모든 크기 % 단위
+================================================ */
+
+/* ===== ROOT ===== */
+.root-container {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Background.jpg");
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* ===== 상단 HUD ===== */
+.top-hud {
+    width: 100%;
+    height: 10%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(20, 20, 20, 0.9);
+    padding: 0 3%;
+    flex-shrink: 0;
+}
+
+.profile-section {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 70%;
+}
+
+.profile-icon {
+    width: 0;
+    height: 100%;
+    padding-left: 100%;
+    border-radius: 50%;
+    background-color: rgb(80, 80, 80);
+    border-width: 3%;
+    border-color: rgb(255, 200, 0);
+}
+
+.profile-info {
+    flex-direction: column;
+    margin-left: 2%;
+    justify-content: center;
+}
+
+.player-name {
+    color: white;
+    font-size: 250%;
+    -unity-font-style: bold;
+}
+
+.exp-bar-bg {
+    width: 100%;
+    height: 15%;
+    background-color: rgb(60, 60, 60);
+    border-radius: 50%;
+    margin-top: 5%;
+}
+
+.exp-bar-fill {
+    width: 60%;
+    height: 100%;
+    background-color: rgb(80, 220, 80);
+    border-radius: 50%;
+}
+
+.lv-label {
+    color: rgb(255, 200, 0);
+    font-size: 180%;
+    -unity-font-style: bold;
+    margin-top: 3%;
+}
+
+.currency-section {
+    flex-direction: row;
+    align-items: center;
+    height: 50%;
+}
+
+.currency-box {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(50, 50, 50);
+    border-radius: 50%;
+    padding: 5% 10%;
+    margin-left: 5%;
+    border-width: 1%;
+    border-color: rgb(80, 80, 80);
+    height: 100%;
+}
+
+.currency-icon {
+    width: 30%;
+    height: 60%;
+    margin-right: 5%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.currency-label {
+    color: white;
+    font-size: 200%;
+    -unity-font-style: bold;
+}
+
+/* ===== 중간 영역 ===== */
+.middle-area {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 0;
+}
+
+/* ===== 사이드 버튼 ===== */
+.side-buttons {
+    width: 18%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 15%;
+    flex-shrink: 0;
+}
+
+.side-btn-wrap {
+    width: 85%;
+    height: 0;
+    padding-bottom: 85%;
+    margin-bottom: 15%;
+    position: relative;
+}
+
+.side-btn-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Frame.png");
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 0;
+    padding: 0;
+}
+
+.side-btn-img {
+    width: 60%;
+    height: 60%;
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.badge {
+    width: 20%;
+    height: 20%;
+    position: absolute;
+    top: -5%;
+    right: -5%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ===== 중앙 콘텐츠 ===== */
+.main-content {
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 1%;
+    min-width: 0;
+}
+
+.stage-name {
+    color: white;
+    font-size: 250%;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 2%;
+}
+
+.map-preview {
+    width: 95%;
+    flex-grow: 1;
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/map.png");
+    -unity-background-scale-mode: scale-to-fit;
+    border-radius: 3%;
+    margin-bottom: 2%;
+    min-height: 0;
+}
+
+/* ===== START GAME ===== */
+.start-section {
+    width: 100%;
+    height: 7%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0 5%;
+}
+
+.fuel-round {
+    width: 0;
+    height: 70%;
+    padding-left: 5%;
+    border-radius: 50%;
+    background-color: rgb(230, 230, 230);
+    align-items: center;
+    justify-content: center;
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 2%;
+    border-color: rgb(200, 200, 200);
+}
+
+.x5-label {
+    color: rgb(40, 120, 40);
+    font-size: 150%;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.start-btn {
+    flex-grow: 1;
+    height: 75%;
+    max-width: 60%;
+    background-color: rgb(255, 200, 0);
+    border-radius: 50%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 0 3%;
+    border-bottom-width: 4%;
+    border-bottom-color: rgb(200, 150, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+}
+
+.start-btn-icon {
+    width: 8%;
+    height: 50%;
+    margin-right: 2%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.start-label {
+    color: rgb(60, 30, 0);
+    font-size: 250%;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* ===== 하단 네비 ===== */
+.bottom-nav {
+    width: 100%;
+    height: 8%;
+    flex-direction: row;
+    align-items: stretch;
+    background-color: rgb(15, 15, 15);
+    flex-shrink: 0;
+    border-top-width: 1%;
+    border-top-color: rgb(50, 50, 50);
+}
+
+.nav-btn {
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5% 0;
+}
+
+.nav-icon {
+    width: 35%;
+    height: 45%;
+    background-color: rgb(80, 80, 80);
+    border-radius: 10%;
+    margin-bottom: 3%;
+}
+
+.nav-active {
+    background-color: rgb(255, 200, 0);
+}
+
+.nav-active .nav-icon {
+    background-color: rgb(60, 30, 0);
+}
+
+.nav-label {
+    color: rgb(120, 120, 120);
+    font-size: 120%;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.nav-label-active {
+    color: rgb(30, 30, 30);
+}
+
+/* ===== 이미지 경로 ===== */
+.fuel-icon-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Fuel.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.diamond-icon-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Diamond.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.coin-icon-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Yellow 1.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.badge-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Badge.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.setting-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/SETTING.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.missions-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/MISSIONS.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.guild-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/GUILD.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.friends-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/FRIENDS.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+/* ProgressBar 전체 컨테이너 */
+.unity-progress-bar__container {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* ProgressBar 배경 */
+.unity-progress-bar__background {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* ProgressBar 채워지는 부분 */
+.unity-progress-bar__progress {
+    border-radius: 10px;
+}
+/* 배경색 (비어있는 부분) */
+.unity-progress-bar__background {
+    background-color: rgb(60, 60, 60);
+}
+
+/* 채워지는 부분 색상 */
+.unity-progress-bar__progress {
+    background-color: rgb(80, 220, 80);
+}

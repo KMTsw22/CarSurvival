@@ -1,0 +1,106 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Sprites/UI/mainlobby/MainMenu.uss?fileID=7433441132597879392&amp;guid=e00e62a8ebd4b694189cf4ecdf0debb8&amp;type=3#MainMenu" />
+    <ui:VisualElement name="root-container" class="root-container">
+        <ui:VisualElement name="top-hud" class="top-hud" style="-unity-text-outline-color: rgba(0, 0, 0, 0.94); background-color: rgb(20, 20, 20); height: 7.5%; padding-right: 1%;">
+            <ui:VisualElement name="top-hud-left" style="flex-grow: 1; width: 10%; flex-direction: row; height: 80%; padding-left: 10px; padding-bottom: 0; padding-top: 10px; padding-right: 10px;">
+                <ui:VisualElement name="profile-section" class="profile-section" style="flex-direction: column; width: 20%; height: 100%; padding-right: 10px;">
+                    <ui:VisualElement name="profile-icon" class="profile-icon" style="width: 106px; border-top-left-radius: 40%; border-top-right-radius: 40%; border-bottom-right-radius: 40%; border-bottom-left-radius: 40%;" />
+                    <ui:VisualElement name="profile-info" class="profile-info">
+                        <ui:VisualElement name="exp-bar-bg" class="exp-bar-bg">
+                            <ui:VisualElement name="exp-bar-fill" class="exp-bar-fill" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-grow: 1; padding-left: 0; margin-left: 20px;">
+                    <ui:Label name="player-name" text="DRIVER_001" class="player-name" style="-unity-text-align: upper-center; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; align-items: flex-start; align-self: flex-start; margin-left: 10px;" />
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row; margin-left: 6px;">
+                        <ui:Label name="lv-label" text="LV25" class="lv-label" style="font-size: 20px;" />
+                        <ui:ProgressBar value="22" style="justify-content: center; width: 50%; border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; margin-left: 15px; margin-top: 3px; padding-top: 0; margin-bottom: 2px; padding-bottom: 8px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="top-hud-right" style="flex-grow: 1;">
+                <ui:VisualElement name="currency-section" class="currency-section" style="width: 100%; height: 100%;">
+                    <ui:VisualElement name="energy-box" class="currency-box" style="border-top-left-radius: 50px; border-top-right-radius: 50px; border-bottom-right-radius: 50px; border-bottom-left-radius: 50px; height: 80%; -unity-text-align: middle-center; width: 30%; align-items: center; justify-content: flex-start; align-self: auto; padding-top: 3%; padding-right: 2%; padding-bottom: 3%; padding-left: 2%; margin-left: 2%; margin-right: 2%;">
+                        <ui:VisualElement class="currency-icon fuel-icon-img" style="width: 50%; height: 100%; padding-right: 50px; align-self: auto; flex-direction: column-reverse; align-items: auto; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:Label text="60/60" class="currency-label" style="width: 50%; height: auto; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 10px; padding-bottom: 0; padding-left: 0; align-self: auto; font-size: 25px;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="gem-box" class="currency-box" style="height: 80%; border-top-left-radius: 50px; border-top-right-radius: 50px; border-bottom-right-radius: 50px; border-bottom-left-radius: 50px; -unity-text-align: middle-center; padding-top: 3%; padding-right: 2%; padding-bottom: 3%; padding-left: 2%; margin-top: 0; margin-right: 2%; margin-bottom: 0; margin-left: 2%; width: 30%;">
+                        <ui:VisualElement class="currency-icon diamond-icon-img" />
+                        <ui:Label text="2240" class="currency-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="coin-box" class="currency-box" style="height: 80%; border-top-left-radius: 50px; border-top-right-radius: 50px; border-bottom-right-radius: 50px; border-bottom-left-radius: 50px; -unity-text-align: middle-center; width: 30%; margin-left: 2%;">
+                        <ui:VisualElement class="currency-icon coin-icon-img" />
+                        <ui:Label text="163K" class="currency-label" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="middle-area" class="middle-area">
+            <ui:VisualElement name="left-buttons" class="side-buttons">
+                <ui:VisualElement name="setting-wrap" class="side-btn-wrap">
+                    <ui:VisualElement class="side-btn-bg">
+                        <ui:VisualElement class="side-btn-img setting-img" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="badge badge-img" />
+                </ui:VisualElement>
+                <ui:VisualElement name="mission-wrap" class="side-btn-wrap">
+                    <ui:VisualElement class="side-btn-bg">
+                        <ui:VisualElement class="side-btn-img missions-img" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="badge badge-img" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="main-content" class="main-content">
+                <ui:Label name="stage-name" text="1. RUINED HIGHWAY" class="stage-name" />
+                <ui:VisualElement name="map-preview" class="map-preview" />
+            </ui:VisualElement>
+            <ui:VisualElement name="right-buttons" class="side-buttons">
+                <ui:VisualElement name="guild-wrap" class="side-btn-wrap">
+                    <ui:VisualElement class="side-btn-bg">
+                        <ui:VisualElement class="side-btn-img guild-img" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="badge badge-img" />
+                </ui:VisualElement>
+                <ui:VisualElement name="friends-wrap" class="side-btn-wrap">
+                    <ui:VisualElement class="side-btn-bg">
+                        <ui:VisualElement class="side-btn-img friends-img" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="badge badge-img" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="start-section" class="start-section">
+            <ui:VisualElement name="fuel-left" class="fuel-round fuel-icon-img" />
+            <ui:VisualElement name="start-btn" class="start-btn">
+                <ui:VisualElement class="start-btn-icon fuel-icon-img" />
+                <ui:Label text="START GAME" class="start-label" />
+            </ui:VisualElement>
+            <ui:VisualElement name="fuel-right" class="fuel-round fuel-icon-img">
+                <ui:Label text="X5" class="x5-label" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="bottom-nav" class="bottom-nav">
+            <ui:VisualElement class="nav-btn">
+                <ui:VisualElement class="nav-icon" />
+                <ui:Label text="SHOP" class="nav-label" />
+            </ui:VisualElement>
+            <ui:VisualElement class="nav-btn">
+                <ui:VisualElement class="nav-icon" />
+                <ui:Label text="PARTS" class="nav-label" />
+            </ui:VisualElement>
+            <ui:VisualElement class="nav-btn nav-active">
+                <ui:VisualElement class="nav-icon" />
+                <ui:Label text="BATTLE" class="nav-label nav-label-active" />
+            </ui:VisualElement>
+            <ui:VisualElement class="nav-btn">
+                <ui:VisualElement class="nav-icon" />
+                <ui:Label text="CHALLENGE" class="nav-label" />
+            </ui:VisualElement>
+            <ui:VisualElement class="nav-btn">
+                <ui:VisualElement class="nav-icon" />
+                <ui:Label text="EVOLVE" class="nav-label" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

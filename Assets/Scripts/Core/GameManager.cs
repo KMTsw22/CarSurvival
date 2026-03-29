@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System;
 
 public class GameManager : MonoBehaviour
@@ -7,6 +8,7 @@ public class GameManager : MonoBehaviour
 
     public enum GameState
     {
+        Lobby,
         Garage,
         Playing,
         LevelUp,
@@ -65,7 +67,19 @@ public class GameManager : MonoBehaviour
     public void RestartRun()
     {
         Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void GoToLobby()
+    {
+        Time.timeScale = 1f;
+        SetState(GameState.Lobby);
+        SceneManager.LoadScene("MainLobby");
+    }
+
+    public void StartGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("SampleScene");
     }
 }
