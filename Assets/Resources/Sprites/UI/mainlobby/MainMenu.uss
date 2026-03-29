@@ -230,19 +230,14 @@
 
 .start-btn {
     flex-grow: 1;
-    height: 75%;
-    max-width: 60%;
-    background-color: rgb(255, 200, 0);
-    border-radius: 50%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 2%;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin: 0 3%;
-    border-bottom-width: 4%;
-    border-bottom-color: rgb(200, 150, 0);
-    border-left-width: 0;
-    border-right-width: 0;
-    border-top-width: 0;
+    border-width: 0;
+    overflow: hidden;
 }
 
 .start-btn-icon {
@@ -250,6 +245,24 @@
     height: 50%;
     margin-right: 2%;
     -unity-background-scale-mode: scale-to-fit;
+}
+
+.start-btn-bg-top {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    height: 50%;
+    background-color: rgb(255, 200, 0);
+}
+
+.start-btn-bg-bottom {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    height: 50%;
+    background-color: rgb(230, 160, 0);
 }
 
 .start-label {

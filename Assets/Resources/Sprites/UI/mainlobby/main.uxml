@@ -70,14 +70,15 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="start-section" class="start-section">
-            <ui:VisualElement name="fuel-left" class="fuel-round fuel-icon-img" />
-            <ui:VisualElement name="start__btn" style="flex-grow: 1;">
-                <ui:VisualElement class="start-btn-icon fuel-icon-img" />
-                <ui:Label text="START GAME" class="start-label" />
+        <ui:VisualElement name="start-section" class="start-section" style="padding-bottom: 3%; height: 10%; padding-right: 30%; padding-left: 30%;">
+            <ui:VisualElement name="start__btn" class="start-btn" style="flex-grow: 1; border-top-left-radius: 45px; border-top-right-radius: 45px; border-bottom-right-radius: 45px; border-bottom-left-radius: 45px; flex-direction: row; align-items: center;">
+                <ui:VisualElement class="start-btn-bg-top" />
+                <ui:VisualElement class="start-btn-bg-bottom" />
+                <ui:Label text="START GAME" enable-rich-text="true" class="start-label" style="padding-bottom: 50px;" />
             </ui:VisualElement>
-            <ui:VisualElement name="fuel-right" class="fuel-round fuel-icon-img">
-                <ui:Label text="X5" class="x5-label" />
+            <ui:VisualElement name="start_fuel_img" style="flex-grow: 1; position: absolute; height: 114px; width: 353px; flex-direction: row; top: 56px; left: 359px;">
+                <ui:VisualElement class="start-btn-icon fuel-icon-img" style="width: 50%; position: absolute; top: 25px; left: 72px;" />
+                <ui:Label text="×5" class="x5-label" style="width: 50%; position: absolute; top: 27px; left: 122px; font-size: 35px;" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="bottom-nav" class="bottom-nav">
@@ -95,11 +96,11 @@
             </ui:VisualElement>
             <ui:VisualElement class="nav-btn">
                 <ui:VisualElement class="nav-icon" />
-                <ui:Label text="CHALLENGE" class="nav-label" />
+                <ui:Label text="PAINT" class="nav-label" />
             </ui:VisualElement>
             <ui:VisualElement class="nav-btn">
                 <ui:VisualElement class="nav-icon" />
-                <ui:Label text="EVOLVE" class="nav-label" />
+                <ui:Label text="UPGRADE" class="nav-label" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
