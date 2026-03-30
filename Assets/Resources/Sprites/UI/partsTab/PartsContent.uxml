@@ -1,0 +1,129 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Sprites/UI/core/Core.uss?fileID=7433441132597879392&amp;guid=101b86f64a24ad54f87371bf9d839405&amp;type=3#Core" />
+    <Style src="project://database/Assets/Resources/Sprites/UI/partsTab/PartsTab.uss?fileID=7433441132597879392&amp;guid=7c09a55289b0d6e4f9944c1161bb8fd9&amp;type=3#PartsTab" />
+    <ui:VisualElement name="parts-content" class="tab-content tab-content--active" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Resources/Sprites/UI/partsTab/Background.jpg?fileID=21300000&amp;guid=a946ab9f69027ef4cbc97e17e3c93c5b&amp;type=3#Background&quot;); -unity-background-scale-mode: scale-and-crop;">
+        <ui:VisualElement name="parts-car-area" class="parts-car-area">
+            <ui:VisualElement name="parts-slots-left" class="parts-slots-col" style="width: 24%; padding-left: 3%;">
+                <ui:VisualElement name="slot-weapon" class="equip-slot">
+                    <ui:VisualElement class="equip-slot-outer">
+                        <ui:VisualElement class="equip-slot-bg">
+                            <ui:VisualElement class="equip-slot-inner">
+                                <ui:VisualElement class="equip-slot-img equip-weapon-img" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="slot-engine" class="equip-slot">
+                    <ui:VisualElement class="equip-slot-outer">
+                        <ui:VisualElement class="equip-slot-bg">
+                            <ui:VisualElement class="equip-slot-inner">
+                                <ui:VisualElement class="equip-slot-img equip-engine-img" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="parts-car-center" class="parts-car-center" style="padding-top: 5%;">
+                <ui:VisualElement name="parts-car-img" class="parts-car-img" style="width: 60%; height: 60%; margin-bottom: 5%; padding-top: 0%;" />
+                <ui:Label name="parts-car-level" text="LV. 25" class="parts-car-level" style="padding-top: 1%; height: 12%;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="parts-slots-right" class="parts-slots-col" style="width: 24%; padding-right: 3%;">
+                <ui:VisualElement name="slot-defense" class="equip-slot">
+                    <ui:VisualElement class="equip-slot-outer">
+                        <ui:VisualElement class="equip-slot-bg">
+                            <ui:VisualElement class="equip-slot-inner">
+                                <ui:VisualElement class="equip-slot-img equip-defense-img" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="slot-battery" class="equip-slot">
+                    <ui:VisualElement class="equip-slot-outer">
+                        <ui:VisualElement class="equip-slot-bg">
+                            <ui:VisualElement class="equip-slot-inner">
+                                <ui:VisualElement class="equip-slot-img equip-battery-img" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="parts-panel" class="parts-panel">
+            <ui:VisualElement name="parts-sub-tabs" class="parts-sub-tabs" style="height: 12%;">
+                <ui:VisualElement name="sub-tab-grade" class="parts-sub-tab parts-sub-tab--gold" style="border-top-left-radius: 0%; border-top-right-radius: 0%; border-bottom-right-radius: 0%; border-bottom-left-radius: 0%; margin-right: 5%; margin-left: 0%;">
+                    <ui:VisualElement class="gold-btn-outer" style="height: 60%;">
+                        <ui:VisualElement class="gold-btn-body">
+                            <ui:VisualElement class="gold-btn-highlight" />
+                            <ui:Label text="By Grade" class="parts-sub-tab-label" style="-unity-text-outline-width: 0.5px;" />
+                            <ui:VisualElement class="gold-btn-shadow" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="sub-tab-myparts" class="parts-sub-tab parts-sub-tab--active" style="border-top-left-radius: 0%; border-top-right-radius: 0%; border-bottom-right-radius: 0%; border-bottom-left-radius: 0%;">
+                    <ui:Label text="My Parts" class="parts-sub-tab-label parts-sub-tab-label--active" style="-unity-text-outline-width: 0.5px;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="sub-tab-upgrade" class="parts-sub-tab parts-sub-tab--gold" style="margin-left: 5%; border-top-left-radius: 0%; border-top-right-radius: 0%; border-bottom-right-radius: 0%; border-bottom-left-radius: 0%; margin-right: 0%;">
+                    <ui:VisualElement class="gold-btn-outer" style="height: 60%;">
+                        <ui:VisualElement class="gold-btn-body">
+                            <ui:VisualElement class="gold-btn-highlight" />
+                            <ui:Label text="Upgrade" class="parts-sub-tab-label" style="-unity-text-outline-width: 0.5px;" />
+                            <ui:VisualElement class="gold-btn-shadow" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="parts-stats-bar" class="parts-stats-bar">
+                <ui:VisualElement class="parts-stat-group" style="width: 50%;">
+                    <ui:Label name="parts-count-label" text="Parts: 0/100" class="parts-stat-text" style="-unity-font-style: bold;" />
+                </ui:VisualElement>
+                <ui:VisualElement class="parts-stat-group" style="width: 25%;">
+                    <ui:Label name="parts-atk-label" text="ATK: " class="parts-stat-text" />
+                    <ui:Label name="parts-atk-value" text="+0" class="parts-stat-value parts-stat-value--green" />
+                </ui:VisualElement>
+                <ui:VisualElement class="parts-stat-group" style="width: 25%;">
+                    <ui:Label name="parts-hp-label" text="HP: " class="parts-stat-text" />
+                    <ui:Label name="parts-hp-value" text="+0" class="parts-stat-value parts-stat-value--green" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:ScrollView name="parts-grid-scroll" class="parts-grid-scroll">
+                <ui:VisualElement name="parts-grid" class="parts-grid" style="height: 100%;">
+                    <ui:VisualElement class="parts-grid-row" style="height: 200px;">
+                        <ui:VisualElement class="part-slot" style="margin-top: 0; margin-right: 3px; margin-bottom: 0; margin-left: 3px; padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="parts-grid-row" style="height: 200px;">
+                        <ui:VisualElement class="part-slot" style="margin-top: 0; margin-right: 3px; margin-bottom: 0; margin-left: 3px; padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="parts-grid-row" style="height: 200px;">
+                        <ui:VisualElement class="part-slot" style="margin-top: 0; margin-right: 3px; margin-bottom: 0; margin-left: 3px; padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="parts-grid-row" style="height: 200px;">
+                        <ui:VisualElement class="part-slot" style="margin-top: 0; margin-right: 3px; margin-bottom: 0; margin-left: 3px; padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="parts-grid-row" style="height: 200px;">
+                        <ui:VisualElement class="part-slot" style="margin-top: 0; margin-right: 3px; margin-bottom: 0; margin-left: 3px; padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                        <ui:VisualElement class="part-slot" style="padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

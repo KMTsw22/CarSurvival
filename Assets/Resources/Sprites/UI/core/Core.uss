@@ -1,0 +1,239 @@
+/* ================================================
+   Core UI Stylesheet — 모든 탭에서 공유
+   모바일 세로(9:16~9:19) 비율 기준 — 모든 크기 % 단위
+================================================ */
+
+/* ===== ROOT ===== */
+.root-container {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Background.jpg");
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* ===== 상단 HUD ===== */
+.top-hud {
+    width: 100%;
+    height: 10%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(20, 20, 20, 0.9);
+    padding: 0 3%;
+    flex-shrink: 0;
+}
+
+.profile-section {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 70%;
+}
+
+.profile-icon {
+    width: 0;
+    height: 100%;
+    padding-left: 100%;
+    border-radius: 50%;
+    background-color: rgb(80, 80, 80);
+    border-width: 3%;
+    border-color: rgb(255, 200, 0);
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Person.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.profile-info {
+    flex-direction: column;
+    margin-left: 2%;
+    justify-content: center;
+}
+
+.player-name {
+    color: white;
+    font-size: 250%;
+    -unity-font-style: bold;
+}
+
+.exp-bar-bg {
+    width: 100%;
+    height: 15%;
+    background-color: rgb(60, 60, 60);
+    border-radius: 50%;
+    margin-top: 5%;
+}
+
+.exp-bar-fill {
+    width: 60%;
+    height: 100%;
+    background-color: rgb(80, 220, 80);
+    border-radius: 50%;
+}
+
+.lv-label {
+    color: rgb(255, 200, 0);
+    font-size: 180%;
+    -unity-font-style: bold;
+    margin-top: 3%;
+}
+
+.currency-section {
+    flex-direction: row;
+    align-items: center;
+    height: 50%;
+}
+
+.currency-box {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(50, 50, 50);
+    border-radius: 50%;
+    padding: 5% 10%;
+    margin-left: 5%;
+    border-width: 1%;
+    border-color: rgb(80, 80, 80);
+    height: 100%;
+}
+
+.currency-icon {
+    width: 30%;
+    height: 60%;
+    margin-right: 5%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.currency-label {
+    color: white;
+    font-size: 200%;
+    -unity-font-style: bold;
+}
+
+/* ===== 하단 네비 ===== */
+.bottom-nav {
+    width: 100%;
+    height: 8%;
+    flex-direction: row;
+    align-items: stretch;
+    background-color: rgb(15, 15, 15);
+    flex-shrink: 0;
+    border-top-width: 1%;
+    border-top-color: rgb(50, 50, 50);
+}
+
+.nav-btn {
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 5%;
+}
+
+.nav-icon {
+    width: 35%;
+    height: 45%;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 10%;
+    margin-bottom: 3%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.nav-active {
+    background-color: rgb(255, 200, 0);
+}
+
+.nav-active .nav-icon {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.nav-shop-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Shop.png");
+}
+
+.nav-parts-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Parts.png");
+}
+
+.nav-battle-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Battle.png");
+}
+
+.nav-paint-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Palet.png");
+}
+
+.nav-upgrade-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/NavigationBar/Upgrade.png");
+}
+
+.nav-label {
+    color: rgb(120, 120, 120);
+    font-size: 120%;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.nav-label-active {
+    color: rgb(30, 30, 30);
+}
+
+/* ===== 탭 콘텐츠 공통 ===== */
+.content-area {
+    flex-grow: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.tab-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    flex-direction: column;
+}
+
+.tab-content--active {
+    display: flex;
+    position: relative;
+    flex-grow: 1;
+}
+
+/* ===== 공유 이미지 ===== */
+.fuel-icon-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Fuel.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.diamond-icon-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Diamond.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.coin-icon-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Gold.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.badge-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/mainlobby/Badge.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ===== ProgressBar ===== */
+.unity-progress-bar__container {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.unity-progress-bar__background {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: rgb(60, 60, 60);
+}
+
+.unity-progress-bar__progress {
+    border-radius: 10px;
+    background-color: rgb(80, 220, 80);
+}
