@@ -45,7 +45,7 @@ public class SceneSetup
         var lobbyObj = new GameObject("MainLobbyUI");
 
         // PanelSettings 생성 또는 로드
-        string panelSettingsPath = "Assets/Resources/Sprites/UI/mainlobby/MainLobbyPanelSettings.asset";
+        string panelSettingsPath = "Assets/Resources/Sprites/UI/OutGame/MainLobby/MainLobbyPanelSettings.asset";
         var panelSettings = AssetDatabase.LoadAssetAtPath<UnityEngine.UIElements.PanelSettings>(panelSettingsPath);
         if (panelSettings == null)
         {
@@ -62,7 +62,7 @@ public class SceneSetup
         var uiDoc = lobbyObj.AddComponent<UnityEngine.UIElements.UIDocument>();
         uiDoc.panelSettings = panelSettings;
         var uxmlAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.UIElements.VisualTreeAsset>(
-            "Assets/Resources/Sprites/UI/mainlobby/main.uxml");
+            "Assets/Resources/Sprites/UI/OutGame/MainLobby/main.uxml");
         if (uxmlAsset != null)
             uiDoc.visualTreeAsset = uxmlAsset;
         else
@@ -135,6 +135,6 @@ public class SceneSetup
         }
 
         Debug.Log("Title Screen scene created at: " + scenePath);
-        Debug.Log("타이틀 이미지를 Resources/Sprites/UI/TitleScreen.png 에 넣어주세요!");
+        Debug.Log("타이틀 이미지를 Resources/Sprites/UI/OutGame/TitleScreen.png 에 넣어주세요!");
     }
 }

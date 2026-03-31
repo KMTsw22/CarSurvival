@@ -1,86 +1,93 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.UIElements;
 
 public class GameOverUI : MonoBehaviour
 {
-    [Header("Panels")]
-    public GameObject gameOverPanel;
-    public GameObject runCompletePanel;
+    private UIDocument uiDocument;
 
-    [Header("Game Over Elements")]
-    public TextMeshProUGUI gameOverKillsText;
-    public TextMeshProUGUI gameOverTimeText;
-    public TextMeshProUGUI gameOverGoldText;
-    public Button retryButton;
+    private VisualElement gameOverPanel;
+    private VisualElement runCompletePanel;
 
-    [Header("Run Complete Elements")]
-    public TextMeshProUGUI completeKillsText;
-    public TextMeshProUGUI completeTimeText;
-    public TextMeshProUGUI completeGoldText;
-    public Button completeRetryButton;
+    private Label gameOverKillsText;
+    private Label gameOverTimeText;
+    private Label gameOverGoldText;
+
+    private Label completeKillsText;
+    private Label completeTimeText;
+    private Label completeGoldText;
 
     private PlayerStats playerStats;
 
     private void Start()
     {
+        uiDocument = GetComponent<UIDocument>();
+        if (uiDocument == null) return;
+
+        var root = uiDocument.rootVisualElement;
+
+        gameOverPanel = root.Q("gameover-panel");
+        runCompletePanel = root.Q("complete-panel");
+
+        gameOverKillsText = root.Q<Label>("gameover-kills");
+        gameOverTimeText = root.Q<Label>("gameover-time");
+        gameOverGoldText = root.Q<Label>("gameover-gold");
+
+        completeKillsText = root.Q<Label>("complete-kills");
+        completeTimeText = root.Q<Label>("complete-time");
+        completeGoldText = root.Q<Label>("complete-gold");
+
+        // Retry 버튼
+        var retryBtn = root.Q("gameover-retry-btn");
+        retryBtn?.RegisterCallback<ClickEvent>(evt => GameManager.Instance.RestartRun());
+
+        var completeRetryBtn = root.Q("complete-retry-btn");
+        completeRetryBtn?.RegisterCallback<ClickEvent>(evt => GameManager.Instance.RestartRun());
+
         playerStats = FindAnyObjectByType<PlayerStats>();
 
-        if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        if (runCompletePanel != null) runCompletePanel.SetActive(false);
-
+        HideAll();
         GameManager.Instance.OnGameStateChanged += OnStateChanged;
-
-        if (retryButton != null)
-            retryButton.onClick.AddListener(() => GameManager.Instance.RestartRun());
-        if (completeRetryButton != null)
-            completeRetryButton.onClick.AddListener(() => GameManager.Instance.RestartRun());
     }
 
     private void OnStateChanged(GameManager.GameState state)
     {
+        HideAll();
         if (state == GameManager.GameState.GameOver)
-        {
             ShowGameOver();
-        }
         else if (state == GameManager.GameState.RunComplete)
-        {
             ShowRunComplete();
-        }
     }
 
     private void ShowGameOver()
     {
-        if (gameOverPanel == null) return;
-        gameOverPanel.SetActive(true);
+        if (gameOverPanel == null || playerStats == null) return;
+        gameOverPanel.style.display = DisplayStyle.Flex;
 
-        if (gameOverKillsText != null)
-            gameOverKillsText.text = $"Kills: {playerStats.enemiesKilled}";
-        if (gameOverTimeText != null)
-        {
-            int m = Mathf.FloorToInt(playerStats.survivalTime / 60f);
-            int s = Mathf.FloorToInt(playerStats.survivalTime % 60f);
-            gameOverTimeText.text = $"Time: {m:00}:{s:00}";
-        }
-        if (gameOverGoldText != null)
-            gameOverGoldText.text = $"Gold: {playerStats.gold}";
+        gameOverKillsText.text = $"Kills: {playerStats.enemiesKilled}";
+        int m = Mathf.FloorToInt(playerStats.survivalTime / 60f);
+        int s = Mathf.FloorToInt(playerStats.survivalTime % 60f);
+        gameOverTimeText.text = $"Time: {m:00}:{s:00}";
+        gameOverGoldText.text = $"Gold: {playerStats.gold}";
     }
 
     private void ShowRunComplete()
     {
-        if (runCompletePanel == null) return;
-        runCompletePanel.SetActive(true);
+        if (runCompletePanel == null || playerStats == null) return;
+        runCompletePanel.style.display = DisplayStyle.Flex;
 
-        if (completeKillsText != null)
-            completeKillsText.text = $"Kills: {playerStats.enemiesKilled}";
-        if (completeTimeText != null)
-        {
-            int m = Mathf.FloorToInt(playerStats.survivalTime / 60f);
-            int s = Mathf.FloorToInt(playerStats.survivalTime % 60f);
-            completeTimeText.text = $"Time: {m:00}:{s:00}";
-        }
-        if (completeGoldText != null)
-            completeGoldText.text = $"Gold: {playerStats.gold}";
+        completeKillsText.text = $"Kills: {playerStats.enemiesKilled}";
+        int m = Mathf.FloorToInt(playerStats.survivalTime / 60f);
+        int s = Mathf.FloorToInt(playerStats.survivalTime % 60f);
+        completeTimeText.text = $"Time: {m:00}:{s:00}";
+        completeGoldText.text = $"Gold: {playerStats.gold}";
+    }
+
+    private void HideAll()
+    {
+        if (gameOverPanel != null)
+            gameOverPanel.style.display = DisplayStyle.None;
+        if (runCompletePanel != null)
+            runCompletePanel.style.display = DisplayStyle.None;
     }
 
     private void OnDestroy()

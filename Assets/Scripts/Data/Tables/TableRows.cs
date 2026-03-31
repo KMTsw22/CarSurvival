@@ -44,7 +44,7 @@ public class WeaponRow
     [Key(0)] public string weapon_id;
     [Key(1)] public string weapon_name;
     [Key(2)] public string weapon_category;
-    [Key(3)] public float base_damage;
+    [Key(3)] public float damage;
     [Key(4)] public string effect_desc;
     [Key(5)] public string aim_type;
     [Key(6)] public string weapon_type;
@@ -53,6 +53,11 @@ public class WeaponRow
     [Key(9)] public int max_level;
     [Key(10)] public int drop_weight;
     [Key(11)] public string icon_key;
+    [Key(12)] public float etc_value1;
+    [Key(13)] public float etc_value2;
+    [Key(14)] public float etc_value3;
+    [Key(15)] public float etc_value4;
+    [Key(16)] public float etc_value5;
 }
 
 // ============================================================

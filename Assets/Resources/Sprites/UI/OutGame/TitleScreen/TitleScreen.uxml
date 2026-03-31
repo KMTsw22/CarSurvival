@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Sprites/UI/OutGame/TitleScreen/TitleScreen.uss" />
+    <ui:VisualElement name="title-root" class="title-root">
+        <ui:VisualElement name="title-image" class="title-image" />
+        <ui:Label name="tap-text" text="TAP TO START" class="tap-text" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="card-root" class="levelup-card">
+        <ui:Label name="card-category" text="[MainWeapon]" class="card-category" />
+        <ui:VisualElement name="card-icon" class="card-icon" />
+        <ui:Label name="card-title" text="Part Name" class="card-title" />
+        <ui:Label name="card-desc" text="Description goes here" class="card-desc" />
+        <ui:Label name="card-level" text="" class="card-level" />
+    </ui:VisualElement>
+</ui:UXML>

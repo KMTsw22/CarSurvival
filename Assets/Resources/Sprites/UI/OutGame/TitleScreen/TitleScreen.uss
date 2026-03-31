@@ -1,0 +1,28 @@
+/* ================================================
+   Title Screen Stylesheet
+================================================ */
+
+.title-root {
+    width: 100%;
+    height: 100%;
+    background-color: rgb(20, 20, 26);
+    align-items: center;
+    justify-content: center;
+}
+
+.title-image {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.tap-text {
+    position: absolute;
+    bottom: 20%;
+    font-size: 42px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}

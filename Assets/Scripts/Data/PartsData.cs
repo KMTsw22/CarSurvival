@@ -19,8 +19,14 @@ public class PartsData : ScriptableObject
     [Header("Weapon")]
     public WeaponType weaponType = WeaponType.None;
     public AimType aimType = AimType.None;
+    public float damage = 0f;
     public float cooldown = 0f;
     public float duration = 0f;
+    public float etcValue1 = 0f;
+    public float etcValue2 = 0f;
+    public float etcValue3 = 0f;
+    public float etcValue4 = 0f;
+    public float etcValue5 = 0f;
 
     [Header("Level")]
     public int maxLevel = 5;

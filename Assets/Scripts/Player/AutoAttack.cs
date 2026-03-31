@@ -16,6 +16,10 @@ public class AutoAttack : MonoBehaviour
     private float cooldownTimer;
     private Dictionary<WeaponType, float> subWeaponTimers = new Dictionary<WeaponType, float>();
 
+    // 회전 톱날 관리
+    private List<GameObject> activeSawBlades = new List<GameObject>();
+    private int currentSawBladeLevel = 0;
+
     private void Awake()
     {
         stats = GetComponent<PlayerStats>();
@@ -40,6 +44,15 @@ public class AutoAttack : MonoBehaviour
             if (part.data.weaponType == WeaponType.None) continue;
 
             var type = part.data.weaponType;
+
+            // 회전 톱날은 쿨타임 방식이 아니라 상시 회전 — 레벨 변경 시만 갱신
+            if (type == WeaponType.SawBlade)
+            {
+                if (part.level != currentSawBladeLevel)
+                    RebuildSawBlades(part.level, part.data);
+                continue;
+            }
+
             if (!subWeaponTimers.ContainsKey(type))
                 subWeaponTimers[type] = 0f;
 
@@ -79,7 +92,7 @@ public class AutoAttack : MonoBehaviour
             float weaponDamage = stats.damage;
             var gunPart = stats.equippedParts.Find(p => p.data.weaponType == WeaponType.MachineGun);
             if (gunPart != null)
-                weaponDamage += gunPart.data.damageBonus * gunPart.level;
+                weaponDamage += gunPart.data.damage * gunPart.level;
 
             b.Initialize(aimDir, bulletSpeed, weaponDamage, bulletLifetime);
         }
@@ -92,62 +105,123 @@ public class AutoAttack : MonoBehaviour
             case WeaponType.OilSlick:
                 DropOil(level, data);
                 break;
-            case WeaponType.SawBlade:
-                ActivateSawBlade(level, data);
-                break;
         }
     }
 
+    // ─── 오일 슬릭: 현재 위치에 독 웅덩이 생성 ───
+    // etc1=감속비율(%), etc2=감속지속(초), etc3=기본반경
     private void DropOil(int level, PartsData data)
     {
         GameObject oil = new GameObject("OilSlick");
-        oil.transform.position = transform.position - transform.up * 1f;
+        oil.transform.position = transform.position;
+
+        float baseRadius = data.etcValue3 > 0 ? data.etcValue3 : 0.8f;
+        float radius = baseRadius + level * 0.2f;
+
         var col = oil.AddComponent<CircleCollider2D>();
-        col.radius = 1f + level * 0.3f;
+        col.radius = radius;
         col.isTrigger = true;
-        oil.AddComponent<OilSlickEffect>().damage = data.damageBonus * level;
+
+        var effect = oil.AddComponent<OilSlickEffect>();
+        effect.damage = data.damage * level;
+        effect.slowPercent = data.etcValue1 > 0 ? data.etcValue1 / 100f : 0.5f;
+        effect.slowDuration = data.etcValue2 > 0 ? data.etcValue2 : 0.5f;
         oil.tag = "PlayerProjectile";
 
         var sr = oil.AddComponent<SpriteRenderer>();
-        sr.color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+        sr.sprite = CreateCircleSprite();
+        sr.color = new Color(0.2f, 0.8f, 0.1f, 0.4f);
         sr.sortingOrder = -1;
+        oil.transform.localScale = Vector3.one * radius * 2f;
 
-        Destroy(oil, data.duration > 0 ? data.duration : 5f);
+        float duration = data.duration > 0 ? data.duration : 5f;
+        Destroy(oil, duration);
     }
 
-    private void ActivateSawBlade(int level, PartsData data)
+    private Sprite CreateCircleSprite()
     {
-        float radius = 1.5f + level * 0.3f;
-        float damage = data.damageBonus * (0.5f + level * 0.2f);
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
-        foreach (var hit in hits)
+        int size = 32;
+        var tex = new Texture2D(size, size);
+        float center = size / 2f;
+        float r = center - 1;
+        for (int x = 0; x < size; x++)
         {
-            if (hit.CompareTag("Enemy"))
+            for (int y = 0; y < size; y++)
             {
-                EnemyHealth eh = hit.GetComponent<EnemyHealth>();
-                if (eh != null)
-                    eh.TakeDamage(damage);
+                float dist = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
+                tex.SetPixel(x, y, dist <= r ? Color.white : Color.clear);
             }
+        }
+        tex.Apply();
+        tex.filterMode = FilterMode.Bilinear;
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+
+    // ─── 회전 톱날: 레벨 = 톱날 개수, 상시 회전 ───
+    // etc1=회전속도(도/초), etc2=궤도반경, etc3=타격간격(초)
+    private void RebuildSawBlades(int level, PartsData data)
+    {
+        foreach (var blade in activeSawBlades)
+        {
+            if (blade != null) Destroy(blade);
+        }
+        activeSawBlades.Clear();
+        currentSawBladeLevel = level;
+
+        int count = level;
+        float orbitRadius = data.etcValue2 > 0 ? data.etcValue2 : 2f;
+        float dmg = data.damage * (0.5f + level * 0.15f);
+
+        for (int i = 0; i < count; i++)
+        {
+            var blade = new GameObject($"SawBlade_{i}");
+            blade.tag = "PlayerProjectile";
+
+            // 비주얼: 톱날 스프라이트
+            var sr = blade.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateSawSprite();
+            sr.color = new Color(0.8f, 0.8f, 0.8f);
+            sr.sortingOrder = 9;
+            blade.transform.localScale = Vector3.one * 0.8f;
+
+            // 콜라이더
+            var col = blade.AddComponent<CircleCollider2D>();
+            col.radius = 0.4f;
+            col.isTrigger = true;
+
+            // 회전 컴포넌트
+            var orbit = blade.AddComponent<SawBladeOrbit>();
+            orbit.center = transform;
+            orbit.orbitRadius = orbitRadius;
+            orbit.rotateSpeed = data.etcValue1 > 0 ? data.etcValue1 : 180f;
+            orbit.damage = dmg;
+            orbit.damageInterval = data.etcValue3 > 0 ? data.etcValue3 : 0.3f;
+            orbit.bladeIndex = i;
+            orbit.totalBlades = count;
+
+            activeSawBlades.Add(blade);
         }
     }
 
-    private GameObject FindNearestEnemy()
+    private Sprite CreateSawSprite()
     {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        GameObject nearest = null;
-        float minDist = float.MaxValue;
+        int size = 16;
+        var tex = new Texture2D(size, size);
+        float center = size / 2f;
 
-        foreach (var enemy in enemies)
+        for (int x = 0; x < size; x++)
         {
-            float dist = Vector2.Distance(transform.position, enemy.transform.position);
-            if (dist < minDist)
+            for (int y = 0; y < size; y++)
             {
-                minDist = dist;
-                nearest = enemy;
+                float dist = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
+                float angle = Mathf.Atan2(y - center, x - center) * Mathf.Rad2Deg;
+                // 톱니 패턴: 원형 + 톱니
+                float toothRadius = center - 1 + Mathf.Sin(angle * Mathf.Deg2Rad * 6) * 1.5f;
+                tex.SetPixel(x, y, dist <= toothRadius ? Color.white : Color.clear);
             }
         }
-
-        return nearest;
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
     }
 }

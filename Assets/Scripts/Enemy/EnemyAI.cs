@@ -15,8 +15,7 @@ public class EnemyAI : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        rb.gravityScale = 0f;
-        rb.drag = 2f;
+        rb.bodyType = RigidbodyType2D.Kinematic;
     }
 
     private void Start()
@@ -24,37 +23,53 @@ public class EnemyAI : MonoBehaviour
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
+        else
+            Debug.LogError($"[EnemyAI] Player not found! {gameObject.name}");
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        if (player == null) return;
+        if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+
+        if (player == null)
+        {
+            var playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null) player = playerObj.transform;
+            return;
+        }
 
         // Stun check
         if (stunTimer > 0f)
         {
-            stunTimer -= Time.fixedDeltaTime;
-            rb.velocity = Vector2.zero;
+            stunTimer -= Time.deltaTime;
             return;
         }
 
         // Slow check
         if (slowTimer > 0f)
         {
-            slowTimer -= Time.fixedDeltaTime;
+            slowTimer -= Time.deltaTime;
         }
         else
         {
             slowMultiplier = 1f;
         }
 
-        // Chase player
+        // Chase player — transform 직접 이동
         Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
-        rb.velocity = direction * moveSpeed * slowMultiplier;
+        transform.position += (Vector3)(direction * moveSpeed * slowMultiplier * Time.deltaTime);
 
-        // Rotate to face player
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + 90f;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
+        // 좌우 플립
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null && direction.x != 0f)
+            sr.flipX = direction.x < 0;
+
+        // Despawn if too far from player
+        float dist = Vector2.Distance(transform.position, player.position);
+        if (dist > 30f)
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void Stun(float duration)
@@ -66,18 +81,5 @@ public class EnemyAI : MonoBehaviour
     {
         slowMultiplier = multiplier;
         slowTimer = duration;
-    }
-
-    // Despawn if too far from player
-    private void Update()
-    {
-        if (player != null)
-        {
-            float dist = Vector2.Distance(transform.position, player.position);
-            if (dist > 30f)
-            {
-                Destroy(gameObject);
-            }
-        }
     }
 }

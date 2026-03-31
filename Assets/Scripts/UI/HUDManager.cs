@@ -1,26 +1,34 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.UIElements;
 
 public class HUDManager : MonoBehaviour
 {
-    [Header("Health")]
-    public Slider healthBar;
-    public TextMeshProUGUI healthText;
+    private UIDocument uiDocument;
 
-    [Header("Experience")]
-    public Slider expBar;
-    public TextMeshProUGUI levelText;
-
-    [Header("Stats")]
-    public TextMeshProUGUI killCountText;
-    public TextMeshProUGUI timerText;
-    public TextMeshProUGUI goldText;
+    private VisualElement healthBarFill;
+    private Label healthText;
+    private VisualElement expBarFill;
+    private Label levelText;
+    private Label killCountText;
+    private Label timerText;
+    private Label goldText;
 
     private PlayerStats playerStats;
 
     private void Start()
     {
+        uiDocument = GetComponent<UIDocument>();
+        if (uiDocument == null) return;
+
+        var root = uiDocument.rootVisualElement;
+        healthBarFill = root.Q("health-bar-fill");
+        healthText = root.Q<Label>("health-text");
+        expBarFill = root.Q("exp-bar-fill");
+        levelText = root.Q<Label>("level-text");
+        killCountText = root.Q<Label>("kills-text");
+        timerText = root.Q<Label>("timer-text");
+        goldText = root.Q<Label>("gold-text");
+
         playerStats = FindAnyObjectByType<PlayerStats>();
         if (playerStats != null)
         {
@@ -49,16 +57,16 @@ public class HUDManager : MonoBehaviour
 
     private void UpdateHealth(float current, float max)
     {
-        if (healthBar != null)
-            healthBar.value = current / max;
+        if (healthBarFill != null)
+            healthBarFill.style.width = new StyleLength(new Length(current / max * 100f, LengthUnit.Percent));
         if (healthText != null)
             healthText.text = $"{Mathf.CeilToInt(current)}/{Mathf.CeilToInt(max)}";
     }
 
     private void UpdateExp(int current, int toNext, int level)
     {
-        if (expBar != null)
-            expBar.value = (float)current / toNext;
+        if (expBarFill != null)
+            expBarFill.style.width = new StyleLength(new Length((float)current / toNext * 100f, LengthUnit.Percent));
         if (levelText != null)
             levelText.text = $"Lv.{level}";
     }

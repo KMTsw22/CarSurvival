@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections.Generic;
 
 /// <summary>
@@ -56,13 +54,19 @@ public class GameBootstrap : MonoBehaviour
         part.partName = row.weapon_name;
         part.description = row.effect_desc;
         part.category = row.weapon_category == "Main" ? ItemCategory.MainWeapon : ItemCategory.SubWeapon;
-        part.damageBonus = row.base_damage;
+        part.damage = row.damage;
         part.weaponType = ParseWeaponType(row.weapon_type);
         part.aimType = ParseEnum<AimType>(row.aim_type);
         part.cooldown = row.cooldown;
         part.duration = row.duration;
         part.maxLevel = row.max_level;
         part.dropWeight = row.drop_weight;
+        part.etcValue1 = row.etc_value1;
+        part.etcValue2 = row.etc_value2;
+        part.etcValue3 = row.etc_value3;
+        part.etcValue4 = row.etc_value4;
+        part.etcValue5 = row.etc_value5;
+        part.icon = LoadIcon(row.icon_key);
         return part;
     }
 
@@ -75,6 +79,7 @@ public class GameBootstrap : MonoBehaviour
         part.category = ItemCategory.SpellBook;
         part.maxLevel = row.max_level;
         part.dropWeight = row.drop_weight;
+        part.icon = LoadIcon(row.icon_key);
 
         switch (row.effect_type)
         {
@@ -90,6 +95,16 @@ public class GameBootstrap : MonoBehaviour
         }
 
         return part;
+    }
+
+    private Sprite LoadIcon(string iconKey)
+    {
+        if (string.IsNullOrEmpty(iconKey)) return null;
+        // Icons/ 하위 폴더 전부 탐색
+        return Resources.Load<Sprite>("Sprites/Icons/Weapons/" + iconKey)
+            ?? Resources.Load<Sprite>("Sprites/Icons/SpellBooks/" + iconKey)
+            ?? Resources.Load<Sprite>("Sprites/Icons/Currency/" + iconKey)
+            ?? Resources.Load<Sprite>("Sprites/Icons/" + iconKey);
     }
 
     private T ParseEnum<T>(string value) where T : struct
@@ -149,12 +164,13 @@ public class GameBootstrap : MonoBehaviour
         playerCar.tag = "Player";
         playerCar.layer = LayerMask.NameToLayer("Default");
 
-        // Sprite - 실제 차량 이미지 사용
+        // Sprite - TB_Car의 sprite_key로 로드
         var sr = playerCar.AddComponent<SpriteRenderer>();
-        var carSprite = Resources.Load<Sprite>("Sprites/Cars/car_1");
+        var carData = TableManager.Instance.GetCar("CAR_001");
+        string spriteKey = carData != null ? carData.sprite_key : "spr_car_super";
+        var carSprite = Resources.Load<Sprite>("Sprites/Cars/" + spriteKey);
         sr.sprite = carSprite != null ? carSprite : CreateCarSprite(Color.cyan);
         sr.sortingOrder = 10;
-        // 500x500 이미지를 게임 크기에 맞게 스케일 조정
         if (carSprite != null)
             playerCar.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
 
@@ -179,6 +195,9 @@ public class GameBootstrap : MonoBehaviour
         firePoint.transform.SetParent(playerCar.transform);
         firePoint.transform.localPosition = new Vector3(0, 0.7f, 0);
         autoAttack.firePoint = firePoint.transform;
+
+        // 차량 먼지 트레일
+        playerCar.AddComponent<DustTrail>();
     }
 
     // ─── Camera ───
@@ -267,219 +286,64 @@ public class GameBootstrap : MonoBehaviour
         }
     }
 
-    // ─── UI ───
+    // ─── UI (UI Toolkit) ───
     private void CreateUI()
     {
-        // Canvas
-        var canvasObj = new GameObject("Canvas");
-        var canvas = canvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 100;
-        var scaler = canvasObj.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        canvasObj.AddComponent<GraphicRaycaster>();
+        var panelSettings = LoadOrCreatePanelSettings();
 
-        // EventSystem
-        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
-        {
-            var esObj = new GameObject("EventSystem");
-            esObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
-            esObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-        }
-
-        // HUD
-        var hudObj = new GameObject("HUD");
-        hudObj.transform.SetParent(canvasObj.transform, false);
-        var hud = hudObj.AddComponent<HUDManager>();
-        CreateHUDElements(canvasObj.transform, hud);
-
-        // Level Up UI
-        CreateLevelUpUI(canvasObj.transform);
-
-        // Game Over UI
-        CreateGameOverUI(canvasObj.transform);
-
-        // Steam: 조이스틱 제거 — WASD + 게임패드만 사용
+        CreateHUD(panelSettings);
+        CreateLevelUpUI(panelSettings);
+        CreateGameOverUI(panelSettings);
     }
 
-    private void CreateHUDElements(Transform parent, HUDManager hud)
+    private UnityEngine.UIElements.PanelSettings LoadOrCreatePanelSettings()
     {
-        // Health Bar
-        hud.healthBar = CreateSlider(parent, "HealthBar",
-            new Vector2(0, 1), new Vector2(0, 1),
-            new Vector2(20, -20), new Vector2(320, -20),
-            Color.red, new Color(0.3f, 0f, 0f));
-        hud.healthText = CreateText(parent, "HealthText",
-            new Vector2(0, 1), new Vector2(0, 1),
-            new Vector2(170, -20), new Vector2(200, 30),
-            "100/100", 14, TextAlignmentOptions.Center);
+        // 에셋에서 로드 시도
+        var ps = Resources.Load<UnityEngine.UIElements.PanelSettings>("Settings/InGamePanelSettings");
+        if (ps != null) return ps;
 
-        // Exp Bar (bottom)
-        hud.expBar = CreateSlider(parent, "ExpBar",
-            new Vector2(0, 0), new Vector2(1, 0),
-            new Vector2(0, 30), new Vector2(0, 30),
-            new Color(0.2f, 0.8f, 1f), new Color(0.1f, 0.2f, 0.3f),
-            stretchWidth: true);
-
-        // Level Text
-        hud.levelText = CreateText(parent, "LevelText",
-            new Vector2(0.5f, 0), new Vector2(0.5f, 0),
-            new Vector2(0, 55), new Vector2(100, 30),
-            "Lv.1", 18, TextAlignmentOptions.Center);
-
-        // Timer (top center)
-        hud.timerText = CreateText(parent, "TimerText",
-            new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-            new Vector2(0, -25), new Vector2(150, 40),
-            "00:00", 24, TextAlignmentOptions.Center);
-
-        // Kill count (top right)
-        hud.killCountText = CreateText(parent, "KillCount",
-            new Vector2(1, 1), new Vector2(1, 1),
-            new Vector2(-100, -20), new Vector2(180, 30),
-            "KILLS: 0", 16, TextAlignmentOptions.Right);
-
-        // Gold (top right below kills)
-        hud.goldText = CreateText(parent, "GoldText",
-            new Vector2(1, 1), new Vector2(1, 1),
-            new Vector2(-100, -50), new Vector2(180, 30),
-            "GOLD: 0", 16, TextAlignmentOptions.Right);
+        // fallback: 런타임 생성
+        ps = ScriptableObject.CreateInstance<UnityEngine.UIElements.PanelSettings>();
+        ps.scaleMode = UnityEngine.UIElements.PanelScaleMode.ScaleWithScreenSize;
+        ps.referenceResolution = new Vector2Int(1920, 1080);
+        ps.screenMatchMode = UnityEngine.UIElements.PanelScreenMatchMode.MatchWidthOrHeight;
+        ps.match = 0.5f;
+        ps.sortingOrder = 100;
+        return ps;
     }
 
-    private void CreateLevelUpUI(Transform parent)
+    private void CreateHUD(UnityEngine.UIElements.PanelSettings panelSettings)
+    {
+        var hudObj = new GameObject("HUD");
+        var uiDoc = hudObj.AddComponent<UnityEngine.UIElements.UIDocument>();
+        uiDoc.panelSettings = panelSettings;
+        uiDoc.sortingOrder = 100;
+        var uxml = Resources.Load<UnityEngine.UIElements.VisualTreeAsset>("Sprites/UI/InGame/HUD/HUD");
+        if (uxml != null) uiDoc.visualTreeAsset = uxml;
+        hudObj.AddComponent<HUDManager>();
+    }
+
+    private void CreateLevelUpUI(UnityEngine.UIElements.PanelSettings panelSettings)
     {
         var luObj = new GameObject("LevelUpUI");
-        luObj.transform.SetParent(parent, false);
+        var uiDoc = luObj.AddComponent<UnityEngine.UIElements.UIDocument>();
+        uiDoc.panelSettings = panelSettings;
+        uiDoc.sortingOrder = 200;
+        var uxml = Resources.Load<UnityEngine.UIElements.VisualTreeAsset>("Sprites/UI/InGame/LevelUp/LevelUp");
+        if (uxml != null) uiDoc.visualTreeAsset = uxml;
         var lu = luObj.AddComponent<LevelUpUI>();
         lu.partsDatabase = partsDB;
-
-        // Panel (fullscreen darkened overlay)
-        var panel = new GameObject("LevelUpPanel");
-        panel.transform.SetParent(luObj.transform, false);
-        var panelRT = panel.AddComponent<RectTransform>();
-        panelRT.anchorMin = Vector2.zero;
-        panelRT.anchorMax = Vector2.one;
-        panelRT.sizeDelta = Vector2.zero;
-        var panelImg = panel.AddComponent<Image>();
-        panelImg.color = new Color(0, 0, 0, 0.7f);
-        lu.levelUpPanel = panel;
-
-        // Title
-        CreateText(panel.transform, "LevelUpTitle",
-            new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-            new Vector2(0, -100), new Vector2(400, 60),
-            "LEVEL UP!", 36, TextAlignmentOptions.Center);
-
-        // Subtitle
-        CreateText(panel.transform, "LevelUpSubtitle",
-            new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-            new Vector2(0, -160), new Vector2(400, 40),
-            "Choose a part to install", 20, TextAlignmentOptions.Center);
-
-        // Card container
-        var container = new GameObject("CardContainer");
-        container.transform.SetParent(panel.transform, false);
-        var containerRT = container.AddComponent<RectTransform>();
-        containerRT.anchorMin = new Vector2(0.5f, 0.5f);
-        containerRT.anchorMax = new Vector2(0.5f, 0.5f);
-        containerRT.sizeDelta = new Vector2(900, 350);
-        containerRT.anchoredPosition = new Vector2(0, -30);
-
-        var hlg = container.AddComponent<HorizontalLayoutGroup>();
-        hlg.spacing = 20;
-        hlg.childAlignment = TextAnchor.MiddleCenter;
-        hlg.childForceExpandWidth = true;
-        hlg.childForceExpandHeight = true;
-
-        lu.cardContainer = container.transform;
-        lu.cardPrefab = CreateCardPrefab();
     }
 
-    private void CreateGameOverUI(Transform parent)
+    private void CreateGameOverUI(UnityEngine.UIElements.PanelSettings panelSettings)
     {
         var goObj = new GameObject("GameOverUI");
-        goObj.transform.SetParent(parent, false);
-        var goUI = goObj.AddComponent<GameOverUI>();
-
-        // Game Over Panel
-        goUI.gameOverPanel = CreateResultPanel(goObj.transform, "GameOverPanel",
-            "GAME OVER", Color.red,
-            out var goKills, out var goTime, out var goGold, out var goRetry);
-        goUI.gameOverKillsText = goKills;
-        goUI.gameOverTimeText = goTime;
-        goUI.gameOverGoldText = goGold;
-        goUI.retryButton = goRetry;
-
-        // Run Complete Panel
-        goUI.runCompletePanel = CreateResultPanel(goObj.transform, "RunCompletePanel",
-            "RUN COMPLETE!", new Color(1f, 0.8f, 0.2f),
-            out var rcKills, out var rcTime, out var rcGold, out var rcRetry);
-        goUI.completeKillsText = rcKills;
-        goUI.completeTimeText = rcTime;
-        goUI.completeGoldText = rcGold;
-        goUI.completeRetryButton = rcRetry;
-    }
-
-    private GameObject CreateResultPanel(Transform parent, string name, string title, Color titleColor,
-        out TextMeshProUGUI killsText, out TextMeshProUGUI timeText,
-        out TextMeshProUGUI goldText, out Button retryBtn)
-    {
-        var panel = new GameObject(name);
-        panel.transform.SetParent(parent, false);
-        var rt = panel.AddComponent<RectTransform>();
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.sizeDelta = Vector2.zero;
-        var img = panel.AddComponent<Image>();
-        img.color = new Color(0, 0, 0, 0.85f);
-
-        var titleTmp = CreateText(panel.transform, "Title",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-            new Vector2(0, 150), new Vector2(500, 70),
-            title, 48, TextAlignmentOptions.Center);
-        titleTmp.color = titleColor;
-
-        killsText = CreateText(panel.transform, "Kills",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-            new Vector2(0, 50), new Vector2(400, 40),
-            "Kills: 0", 24, TextAlignmentOptions.Center);
-
-        timeText = CreateText(panel.transform, "Time",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-            new Vector2(0, 0), new Vector2(400, 40),
-            "Time: 00:00", 24, TextAlignmentOptions.Center);
-
-        goldText = CreateText(panel.transform, "Gold",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-            new Vector2(0, -50), new Vector2(400, 40),
-            "Gold: 0", 24, TextAlignmentOptions.Center);
-
-        // Retry Button
-        var btnObj = new GameObject("RetryButton");
-        btnObj.transform.SetParent(panel.transform, false);
-        var btnRT = btnObj.AddComponent<RectTransform>();
-        btnRT.anchorMin = new Vector2(0.5f, 0.5f);
-        btnRT.anchorMax = new Vector2(0.5f, 0.5f);
-        btnRT.sizeDelta = new Vector2(250, 60);
-        btnRT.anchoredPosition = new Vector2(0, -130);
-        var btnImg = btnObj.AddComponent<Image>();
-        btnImg.color = new Color(0.2f, 0.6f, 1f);
-        retryBtn = btnObj.AddComponent<Button>();
-
-        var btnText = new GameObject("Text");
-        btnText.transform.SetParent(btnObj.transform, false);
-        var btnTextRT = btnText.AddComponent<RectTransform>();
-        btnTextRT.anchorMin = Vector2.zero;
-        btnTextRT.anchorMax = Vector2.one;
-        btnTextRT.sizeDelta = Vector2.zero;
-        var btnTMP = btnText.AddComponent<TextMeshProUGUI>();
-        btnTMP.text = "RETRY";
-        btnTMP.fontSize = 24;
-        btnTMP.alignment = TextAlignmentOptions.Center;
-        btnTMP.color = Color.white;
-
-        return panel;
+        var uiDoc = goObj.AddComponent<UnityEngine.UIElements.UIDocument>();
+        uiDoc.panelSettings = panelSettings;
+        uiDoc.sortingOrder = 150;
+        var uxml = Resources.Load<UnityEngine.UIElements.VisualTreeAsset>("Sprites/UI/InGame/GameOver/GameOver");
+        if (uxml != null) uiDoc.visualTreeAsset = uxml;
+        goObj.AddComponent<GameOverUI>();
     }
 
     // ─── Prefab Factories ───
@@ -502,7 +366,6 @@ public class GameBootstrap : MonoBehaviour
         bullet.tag = "PlayerProjectile";
 
         // Keep it as a "prefab" by hiding it
-        DontDestroyOnLoad(bullet);
         return bullet;
     }
 
@@ -513,7 +376,7 @@ public class GameBootstrap : MonoBehaviour
         enemy.tag = "Enemy";
 
         var sr = enemy.AddComponent<SpriteRenderer>();
-        var enemyCarSprite = Resources.Load<Sprite>("Sprites/Cars/car_2");
+        var enemyCarSprite = Resources.Load<Sprite>("Sprites/Cars/spr_car_suv");
         sr.sprite = enemyCarSprite != null ? enemyCarSprite : CreateCarSprite(Color.red);
         sr.sortingOrder = 8;
         // 스케일은 ApplyMonsterData에서 data.scale로 설정됨 — 프리팹은 1로 둠
@@ -524,7 +387,7 @@ public class GameBootstrap : MonoBehaviour
 
         var rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
-        rb.drag = 2f;
+        rb.drag = 0f;
         rb.freezeRotation = true;
 
         var ai = enemy.AddComponent<EnemyAI>();
@@ -536,7 +399,11 @@ public class GameBootstrap : MonoBehaviour
         eh.goldDrop = 5;
         eh.expPickupPrefab = CreateExpPickupPrefab();
 
-        DontDestroyOnLoad(enemy);
+        // 몬스터 이펙트: 걷는 느낌 바운스 + 그림자
+        enemy.AddComponent<BounceEffect>();
+        enemy.AddComponent<ShadowEffect>();
+
+        // 템플릿은 DDL 안 씀 — spawner가 참조를 갖고 있으므로 GC 안 됨
         return enemy;
     }
 
@@ -557,74 +424,7 @@ public class GameBootstrap : MonoBehaviour
 
         pickup.AddComponent<ExperiencePickup>();
 
-        DontDestroyOnLoad(pickup);
         return pickup;
-    }
-
-    private GameObject CreateCardPrefab()
-    {
-        var card = new GameObject("CardPrefab");
-        card.SetActive(false);
-
-        var rt = card.AddComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(260, 350);
-
-        var img = card.AddComponent<Image>();
-        img.color = new Color(0.2f, 0.2f, 0.3f, 0.95f);
-
-        var btn = card.AddComponent<Button>();
-        var colors = btn.colors;
-        colors.highlightedColor = new Color(0.3f, 0.3f, 0.5f);
-        colors.pressedColor = new Color(0.4f, 0.4f, 0.6f);
-        btn.colors = colors;
-
-        // Layout
-        var vlg = card.AddComponent<VerticalLayoutGroup>();
-        vlg.padding = new RectOffset(15, 15, 15, 15);
-        vlg.spacing = 10;
-        vlg.childAlignment = TextAnchor.UpperCenter;
-        vlg.childForceExpandWidth = true;
-        vlg.childForceExpandHeight = false;
-
-        // Category
-        CreateCardText(card.transform, "CategoryText", "[Engine]", 14,
-            new Color(0.7f, 0.7f, 0.7f), 25);
-
-        // Icon placeholder
-        var iconObj = new GameObject("Icon");
-        iconObj.transform.SetParent(card.transform, false);
-        var iconRT = iconObj.AddComponent<RectTransform>();
-        var iconLE = iconObj.AddComponent<LayoutElement>();
-        iconLE.preferredHeight = 80;
-        iconLE.preferredWidth = 80;
-        var iconImg = iconObj.AddComponent<Image>();
-        iconImg.color = new Color(1, 1, 1, 0.3f);
-
-        // Title
-        CreateCardText(card.transform, "TitleText", "Part Name", 22, Color.white, 35);
-
-        // Description
-        CreateCardText(card.transform, "DescriptionText", "Part description goes here", 16,
-            new Color(0.8f, 0.8f, 0.8f), 60);
-
-        DontDestroyOnLoad(card);
-        return card;
-    }
-
-    private void CreateCardText(Transform parent, string name, string text, int fontSize,
-        Color color, float height)
-    {
-        var obj = new GameObject(name);
-        obj.transform.SetParent(parent, false);
-        var rt = obj.AddComponent<RectTransform>();
-        var le = obj.AddComponent<LayoutElement>();
-        le.preferredHeight = height;
-        var tmp = obj.AddComponent<TextMeshProUGUI>();
-        tmp.text = text;
-        tmp.fontSize = fontSize;
-        tmp.color = color;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.enableWordWrapping = true;
     }
 
     // ─── Sprite Helpers ───
@@ -685,85 +485,4 @@ public class GameBootstrap : MonoBehaviour
         return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16);
     }
 
-    // ─── UI Helpers ───
-    private Slider CreateSlider(Transform parent, string name,
-        Vector2 anchorMin, Vector2 anchorMax,
-        Vector2 posMin, Vector2 posMax,
-        Color fillColor, Color bgColor, bool stretchWidth = false)
-    {
-        var sliderObj = new GameObject(name);
-        sliderObj.transform.SetParent(parent, false);
-        var sliderRT = sliderObj.AddComponent<RectTransform>();
-
-        if (stretchWidth)
-        {
-            sliderRT.anchorMin = anchorMin;
-            sliderRT.anchorMax = anchorMax;
-            sliderRT.offsetMin = new Vector2(0, posMin.y - 10);
-            sliderRT.offsetMax = new Vector2(0, posMax.y + 10);
-        }
-        else
-        {
-            sliderRT.anchorMin = anchorMin;
-            sliderRT.anchorMax = anchorMax;
-            sliderRT.sizeDelta = new Vector2(posMax.x - posMin.x, 20);
-            sliderRT.anchoredPosition = new Vector2(
-                (posMin.x + posMax.x) / 2f,
-                (posMin.y + posMax.y) / 2f);
-        }
-
-        // Background
-        var bg = new GameObject("Background");
-        bg.transform.SetParent(sliderObj.transform, false);
-        var bgRT = bg.AddComponent<RectTransform>();
-        bgRT.anchorMin = Vector2.zero;
-        bgRT.anchorMax = Vector2.one;
-        bgRT.sizeDelta = Vector2.zero;
-        var bgImg = bg.AddComponent<Image>();
-        bgImg.color = bgColor;
-
-        // Fill Area
-        var fillArea = new GameObject("Fill Area");
-        fillArea.transform.SetParent(sliderObj.transform, false);
-        var fillAreaRT = fillArea.AddComponent<RectTransform>();
-        fillAreaRT.anchorMin = Vector2.zero;
-        fillAreaRT.anchorMax = Vector2.one;
-        fillAreaRT.sizeDelta = Vector2.zero;
-
-        var fill = new GameObject("Fill");
-        fill.transform.SetParent(fillArea.transform, false);
-        var fillRT = fill.AddComponent<RectTransform>();
-        fillRT.anchorMin = Vector2.zero;
-        fillRT.anchorMax = Vector2.one;
-        fillRT.sizeDelta = Vector2.zero;
-        var fillImg = fill.AddComponent<Image>();
-        fillImg.color = fillColor;
-
-        var slider = sliderObj.AddComponent<Slider>();
-        slider.fillRect = fillRT;
-        slider.interactable = false;
-        slider.transition = Selectable.Transition.None;
-
-        return slider;
-    }
-
-    private TextMeshProUGUI CreateText(Transform parent, string name,
-        Vector2 anchorMin, Vector2 anchorMax,
-        Vector2 pos, Vector2 size,
-        string text, int fontSize, TextAlignmentOptions alignment)
-    {
-        var obj = new GameObject(name);
-        obj.transform.SetParent(parent, false);
-        var rt = obj.AddComponent<RectTransform>();
-        rt.anchorMin = anchorMin;
-        rt.anchorMax = anchorMax;
-        rt.sizeDelta = size;
-        rt.anchoredPosition = pos;
-        var tmp = obj.AddComponent<TextMeshProUGUI>();
-        tmp.text = text;
-        tmp.fontSize = fontSize;
-        tmp.alignment = alignment;
-        tmp.color = Color.white;
-        return tmp;
-    }
 }

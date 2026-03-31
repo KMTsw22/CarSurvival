@@ -1,0 +1,116 @@
+/* ================================================
+   InGame HUD Stylesheet — % 단위
+================================================ */
+
+/* 전체 HUD 루트 */
+.hud-root {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== 상단 좌측: 체력바 ===== */
+.health-area {
+    position: absolute;
+    left: 1%;
+    top: 1%;
+    width: 20%;
+    height: 4%;
+    flex-direction: column;
+}
+
+.health-bar-bg {
+    width: 100%;
+    height: 60%;
+    background-color: rgba(80, 0, 0, 0.8);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.health-bar-fill {
+    width: 100%;
+    height: 100%;
+    background-color: rgb(220, 40, 40);
+    border-radius: 4px;
+}
+
+.health-text {
+    font-size: 14px;
+    color: white;
+    -unity-text-align: middle-center;
+    margin-top: 2px;
+}
+
+/* ===== 상단 중앙: 타이머 ===== */
+.timer-area {
+    position: absolute;
+    left: 50%;
+    top: 1%;
+    translate: -50% 0;
+    width: 10%;
+    height: 4%;
+    align-items: center;
+    justify-content: center;
+}
+
+.timer-text {
+    font-size: 28px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* ===== 상단 우측: 킬/골드 ===== */
+.stats-area {
+    position: absolute;
+    right: 1%;
+    top: 1%;
+    width: 15%;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.kills-text {
+    font-size: 16px;
+    color: white;
+    -unity-text-align: middle-right;
+}
+
+.gold-text {
+    font-size: 16px;
+    color: rgb(255, 220, 80);
+    -unity-text-align: middle-right;
+    margin-top: 4px;
+}
+
+/* ===== 하단: 경험치바 ===== */
+.exp-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.exp-bar-bg {
+    width: 100%;
+    height: 60%;
+    background-color: rgba(20, 40, 60, 0.8);
+}
+
+.exp-bar-fill {
+    width: 0%;
+    height: 100%;
+    background-color: rgb(50, 200, 255);
+}
+
+.level-text {
+    font-size: 18px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-top: 2px;
+}

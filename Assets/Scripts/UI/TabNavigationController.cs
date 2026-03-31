@@ -10,7 +10,7 @@ public class TabNavigationController : MonoBehaviour
     // 탭 → UXML 리소스 경로 매핑 (동적 로드용)
     private readonly Dictionary<string, string> tabToUxmlPath = new()
     {
-        { "PartsTab", "Sprites/UI/partsTab/PartsContent" },
+        { "PartsTab", "Sprites/UI/OutGame/PartsTab/PartsContent" },
     };
 
     // 탭 → content-area 안의 컨테이너 이름 매핑
@@ -23,7 +23,7 @@ public class TabNavigationController : MonoBehaviour
     // 이미 로드된 탭 추적
     private readonly HashSet<string> loadedTabs = new();
 
-    private readonly string[] allTabNames = { "ShopTab", "PartsTab", "BattleTab", "PaintTab", "UpgradeTab" };
+    private readonly string[] allTabNames = { "PartsTab", "BattleTab", "PaintTab", "UpgradeTab" };
 
     private string activeTab = "BattleTab";
 

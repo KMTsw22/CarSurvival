@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Sprites/UI/InGame/GameOver/GameOver.uss" />
+
+    <!-- Game Over 패널 -->
+    <ui:VisualElement name="gameover-panel" class="gameover-overlay">
+        <ui:Label name="gameover-title" text="GAME OVER" class="gameover-title gameover-title-dead" />
+        <ui:Label name="gameover-kills" text="Kills: 0" class="result-label" />
+        <ui:Label name="gameover-time" text="Time: 00:00" class="result-label" />
+        <ui:Label name="gameover-gold" text="Gold: 0" class="result-label" />
+        <ui:VisualElement name="gameover-retry-btn" class="retry-btn">
+            <ui:Label text="RETRY" class="retry-btn-label" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+
+    <!-- Run Complete 패널 -->
+    <ui:VisualElement name="complete-panel" class="gameover-overlay">
+        <ui:Label name="complete-title" text="RUN COMPLETE!" class="gameover-title gameover-title-complete" />
+        <ui:Label name="complete-kills" text="Kills: 0" class="result-label" />
+        <ui:Label name="complete-time" text="Time: 00:00" class="result-label" />
+        <ui:Label name="complete-gold" text="Gold: 0" class="result-label" />
+        <ui:VisualElement name="complete-retry-btn" class="retry-btn">
+            <ui:Label text="RETRY" class="retry-btn-label" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

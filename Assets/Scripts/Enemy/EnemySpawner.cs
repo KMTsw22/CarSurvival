@@ -80,8 +80,9 @@ public class EnemySpawner : MonoBehaviour
             Mathf.Sin(angle) * distance,
             0f);
 
-        GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
+        GameObject enemy = Instantiate(prefab);
         enemy.SetActive(true);
+        enemy.transform.position = spawnPos;
 
         // Apply MonsterData if available
         if (index < monsterDataList.Count && monsterDataList[index] != null)

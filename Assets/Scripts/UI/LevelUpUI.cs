@@ -1,120 +1,167 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.UIElements;
 using System.Collections.Generic;
 
 public class LevelUpUI : MonoBehaviour
 {
-    [Header("UI Elements")]
-    public GameObject levelUpPanel;
-    public Transform cardContainer;
-    public GameObject cardPrefab;
-
     [Header("References")]
     public PartsDatabase partsDatabase;
+
+    private UIDocument uiDocument;
+    private VisualElement overlay;
+    private VisualElement cardContainer;
+    private VisualTreeAsset cardTemplate;
 
     private PlayerStats playerStats;
     private List<PartsData> currentChoices = new List<PartsData>();
 
     private void Start()
     {
+        uiDocument = GetComponent<UIDocument>();
         playerStats = FindAnyObjectByType<PlayerStats>();
-        if (playerStats != null)
+
+        // 카드 템플릿 로드
+        cardTemplate = Resources.Load<VisualTreeAsset>("Sprites/UI/InGame/LevelUp/LevelUpCard");
+
+        if (uiDocument != null)
         {
-            playerStats.OnLevelUp += ShowLevelUpCards;
+            var root = uiDocument.rootVisualElement;
+            overlay = root.Q("levelup-overlay");
+            cardContainer = root.Q("card-container");
         }
 
-        if (levelUpPanel != null)
-            levelUpPanel.SetActive(false);
+        Hide();
+
+        if (playerStats != null)
+            playerStats.OnLevelUp += ShowLevelUpCards;
     }
 
     private void ShowLevelUpCards()
     {
-        if (partsDatabase == null) return;
+        if (partsDatabase == null || overlay == null) return;
 
-        levelUpPanel.SetActive(true);
+        // 카드 컨테이너 초기화
+        cardContainer.Clear();
 
-        // Clear existing cards
-        foreach (Transform child in cardContainer)
-        {
-            Destroy(child.gameObject);
-        }
-
-        // Get 3 random parts
+        // 랜덤 3개 선택
         currentChoices = partsDatabase.GetRandomParts(3);
 
         for (int i = 0; i < currentChoices.Count; i++)
         {
-            GameObject card = Instantiate(cardPrefab, cardContainer);
-            card.SetActive(true);
-            SetupCard(card, currentChoices[i], i);
+            var card = CreateCard(currentChoices[i], i);
+            cardContainer.Add(card);
         }
+
+        Show();
     }
 
-    private void SetupCard(GameObject card, PartsData part, int index)
+    private VisualElement CreateCard(PartsData data, int index)
     {
-        // Card title
-        var titleText = card.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
-        if (titleText != null)
-            titleText.text = part.partName;
+        VisualElement card;
 
-        // Card description
-        var descText = card.transform.Find("DescriptionText")?.GetComponent<TextMeshProUGUI>();
-        if (descText != null)
-            descText.text = part.description;
-
-        // Card icon
-        var iconImage = card.transform.Find("Icon")?.GetComponent<Image>();
-        if (iconImage != null && part.icon != null)
-            iconImage.sprite = part.icon;
-
-        // Category color
-        var bg = card.GetComponent<Image>();
-        if (bg != null)
+        if (cardTemplate != null)
         {
-            bg.color = GetCategoryColor(part.category);
+            card = cardTemplate.Instantiate();
+            card = card.Q("card-root") ?? card;
+        }
+        else
+        {
+            // fallback
+            card = new VisualElement();
+            card.AddToClassList("levelup-card");
+            card.Add(new Label { name = "card-category" });
+            card.Add(new VisualElement { name = "card-icon" });
+            card.Add(new Label { name = "card-title" });
+            card.Add(new Label { name = "card-desc" });
+            card.Add(new Label { name = "card-level" });
         }
 
-        // Category label
-        var categoryText = card.transform.Find("CategoryText")?.GetComponent<TextMeshProUGUI>();
-        if (categoryText != null)
-            categoryText.text = $"[{part.category}]";
-
-        // Button click
-        var button = card.GetComponent<Button>();
-        if (button != null)
+        // 카테고리
+        var categoryLabel = card.Q<Label>("card-category");
+        if (categoryLabel != null)
         {
-            int capturedIndex = index;
-            button.onClick.AddListener(() => SelectPart(capturedIndex));
+            string categoryText = data.category switch
+            {
+                ItemCategory.MainWeapon => "Main Weapon",
+                ItemCategory.SubWeapon => "Sub Weapon",
+                ItemCategory.SpellBook => "Spell Book",
+                _ => ""
+            };
+            categoryLabel.text = $"[{categoryText}]";
+
+            categoryLabel.RemoveFromClassList("card-category-main");
+            categoryLabel.RemoveFromClassList("card-category-sub");
+            categoryLabel.RemoveFromClassList("card-category-spellbook");
+
+            string colorClass = data.category switch
+            {
+                ItemCategory.MainWeapon => "card-category-main",
+                ItemCategory.SubWeapon => "card-category-sub",
+                ItemCategory.SpellBook => "card-category-spellbook",
+                _ => ""
+            };
+            if (!string.IsNullOrEmpty(colorClass))
+                categoryLabel.AddToClassList(colorClass);
         }
-    }
 
-    private Color GetCategoryColor(ItemCategory category)
-    {
-        return category switch
+        // 아이콘
+        var iconEl = card.Q("card-icon");
+        if (iconEl != null && data.icon != null)
+            iconEl.style.backgroundImage = new StyleBackground(data.icon);
+
+        // 이름
+        var titleLabel = card.Q<Label>("card-title");
+        if (titleLabel != null)
+            titleLabel.text = data.partName;
+
+        // 설명
+        var descLabel = card.Q<Label>("card-desc");
+        if (descLabel != null)
+            descLabel.text = data.description;
+
+        // 레벨 (이미 장착 중이면 표시)
+        var levelLabel = card.Q<Label>("card-level");
+        if (levelLabel != null && playerStats != null)
         {
-            ItemCategory.MainWeapon => new Color(1f, 0.4f, 0.3f, 0.9f),
-            ItemCategory.SubWeapon => new Color(1f, 0.7f, 0.2f, 0.9f),
-            ItemCategory.SpellBook => new Color(0.3f, 0.7f, 1f, 0.9f),
-            _ => Color.white
-        };
+            var owned = playerStats.equippedParts.Find(p => p.data == data);
+            if (owned != null)
+                levelLabel.text = $"Lv.{owned.level} → Lv.{Mathf.Min(owned.level + 1, data.maxLevel)}";
+            else
+                levelLabel.text = "NEW";
+        }
+
+        // 클릭 이벤트
+        int capturedIndex = index;
+        card.RegisterCallback<ClickEvent>(evt => SelectPart(capturedIndex));
+
+        return card;
     }
 
-    public void SelectPart(int index)
+    private void SelectPart(int index)
     {
         if (index < 0 || index >= currentChoices.Count) return;
 
         playerStats.ApplyPart(currentChoices[index]);
-        levelUpPanel.SetActive(false);
+        Hide();
         GameManager.Instance.SetState(GameManager.GameState.Playing);
         playerStats.ProcessPendingLevelUp();
+    }
+
+    private void Show()
+    {
+        if (overlay != null)
+            overlay.style.display = DisplayStyle.Flex;
+    }
+
+    private void Hide()
+    {
+        if (overlay != null)
+            overlay.style.display = DisplayStyle.None;
     }
 
     private void OnDestroy()
     {
         if (playerStats != null)
-        {
             playerStats.OnLevelUp -= ShowLevelUpCards;
-        }
     }
 }
