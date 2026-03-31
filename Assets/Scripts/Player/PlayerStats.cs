@@ -19,10 +19,6 @@ public class PlayerStats : MonoBehaviour
     [HideInInspector] public float baseDamage;
     [HideInInspector] public string currentCarId = "CAR_001";
 
-    [Header("Fuel")]
-    public float maxFuel = 600f; // 10 minutes in seconds
-    public float currentFuel;
-
     [Header("Experience")]
     public int currentExp = 0;
     public int level = 1;
@@ -40,7 +36,6 @@ public class PlayerStats : MonoBehaviour
     public List<OwnedPart> equippedParts = new List<OwnedPart>();
 
     public event Action<float, float> OnHealthChanged;
-    public event Action<float, float> OnFuelChanged;
     public event Action<int, int, int> OnExpChanged; // current, toNext, level
     public event Action OnLevelUp;
     public event Action OnPlayerDeath;
@@ -78,7 +73,6 @@ public class PlayerStats : MonoBehaviour
             expToNextLevel = levelData.required_exp_gap;
 
         currentHealth = maxHealth;
-        currentFuel = maxFuel;
         NotifyAll();
     }
 
@@ -86,16 +80,7 @@ public class PlayerStats : MonoBehaviour
     {
         if (GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
 
-        // Fuel consumption
-        currentFuel -= Time.deltaTime;
         survivalTime += Time.deltaTime;
-        OnFuelChanged?.Invoke(currentFuel, maxFuel);
-
-        if (currentFuel <= 0f)
-        {
-            currentFuel = 0f;
-            GameManager.Instance.OnRunComplete();
-        }
 
         // Health regen from parts
         float regen = GetTotalHealthRegen();
@@ -208,18 +193,8 @@ public class PlayerStats : MonoBehaviour
         var existing = equippedParts.Find(p => p.data == part);
         if (existing != null)
         {
-            existing.level++;
-            // Check for evolution
-            if (existing.level >= part.maxLevel && part.evolutionResult != null)
-            {
-                var partner = equippedParts.Find(p => p.data == part.evolutionPartner);
-                if (partner != null)
-                {
-                    equippedParts.Remove(partner);
-                    existing.data = part.evolutionResult;
-                    existing.level = 1;
-                }
-            }
+            if (existing.level < part.maxLevel)
+                existing.level++;
         }
         else
         {
@@ -239,6 +214,12 @@ public class PlayerStats : MonoBehaviour
 
         foreach (var part in equippedParts)
         {
+            // 무기는 자체 데미지를 가짐 — 스탯 보너스에 기여하지 않음
+            if (part.data.category == ItemCategory.MainWeapon
+                || part.data.category == ItemCategory.SubWeapon)
+                continue;
+
+            // 마법서만 스탯 보너스 적용
             float multiplier = part.level;
             bonusSpeed += part.data.speedBonus * multiplier;
             bonusAttackSpeed += part.data.attackSpeedBonus * multiplier;
@@ -256,18 +237,12 @@ public class PlayerStats : MonoBehaviour
 
     private float GetTotalHealthRegen()
     {
-        float regen = 0f;
-        foreach (var part in equippedParts)
-        {
-            regen += part.data.healthRegenPerSecond * part.level;
-        }
-        return regen;
+        return 0f;
     }
 
     private void NotifyAll()
     {
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
-        OnFuelChanged?.Invoke(currentFuel, maxFuel);
         OnExpChanged?.Invoke(currentExp, expToNextLevel, level);
     }
 }

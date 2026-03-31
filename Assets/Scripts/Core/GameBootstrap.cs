@@ -28,36 +28,58 @@ public class GameBootstrap : MonoBehaviour
         CreateBackground();
     }
 
-    // ─── Parts Database (테이블 기반) ───
+    // ─── Parts Database (TB_Weapon + TB_SpellBook 기반) ───
     private void CreatePartsDatabase()
     {
         partsDB = ScriptableObject.CreateInstance<PartsDatabase>();
         var tm = TableManager.Instance;
 
-        // 드랍 ��능한 파츠만 (진화 파츠 제외)
-        foreach (var row in tm.GetDroppableParts())
+        // 무기 (주무기 + 보조무기)
+        if (tm.Weapons != null)
         {
-            partsDB.allParts.Add(CreatePartFromTable(row));
+            foreach (var row in tm.Weapons)
+                partsDB.allParts.Add(CreateFromWeapon(row));
+        }
+
+        // 마법서 (패시브 버프)
+        if (tm.SpellBooks != null)
+        {
+            foreach (var row in tm.SpellBooks)
+                partsDB.allParts.Add(CreateFromSpellBook(row));
         }
     }
 
-    private PartsData CreatePartFromTable(PartRow row)
+    private PartsData CreateFromWeapon(WeaponRow row)
     {
         var part = ScriptableObject.CreateInstance<PartsData>();
-        part.partName = row.part_name;
+        part.itemId = row.weapon_id;
+        part.partName = row.weapon_name;
         part.description = row.effect_desc;
-        part.category = ParseEnum<PartsCategory>(row.category);
-        part.grade = PartsGrade.Common;
+        part.category = row.weapon_category == "Main" ? ItemCategory.MainWeapon : ItemCategory.SubWeapon;
+        part.damageBonus = row.base_damage;
+        part.weaponType = ParseWeaponType(row.weapon_type);
+        part.aimType = ParseEnum<AimType>(row.aim_type);
+        part.cooldown = row.cooldown;
+        part.duration = row.duration;
         part.maxLevel = row.max_level;
+        part.dropWeight = row.drop_weight;
+        return part;
+    }
 
-        // effect_type에 따라 적절한 보너�� 필드에 base_value 할당
+    private PartsData CreateFromSpellBook(SpellBookRow row)
+    {
+        var part = ScriptableObject.CreateInstance<PartsData>();
+        part.itemId = row.book_id;
+        part.partName = row.book_name;
+        part.description = row.effect_desc;
+        part.category = ItemCategory.SpellBook;
+        part.maxLevel = row.max_level;
+        part.dropWeight = row.drop_weight;
+
         switch (row.effect_type)
         {
             case "SpeedUp":
                 part.speedBonus = row.base_value;
-                break;
-            case "AtkSpeedUp":
-                part.attackSpeedBonus = row.base_value;
                 break;
             case "DamageUp":
                 part.damageBonus = row.base_value;
@@ -65,25 +87,7 @@ public class GameBootstrap : MonoBehaviour
             case "HpUp":
                 part.healthBonus = row.base_value;
                 break;
-            case "DefenseUp":
-                part.defenseBonus = row.base_value;
-                break;
-            case "HpRegen":
-                part.healthRegenPerSecond = row.base_value / 100f;
-                break;
-            case "CollisionReflect":
-                part.defenseBonus = row.base_value;
-                break;
         }
-
-        // 특수 케이스: 경량화 섀시 (속도+, 체력-)
-        if (row.part_id == "PART_004")
-            part.healthBonus = -5f;
-
-        part.hasActiveAbility = row.has_active;
-        part.abilityCooldown = row.cooldown;
-        part.abilityDuration = row.duration;
-        part.weaponType = ParseWeaponType(row.weapon_type);
 
         return part;
     }
@@ -100,10 +104,8 @@ public class GameBootstrap : MonoBehaviour
         return value switch
         {
             "MachineGun" => WeaponType.MachineGun,
-            "Missile" => WeaponType.MissileLauncher,
-            "EMP" => WeaponType.EMPPulse,
             "OilSlick" => WeaponType.OilSlick,
-            "Mine" => WeaponType.MineDrop,
+            "SawBlade" => WeaponType.SawBlade,
             _ => WeaponType.None,
         };
     }
@@ -135,10 +137,6 @@ public class GameBootstrap : MonoBehaviour
                          ?? Resources.Load<Sprite>(row.sprite_key);
             if (sprite != null)
                 monster.sprite = sprite;
-
-            // 색조
-            if (ColorUtility.TryParseHtmlString(row.tint_color, out var color))
-                monster.tintColor = color;
 
             monsterDataList.Add(monster);
         }
@@ -279,7 +277,7 @@ public class GameBootstrap : MonoBehaviour
         canvas.sortingOrder = 100;
         var scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080, 1920);
+        scaler.referenceResolution = new Vector2(1920, 1080);
         canvasObj.AddComponent<GraphicRaycaster>();
 
         // EventSystem
@@ -302,8 +300,7 @@ public class GameBootstrap : MonoBehaviour
         // Game Over UI
         CreateGameOverUI(canvasObj.transform);
 
-        // Joystick
-        CreateJoystick(canvasObj.transform);
+        // Steam: 조이스틱 제거 — WASD + 게임패드만 사용
     }
 
     private void CreateHUDElements(Transform parent, HUDManager hud)
@@ -317,16 +314,6 @@ public class GameBootstrap : MonoBehaviour
             new Vector2(0, 1), new Vector2(0, 1),
             new Vector2(170, -20), new Vector2(200, 30),
             "100/100", 14, TextAlignmentOptions.Center);
-
-        // Fuel Bar
-        hud.fuelBar = CreateSlider(parent, "FuelBar",
-            new Vector2(0, 1), new Vector2(0, 1),
-            new Vector2(20, -55), new Vector2(320, -55),
-            new Color(1f, 0.7f, 0f), new Color(0.3f, 0.2f, 0f));
-        hud.fuelText = CreateText(parent, "FuelText",
-            new Vector2(0, 1), new Vector2(0, 1),
-            new Vector2(170, -55), new Vector2(200, 30),
-            "10:00", 14, TextAlignmentOptions.Center);
 
         // Exp Bar (bottom)
         hud.expBar = CreateSlider(parent, "ExpBar",
@@ -495,45 +482,6 @@ public class GameBootstrap : MonoBehaviour
         return panel;
     }
 
-    private void CreateJoystick(Transform parent)
-    {
-        // Joystick container
-        var joyObj = new GameObject("Joystick");
-        joyObj.transform.SetParent(parent, false);
-        var joyRT = joyObj.AddComponent<RectTransform>();
-        joyRT.anchorMin = new Vector2(0, 0);
-        joyRT.anchorMax = new Vector2(0, 0);
-        joyRT.pivot = new Vector2(0, 0);
-        joyRT.sizeDelta = new Vector2(300, 300);
-        joyRT.anchoredPosition = new Vector2(50, 80);
-
-        // Background
-        var bgObj = new GameObject("Background");
-        bgObj.transform.SetParent(joyObj.transform, false);
-        var bgRT = bgObj.AddComponent<RectTransform>();
-        bgRT.anchorMin = new Vector2(0.5f, 0.5f);
-        bgRT.anchorMax = new Vector2(0.5f, 0.5f);
-        bgRT.sizeDelta = new Vector2(200, 200);
-        var bgImg = bgObj.AddComponent<Image>();
-        bgImg.color = new Color(1, 1, 1, 0.15f);
-        bgImg.sprite = CreateCircleSprite();
-
-        // Handle
-        var handleObj = new GameObject("Handle");
-        handleObj.transform.SetParent(bgObj.transform, false);
-        var handleRT = handleObj.AddComponent<RectTransform>();
-        handleRT.anchorMin = new Vector2(0.5f, 0.5f);
-        handleRT.anchorMax = new Vector2(0.5f, 0.5f);
-        handleRT.sizeDelta = new Vector2(80, 80);
-        var handleImg = handleObj.AddComponent<Image>();
-        handleImg.color = new Color(1, 1, 1, 0.4f);
-        handleImg.sprite = CreateCircleSprite();
-
-        var joystick = joyObj.AddComponent<VirtualJoystick>();
-        joystick.background = bgRT;
-        joystick.handle = handleRT;
-    }
-
     // ─── Prefab Factories ───
     private GameObject CreateBulletPrefab()
     {
@@ -689,23 +637,6 @@ public class GameBootstrap : MonoBehaviour
         tex.Apply();
         tex.filterMode = FilterMode.Point;
         return Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4);
-    }
-
-    private Sprite CreateCircleSprite()
-    {
-        int size = 64;
-        var tex = new Texture2D(size, size);
-        float radius = size / 2f;
-        for (int x = 0; x < size; x++)
-        {
-            for (int y = 0; y < size; y++)
-            {
-                float dist = Vector2.Distance(new Vector2(x, y), new Vector2(radius, radius));
-                tex.SetPixel(x, y, dist < radius ? Color.white : Color.clear);
-            }
-        }
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
     }
 
     private Sprite CreateCarSprite(Color baseColor)

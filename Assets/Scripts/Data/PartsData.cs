@@ -3,11 +3,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "CarSurvivor/PartsData")]
 public class PartsData : ScriptableObject
 {
+    public string itemId;
     public string partName;
     public string description;
     public Sprite icon;
-    public PartsCategory category;
-    public PartsGrade grade;
+    public ItemCategory category;
 
     [Header("Effects")]
     public float speedBonus = 0f;
@@ -15,42 +15,36 @@ public class PartsData : ScriptableObject
     public float damageBonus = 0f;
     public float healthBonus = 0f;
     public float defenseBonus = 0f;
-    public float healthRegenPerSecond = 0f;
 
-    [Header("Special")]
-    public bool hasActiveAbility = false;
-    public float abilityCooldown = 0f;
-    public float abilityDuration = 0f;
+    [Header("Weapon")]
     public WeaponType weaponType = WeaponType.None;
+    public AimType aimType = AimType.None;
+    public float cooldown = 0f;
+    public float duration = 0f;
 
-    [Header("Level & Evolution")]
-    public int maxLevel = 3;
-    public PartsData evolutionPartner;
-    public PartsData evolutionResult;
+    [Header("Level")]
+    public int maxLevel = 5;
+    public int dropWeight = 0;
 }
 
-public enum PartsCategory
+public enum ItemCategory
 {
-    Engine,
-    Weapon,
-    Defense,
-    Special
-}
-
-public enum PartsGrade
-{
-    Common,
-    Rare,
-    Epic,
-    Legendary
+    MainWeapon,
+    SubWeapon,
+    SpellBook
 }
 
 public enum WeaponType
 {
     None,
     MachineGun,
-    MissileLauncher,
-    EMPPulse,
     OilSlick,
-    MineDrop
+    SawBlade
+}
+
+public enum AimType
+{
+    None,
+    Manual,
+    Auto
 }

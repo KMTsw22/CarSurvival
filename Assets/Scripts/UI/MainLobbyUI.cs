@@ -9,8 +9,6 @@ public class MainLobbyUI : MonoBehaviour
 
     private Label playerNameLabel;
     private Label lvLabel;
-    private Label fuelLabel;
-    private Label gemLabel;
     private Label coinLabel;
     private ProgressBar expBar;
     private VisualElement startBtn;
@@ -26,18 +24,22 @@ public class MainLobbyUI : MonoBehaviour
         lvLabel = root.Q<Label>("lv-label");
         expBar = root.Q<ProgressBar>();
 
-        fuelLabel = root.Q("energy-box")?.Q<Label>(className: "currency-label");
-        gemLabel = root.Q("gem-box")?.Q<Label>(className: "currency-label");
         coinLabel = root.Q("coin-box")?.Q<Label>(className: "currency-label");
 
-        startBtn = root.Q("start-btn");
+        // Steam 버전: fuel/gem UI 제거
+        var energyBox = root.Q("energy-box");
+        if (energyBox != null) energyBox.style.display = DisplayStyle.None;
+        var gemBox = root.Q("gem-box");
+        if (gemBox != null) gemBox.style.display = DisplayStyle.None;
+
+        startBtn = root.Q("start__btn");
         startBtn?.RegisterCallback<ClickEvent>(evt =>
         {
             OnStartGameClicked?.Invoke();
         });
 
         SetPlayerInfo("DRIVER_001", 25, 22);
-        SetCurrency(60, 60, 2240, 163000);
+        SetGold(163000);
     }
 
     public void SetPlayerInfo(string name, int level, float expPercent)
@@ -47,10 +49,8 @@ public class MainLobbyUI : MonoBehaviour
         if (expBar != null) expBar.value = expPercent;
     }
 
-    public void SetCurrency(int fuel, int maxFuel, int gems, int gold)
+    public void SetGold(int gold)
     {
-        if (fuelLabel != null) fuelLabel.text = $"{fuel}/{maxFuel}";
-        if (gemLabel != null) gemLabel.text = gems.ToString();
         if (coinLabel != null)
         {
             if (gold >= 1000)

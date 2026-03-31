@@ -15,23 +15,20 @@ public class TableManager
     // Raw arrays
     public CurrencyRow[] Currencies { get; private set; }
     public CarRow[] Cars { get; private set; }
-    public PartGradeRow[] PartGrades { get; private set; }
+    public WeaponRow[] Weapons { get; private set; }
+    public SpellBookRow[] SpellBooks { get; private set; }
     public PartRow[] Parts { get; private set; }
-    public EvolutionRow[] Evolutions { get; private set; }
     public MonsterRow[] Monsters { get; private set; }
     public MonsterDropRow[] MonsterDrops { get; private set; }
     public WaveRow[] Waves { get; private set; }
     public LevelRow[] Levels { get; private set; }
-    public RewardRow[] Rewards { get; private set; }
-    public ShopRow[] Shops { get; private set; }
     public MapRow[] Maps { get; private set; }
 
-    // Lookup dictionaries (ID → Row)
+    // Lookup dictionaries
     private Dictionary<string, CurrencyRow> _currencyDict;
     private Dictionary<string, CarRow> _carDict;
-    private Dictionary<string, PartGradeRow> _gradeDict;
-    private Dictionary<string, PartRow> _partDict;
-    private Dictionary<string, EvolutionRow> _evoDict;
+    private Dictionary<string, WeaponRow> _weaponDict;
+    private Dictionary<string, SpellBookRow> _spellBookDict;
     private Dictionary<string, MonsterRow> _monsterDict;
     private Dictionary<string, MonsterDropRow> _dropByMonDict;
     private Dictionary<int, LevelRow> _levelDict;
@@ -43,15 +40,13 @@ public class TableManager
     {
         Currencies = Load<CurrencyRow[]>("Tables/TB_Currency");
         Cars = Load<CarRow[]>("Tables/TB_Car");
-        PartGrades = Load<PartGradeRow[]>("Tables/TB_PartGrade");
+        Weapons = Load<WeaponRow[]>("Tables/TB_Weapon");
+        SpellBooks = Load<SpellBookRow[]>("Tables/TB_SpellBook");
         Parts = Load<PartRow[]>("Tables/TB_Part");
-        Evolutions = Load<EvolutionRow[]>("Tables/TB_Evolution");
         Monsters = Load<MonsterRow[]>("Tables/TB_Monster");
         MonsterDrops = Load<MonsterDropRow[]>("Tables/TB_MonsterDrop");
         Waves = Load<WaveRow[]>("Tables/TB_Wave");
         Levels = Load<LevelRow[]>("Tables/TB_Level");
-        Rewards = Load<RewardRow[]>("Tables/TB_Reward");
-        Shops = Load<ShopRow[]>("Tables/TB_Shop");
         Maps = Load<MapRow[]>("Tables/TB_Map");
 
         BuildDictionaries();
@@ -64,7 +59,7 @@ public class TableManager
         var asset = Resources.Load<TextAsset>(path);
         if (asset == null)
         {
-            Debug.LogError($"[TableManager] Table not found: {path}");
+            Debug.LogWarning($"[TableManager] Table not found (may be empty): {path}");
             return default;
         }
         return MessagePackSerializer.Deserialize<T>(asset.bytes);
@@ -74,9 +69,8 @@ public class TableManager
     {
         _currencyDict = Currencies?.ToDictionary(r => r.currency_id);
         _carDict = Cars?.ToDictionary(r => r.car_id);
-        _gradeDict = PartGrades?.ToDictionary(r => r.grade_id);
-        _partDict = Parts?.ToDictionary(r => r.part_id);
-        _evoDict = Evolutions?.ToDictionary(r => r.evo_id);
+        _weaponDict = Weapons?.ToDictionary(r => r.weapon_id);
+        _spellBookDict = SpellBooks?.ToDictionary(r => r.book_id);
         _monsterDict = Monsters?.ToDictionary(r => r.mon_id);
         _dropByMonDict = MonsterDrops?.ToDictionary(r => r.mon_id);
         _levelDict = Levels?.ToDictionary(r => r.level);
@@ -87,44 +81,46 @@ public class TableManager
 
     public CurrencyRow GetCurrency(string id) => _currencyDict.GetValueOrDefault(id);
     public CarRow GetCar(string id) => _carDict.GetValueOrDefault(id);
-    public PartGradeRow GetPartGrade(string id) => _gradeDict.GetValueOrDefault(id);
-    public PartRow GetPart(string id) => _partDict.GetValueOrDefault(id);
-    public EvolutionRow GetEvolution(string id) => _evoDict.GetValueOrDefault(id);
+    public WeaponRow GetWeapon(string id) => _weaponDict.GetValueOrDefault(id);
+    public SpellBookRow GetSpellBook(string id) => _spellBookDict.GetValueOrDefault(id);
     public MapRow GetMap(string id) => _mapDict.GetValueOrDefault(id);
     public MonsterRow GetMonster(string id) => _monsterDict.GetValueOrDefault(id);
     public MonsterDropRow GetMonsterDrop(string monId) => _dropByMonDict.GetValueOrDefault(monId);
     public LevelRow GetLevel(int level) => _levelDict.GetValueOrDefault(level);
 
-    /// <summary>특정 시간대(분)의 웨이브 행 목록 반환</summary>
-    public WaveRow[] GetWavesByMinute(int minute)
+    /// <summary>주무기 목록</summary>
+    public WeaponRow[] GetMainWeapons()
     {
-        return Waves?.Where(w => w.time_min == minute).ToArray();
+        return Weapons?.Where(w => w.weapon_category == "Main").ToArray();
     }
 
-    /// <summary>특정 트리거의 보상 목록 반환</summary>
-    public RewardRow[] GetRewardsByTrigger(string trigger)
+    /// <summary>보조무기 목록</summary>
+    public WeaponRow[] GetSubWeapons()
     {
-        return Rewards?.Where(r => r.reward_trigger == trigger).ToArray();
+        return Weapons?.Where(w => w.weapon_category == "Sub").ToArray();
     }
 
-    /// <summary>드랍 가능한 파츠 목록 (진화 파츠 제외)</summary>
-    public PartRow[] GetDroppableParts()
+    /// <summary>특정 그룹의 전체 웨이브 반환</summary>
+    public WaveRow[] GetWavesByGroup(string groupId)
     {
-        return Parts?.Where(p => !p.is_evolution_result && p.drop_weight > 0).ToArray();
+        return Waves?.Where(w => w.wave_group_id == groupId).ToArray();
     }
 
-    /// <summary>특정 파츠가 재료로 들어가는 진화 레시피 찾기</summary>
-    public EvolutionRow FindEvolutionByMaterials(string partIdA, string partIdB)
+    /// <summary>특정 그룹 + 시간대(분)의 웨이브 행 목록 반환</summary>
+    public WaveRow[] GetWavesByGroupAndMinute(string groupId, int minute)
     {
-        return Evolutions?.FirstOrDefault(e =>
-            (e.material_a_id == partIdA && e.material_b_id == partIdB) ||
-            (e.material_a_id == partIdB && e.material_b_id == partIdA));
+        return Waves?.Where(w => w.wave_group_id == groupId && w.time_min == minute).ToArray();
     }
 
-    /// <summary>등급 enum 문자열로 배율 조회</summary>
-    public float GetGradeMultiplier(string gradeEnum)
+    /// <summary>특정 챕터의 몬스터 목록</summary>
+    public MonsterRow[] GetMonstersByChapter(int chapter)
     {
-        var grade = PartGrades?.FirstOrDefault(g => g.grade_enum == gradeEnum);
-        return grade?.value_multiplier ?? 1f;
+        return Monsters?.Where(m => m.chapter == chapter).ToArray();
+    }
+
+    /// <summary>특정 챕터의 보스 목록</summary>
+    public MonsterRow[] GetBossesByChapter(int chapter)
+    {
+        return Monsters?.Where(m => m.chapter == chapter && m.is_boss).ToArray();
     }
 }

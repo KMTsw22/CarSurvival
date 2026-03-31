@@ -8,10 +8,6 @@ public class HUDManager : MonoBehaviour
     public Slider healthBar;
     public TextMeshProUGUI healthText;
 
-    [Header("Fuel")]
-    public Slider fuelBar;
-    public TextMeshProUGUI fuelText;
-
     [Header("Experience")]
     public Slider expBar;
     public TextMeshProUGUI levelText;
@@ -29,7 +25,6 @@ public class HUDManager : MonoBehaviour
         if (playerStats != null)
         {
             playerStats.OnHealthChanged += UpdateHealth;
-            playerStats.OnFuelChanged += UpdateFuel;
             playerStats.OnExpChanged += UpdateExp;
         }
     }
@@ -60,18 +55,6 @@ public class HUDManager : MonoBehaviour
             healthText.text = $"{Mathf.CeilToInt(current)}/{Mathf.CeilToInt(max)}";
     }
 
-    private void UpdateFuel(float current, float max)
-    {
-        if (fuelBar != null)
-            fuelBar.value = current / max;
-        if (fuelText != null)
-        {
-            int minutes = Mathf.FloorToInt(current / 60f);
-            int seconds = Mathf.FloorToInt(current % 60f);
-            fuelText.text = $"{minutes:00}:{seconds:00}";
-        }
-    }
-
     private void UpdateExp(int current, int toNext, int level)
     {
         if (expBar != null)
@@ -85,7 +68,6 @@ public class HUDManager : MonoBehaviour
         if (playerStats != null)
         {
             playerStats.OnHealthChanged -= UpdateHealth;
-            playerStats.OnFuelChanged -= UpdateFuel;
             playerStats.OnExpChanged -= UpdateExp;
         }
     }

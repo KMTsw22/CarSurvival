@@ -8,7 +8,6 @@ public class CarController : MonoBehaviour
     private PlayerStats stats;
     private Vector2 moveInput;
     private Vector2 currentDirection;
-    private bool usingJoystick;
 
     [Header("Movement")]
     public float turnSpeed = 720f; // 초당 회전 각도
@@ -34,12 +33,11 @@ public class CarController : MonoBehaviour
 
         if (h != 0 || v != 0)
         {
-            // 키보드: 목표 방향을 설정하고 현재 방향을 부드럽게 회전
-            Vector2 targetDir = new Vector2(h, v).normalized;
-            if (!usingJoystick)
-            {
-                moveInput = targetDir;
-            }
+            moveInput = new Vector2(h, v).normalized;
+        }
+        else
+        {
+            moveInput = Vector2.zero;
         }
     }
 
@@ -73,18 +71,6 @@ public class CarController : MonoBehaviour
             rb.velocity = Vector2.zero;
         }
 
-        // 입력 초기화 (조이스틱은 매 프레임 SetMoveInput으로 갱신)
-        if (!usingJoystick && Input.GetAxisRaw("Horizontal") == 0 && Input.GetAxisRaw("Vertical") == 0)
-        {
-            moveInput = Vector2.zero;
-        }
-        usingJoystick = false;
-    }
-
-    public void SetMoveInput(Vector2 input)
-    {
-        moveInput = input;
-        usingJoystick = input.sqrMagnitude > 0.01f;
     }
 
     public Vector2 GetMoveDirection()

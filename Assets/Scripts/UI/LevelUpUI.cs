@@ -68,11 +68,11 @@ public class LevelUpUI : MonoBehaviour
         if (iconImage != null && part.icon != null)
             iconImage.sprite = part.icon;
 
-        // Grade color
+        // Category color
         var bg = card.GetComponent<Image>();
         if (bg != null)
         {
-            bg.color = GetGradeColor(part.grade);
+            bg.color = GetCategoryColor(part.category);
         }
 
         // Category label
@@ -89,14 +89,13 @@ public class LevelUpUI : MonoBehaviour
         }
     }
 
-    private Color GetGradeColor(PartsGrade grade)
+    private Color GetCategoryColor(ItemCategory category)
     {
-        return grade switch
+        return category switch
         {
-            PartsGrade.Common => new Color(0.8f, 0.8f, 0.8f, 0.9f),
-            PartsGrade.Rare => new Color(0.3f, 0.5f, 1f, 0.9f),
-            PartsGrade.Epic => new Color(0.6f, 0.2f, 0.8f, 0.9f),
-            PartsGrade.Legendary => new Color(1f, 0.8f, 0.2f, 0.9f),
+            ItemCategory.MainWeapon => new Color(1f, 0.4f, 0.3f, 0.9f),
+            ItemCategory.SubWeapon => new Color(1f, 0.7f, 0.2f, 0.9f),
+            ItemCategory.SpellBook => new Color(0.3f, 0.7f, 1f, 0.9f),
             _ => Color.white
         };
     }
