@@ -12,14 +12,8 @@ public class CheatWindow : EditorWindow
     private float bounceSquash = 0.15f;
     private GameObject spawnedMonster;
 
-    // 몬스터 이름 (테이블 순서)
-    private readonly string[] monsterNames = {
-        "0: 타이어 좀비",
-        "1: 오일 슬라임",
-        "2: 메탈 크러셔",
-        "3: 스파크 유령",
-        "4: 보스 트럭"
-    };
+    // 몬스터 이름 (런타임에 스포너에서 자동 생성)
+    private string[] monsterNames = null;
 
     private Vector2 scrollPos;
 
@@ -54,7 +48,17 @@ public class CheatWindow : EditorWindow
         EditorGUILayout.LabelField("Monster Spawn", EditorStyles.boldLabel);
         EditorGUILayout.Space(4);
 
-        selectedMonsterIndex = EditorGUILayout.Popup("몬스터 선택", selectedMonsterIndex, monsterNames);
+        RefreshMonsterNames();
+        if (monsterNames != null && monsterNames.Length > 0)
+        {
+            if (selectedMonsterIndex >= monsterNames.Length)
+                selectedMonsterIndex = 0;
+            selectedMonsterIndex = EditorGUILayout.Popup("몬스터 선택", selectedMonsterIndex, monsterNames);
+        }
+        else
+        {
+            EditorGUILayout.HelpBox("Play 모드에서 몬스터 목록이 표시됩니다.", MessageType.Info);
+        }
 
         EditorGUILayout.Space(4);
         EditorGUILayout.BeginHorizontal();
@@ -290,17 +294,22 @@ public class CheatWindow : EditorWindow
         GameObject prefab;
         MonsterData data;
 
-        if (selectedMonsterIndex < spawner.monsterDataList.Count)
+        int normalCount = spawner.monsterDataList.Count;
+        if (selectedMonsterIndex < normalCount)
         {
             prefab = spawner.enemyPrefabs[selectedMonsterIndex];
             data = spawner.monsterDataList[selectedMonsterIndex];
         }
-        else if (spawner.bossDataList.Count > 0)
+        else
         {
-            prefab = spawner.bossPrefabs[0];
-            data = spawner.bossDataList[0];
+            int bossIdx = selectedMonsterIndex - normalCount;
+            if (bossIdx < spawner.bossDataList.Count)
+            {
+                prefab = spawner.bossPrefabs[bossIdx];
+                data = spawner.bossDataList[bossIdx];
+            }
+            else return;
         }
-        else return;
 
         var player = GameObject.FindGameObjectWithTag("Player");
         Vector3 spawnPos = player != null
@@ -490,6 +499,28 @@ public class CheatWindow : EditorWindow
                 Debug.Log("[Cheat] HUDManager.playerStats 강제 주입");
             }
         }
+    }
+
+    // ─── Monster Names ───
+
+    private void RefreshMonsterNames()
+    {
+        if (!Application.isPlaying) { monsterNames = null; return; }
+
+        var spawner = FindSpawner();
+        if (spawner == null) { monsterNames = null; return; }
+
+        int normalCount = spawner.monsterDataList.Count;
+        int bossCount = spawner.bossDataList.Count;
+        int total = normalCount + bossCount;
+
+        if (monsterNames != null && monsterNames.Length == total) return;
+
+        monsterNames = new string[total];
+        for (int i = 0; i < normalCount; i++)
+            monsterNames[i] = $"{i}: {spawner.monsterDataList[i].monsterName}";
+        for (int i = 0; i < bossCount; i++)
+            monsterNames[normalCount + i] = $"{normalCount + i}: [BOSS] {spawner.bossDataList[i].monsterName}";
     }
 
     // ─── Util ───
