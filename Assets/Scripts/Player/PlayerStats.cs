@@ -4,6 +4,19 @@ using System.Collections.Generic;
 
 public class PlayerStats : MonoBehaviour
 {
+    public static PlayerStats Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning($"[PlayerStats] 중복 인스턴스 감지! 기존={Instance.GetInstanceID()}, 새로운={GetInstanceID()}. 새 것 파괴.");
+            Destroy(this);
+            return;
+        }
+        Instance = this;
+    }
+
     [Header("Base Stats (TB_Car 기반)")]
     public float maxHealth = 100f;
     public float currentHealth;
@@ -32,6 +45,9 @@ public class PlayerStats : MonoBehaviour
     [Header("Run Stats")]
     public int enemiesKilled = 0;
     public float survivalTime = 0f;
+
+    [Header("Cheat")]
+    public bool isInvincible = false;
 
     public List<OwnedPart> equippedParts = new List<OwnedPart>();
 
@@ -135,6 +151,8 @@ public class PlayerStats : MonoBehaviour
 
     public void TakeDamage(float amount)
     {
+        if (isInvincible) return;
+
         float reduced = amount * (1f - defense);
         currentHealth -= reduced;
         OnHealthChanged?.Invoke(currentHealth, maxHealth);

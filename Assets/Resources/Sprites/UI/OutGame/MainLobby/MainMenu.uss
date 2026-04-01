@@ -1,75 +1,65 @@
-/* ================================================
-   MainLobby(Battle) 전용 Stylesheet
-   PC 가로(16:9) 비율 기준 — 모든 크기 % 단위
-================================================ */
-
-/* ===== 중간 영역 ===== */
-.middle-area {
-    flex-grow: 1;
-    flex-direction: row;
-    align-items: stretch;
-    min-height: 0;
+/* Button 기본 스타일 리셋 */
+.btn-reset {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    -unity-font-style: normal;
+    margin: 0;
+    padding: 0;
 }
 
-/* ===== 사이드 버튼 ===== */
-.side-buttons {
-    width: 8%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 5%;
-    flex-shrink: 0;
-}
-
-.side-btn-wrap {
-    width: 80%;
+.setting-btn {
+    width: 6%;
     height: 0;
-    padding-bottom: 80%;
-    margin-bottom: 12%;
+    padding-bottom: 6%;
     position: relative;
+    margin-top: 2%;
+    transition-duration: 0.08s;
+    transition-property: scale;
 }
 
-.side-btn-bg {
+.setting-btn:hover {
+    scale: 1.1;
+
+}
+
+.setting-btn:hover .setting-btn-img {
+    -unity-background-image-tint-color: rgb(230, 230, 255);
+}
+
+.setting-btn:active {
+    scale: 0.85;
+}
+
+.setting-btn:active .setting-btn-img {
+    -unity-background-image-tint-color: rgb(180, 180, 180);
+}
+
+.setting-btn-img {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    background-color: rgba(80, 75, 100, 0.8);
-    border-top-left-radius: 20%;
-    border-top-right-radius: 20%;
-    border-bottom-right-radius: 20%;
-    border-bottom-left-radius: 20%;
-    border-top-width: 4%;
-    border-right-width: 4%;
-    border-bottom-width: 4%;
-    border-left-width: 4%;
-    border-top-color: rgb(255, 210, 50);
-    border-right-color: rgb(220, 170, 20);
-    border-bottom-color: rgb(180, 130, 0);
-    border-left-color: rgb(220, 170, 20);
-}
-
-.side-btn-img {
-    width: 60%;
-    height: 60%;
-    -unity-background-scale-mode: scale-to-fit;
-    flex-shrink: 0;
-}
-
-.badge {
-    width: 20%;
-    height: 20%;
-    position: absolute;
-    top: -5%;
-    right: -5%;
+    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/Setting.png?fileID=21300000&guid=f2574550176947e43b9aa166d9f795ec&type=3#Setting");
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* ===== 중앙 콘텐츠 ===== */
+.currency-bar {
+    width: 22%;
+    height: 0;
+    padding-bottom: 4%;
+    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/CurrencyBar.png?fileID=21300000&guid=ece6dbef1bab9bd4abd9eac0361c38c0&type=3#CurrencyBar");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.lobby-content {
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: stretch;
+}
+
 .main-content {
     flex-grow: 1;
     flex-direction: column;
@@ -77,6 +67,7 @@
     justify-content: flex-start;
     padding-top: 1%;
     min-width: 0;
+    min-height: 0;
 }
 
 .stage-name {
@@ -85,8 +76,8 @@
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     margin-bottom: 1%;
-    margin-top: 3%;
-    -unity-font-definition: url("project://database/Assets/Resources/Fonts/BebasNeue-Regular.ttf");
+    margin-top: 1%;
+    -unity-font-definition: url("project://database/Assets/Resources/Fonts/BebasNeue-Regular.ttf?fileID=12800000&guid=76437657f7ba55c488056ab4f07701d7&type=3#BebasNeue-Regular");
     -unity-text-outline-width: 1%;
     -unity-text-outline-color: rgb(40, 20, 0);
     text-shadow: 2% 2% 1% rgba(0, 0, 0, 0.8);
@@ -95,147 +86,113 @@
 }
 
 .map-preview {
-    width: 95%;
+    width: 50%;
     flex-grow: 1;
-    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/map.png");
+    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/map.png?fileID=21300000&guid=0648d59037e904840bde31c659a951bb&type=3#map");
     -unity-background-scale-mode: scale-to-fit;
-    border-radius: 3%;
     margin-bottom: 2%;
     min-height: 0;
 }
 
-/* ===== START GAME ===== */
-.start-section {
+.bottom-section {
     width: 100%;
-    height: 10%;
+    height: 14%;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    padding: 0 3%;
+    padding: 0 5%;
+    margin-bottom: 3%;
 }
 
-.fuel-round {
-    width: 0;
-    height: 70%;
-    padding-left: 5%;
-    border-radius: 50%;
-    background-color: rgb(230, 230, 230);
-    align-items: center;
-    justify-content: center;
+.action-btn {
+    width: 14%;
+    height: 0;
+    padding-bottom: 10%;
+    position: relative;
+}
+
+.action-btn-img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     -unity-background-scale-mode: scale-to-fit;
-    border-width: 2%;
-    border-color: rgb(200, 200, 200);
 }
 
-.x5-label {
-    color: rgb(40, 120, 40);
-    font-size: 150%;
-    -unity-font-style: bold;
-    -unity-text-align: middle-center;
+.paint-btn-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/Paint.png?fileID=21300000&guid=e5e500694e7d30e428fe3987ff6e0acc&type=3#Paint");
+}
+
+.upgrade-btn-img {
+    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/Upgrade.png?fileID=21300000&guid=c137819d90600944b9f9979f75dfdbed&type=3#Upgrade");
 }
 
 .start-btn {
     flex-grow: 1;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0);
-    border-top-left-radius: 50%;
-    border-top-right-radius: 50%;
-    border-bottom-right-radius: 50%;
-    border-bottom-left-radius: 50%;
-    flex-direction: row;
+    margin: 0 3%;
+    position: relative;
     align-items: center;
     justify-content: center;
-    border-width: 3%;
-    border-top-color: rgb(255, 230, 120);
-    border-right-color: rgb(200, 150, 20);
-    border-bottom-color: rgb(170, 120, 0);
-    border-left-color: rgb(200, 150, 20);
     overflow: visible;
+    transition-duration: 0.08s;
+    transition-property: scale;
 }
 
-.start-btn-icon {
-    width: 8%;
-    height: 50%;
-    margin-right: 2%;
-    -unity-background-scale-mode: scale-to-fit;
-}
 
-.start-btn-bg-top {
+.start-btn-bg {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
-    height: 55%;
-    background-color: rgb(255, 210, 50);
-    border-top-left-radius: 50%;
-    border-top-right-radius: 50%;
+    bottom: 0;
+    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/StartGame.png?fileID=21300000&guid=91515cb02bb88354b9af5133f8a3e5d7&type=3#StartGame");
+    -unity-background-scale-mode: stretch-to-fill;
+    border-top-left-radius: 3%;
+    border-top-right-radius: 3%;
+    border-bottom-right-radius: 3%;
+    border-bottom-left-radius: 3%;
 }
 
-.start-btn-bg-bottom {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    height: 50%;
-    background-color: rgb(240, 180, 20);
-    border-bottom-left-radius: 50%;
-    border-bottom-right-radius: 50%;
+/* Start 버튼 — hover: 밝아짐, active: 어두워짐 */
+.start-btn:hover {
+
+}
+
+.start-btn:hover .start-btn-bg {
+    -unity-background-image-tint-color: rgb(220, 220, 255);
+}
+
+.start-btn:active .start-btn-bg {
+    -unity-background-image-tint-color: rgb(160, 160, 160);
+}
+
+/* Action 버튼 (Paint, Upgrade) — hover + active */
+.action-btn:hover {
+    scale: 1.08;
+
+}
+
+.action-btn:hover .action-btn-img {
+    -unity-background-image-tint-color: rgb(230, 230, 255);
+}
+
+.action-btn:active {
+    scale: 0.88;
+}
+
+.action-btn:active .action-btn-img {
+    -unity-background-image-tint-color: rgb(180, 180, 180);
 }
 
 .start-label {
     color: rgb(60, 30, 0);
-    font-size: 450%;
+    font-size: 550%;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-}
-
-/* ===== Start Fuel Badge — Steam 버전에서 숨김 ===== */
-.start-fuel-badge {
-    display: none;
-}
-
-/* ===== 하단 네비 — 반응형 내부 컨테이너 ===== */
-.nav-btn-inner {
-    width: 80%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-    flex-direction: column;
-}
-
-.nav-btn-inner .nav-icon {
-    width: 40%;
-    height: 50%;
-    margin-bottom: 2%;
-}
-
-.nav-label-responsive {
-    -unity-font: resource('Fonts/BebasNeue-Regular');
-    -unity-font-style: bold;
-    font-size: 200%;
-    height: 20%;
-    width: 100%;
-    align-self: center;
-    margin: 0;
-    padding: 0;
-}
-
-/* ===== 이미지 경로 (로비 전용) ===== */
-.setting-img {
-    background-image: url("project://database/Assets/Resources/Sprites/UI/OutGame/MainLobby/SETTING.png");
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.missions-img {
-    display: none;
-}
-
-.guild-img {
-    display: none;
-}
-
-.friends-img {
-    display: none;
+    -unity-font-definition: url("project://database/Assets/Resources/Fonts/BebasNeue-Regular.ttf?fileID=12800000&guid=76437657f7ba55c488056ab4f07701d7&type=3#BebasNeue-Regular");
+    -unity-text-outline-width: 0.5%;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.3);
 }

@@ -109,6 +109,9 @@ public class MonsterRow
     [Key(8)] public int spawn_weight;
     [Key(9)] public string special_ability;
     [Key(10)] public string sprite_key;
+    [Key(11)] public float bounce_speed;
+    [Key(12)] public float bounce_height;
+    [Key(13)] public float bounce_squash;
 }
 
 // ============================================================
@@ -130,15 +133,14 @@ public class MonsterDropRow
 [MessagePackObject]
 public class WaveRow
 {
-    [Key(0)] public string wave_id;
-    [Key(1)] public string wave_group_id;
-    [Key(2)] public int time_min;
-    [Key(3)] public string phase_name;
-    [Key(4)] public string mon_id;
-    [Key(5)] public int spawn_per_30s;
-    [Key(6)] public int max_enemies;
-    [Key(7)] public float difficulty_scale;
-    [Key(8)] public string note;
+    [Key(0)] public string wave_group_id;
+    [Key(1)] public int wave_no;
+    [Key(2)] public string mon_id;
+    [Key(3)] public int spawn_count;
+    [Key(4)] public float spawn_interval;
+    [Key(5)] public int max_enemies;
+    [Key(6)] public float difficulty_scale;
+    [Key(7)] public string note;
 }
 
 // ============================================================
@@ -152,6 +154,45 @@ public class LevelRow
     [Key(2)] public int required_exp_gap;
     [Key(3)] public float difficulty_multiplier;
     [Key(4)] public string note;
+}
+
+// ============================================================
+// TB_LangLevelUpSelect_name (이름 언어 테이블)
+// ============================================================
+[MessagePackObject]
+public class LangNameRow
+{
+    [Key(0)] public string item_id;
+    [Key(1)] public string ko;
+    [Key(2)] public string en;
+}
+
+// ============================================================
+// TB_LangLevelUpSelect_des (설명 언어 테이블)
+// ============================================================
+[MessagePackObject]
+public class LangDesRow
+{
+    [Key(0)] public string item_id;
+    [Key(1)] public string ko;
+    [Key(2)] public string en;
+}
+
+// ============================================================
+// TB_Stage (스테이지 별 보스 소환 열쇠 정보)
+// ============================================================
+[MessagePackObject]
+public class StageRow
+{
+    [Key(0)] public string stage_id;        // 예: STG_CH1_1
+    [Key(1)] public string map_id;          // 소속 맵 (예: MAP_CH1)
+    [Key(2)] public int stage_no;           // 스테이지 번호
+    [Key(3)] public string boss_mon_id;     // 소환할 보스 몬스터 ID
+    [Key(4)] public string key_item_id;     // 필요한 열쇠 아이템 ID
+    [Key(5)] public int key_item_count;     // 필요한 열쇠 개수
+    [Key(6)] public string key_icon;        // 열쇠 아이콘 스프라이트 키
+    [Key(7)] public string key_name;        // 열쇠 아이템 표시 이름
+    [Key(8)] public float arena_radius;     // 보스 아레나 반경
 }
 
 // ============================================================

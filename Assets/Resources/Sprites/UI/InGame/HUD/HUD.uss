@@ -1,47 +1,89 @@
-/* ================================================
-   InGame HUD Stylesheet — % 단위
-================================================ */
-
-/* 전체 HUD 루트 */
 .hud-root {
     position: absolute;
     width: 100%;
     height: 100%;
 }
 
-/* ===== 상단 좌측: 체력바 ===== */
 .health-area {
     position: absolute;
     left: 1%;
     top: 1%;
-    width: 20%;
-    height: 4%;
-    flex-direction: column;
+    width: 25%;
+    height: 5%;
+    background-image: resource('Sprites/UI/InGame/HUD/hpbar_bg');
+    -unity-background-scale-mode: stretch-to-fill;
 }
 
 .health-bar-bg {
+    position: absolute;
     width: 100%;
-    height: 60%;
-    background-color: rgba(80, 0, 0, 0.8);
-    border-radius: 4px;
+    height: 100%;
     overflow: hidden;
 }
 
 .health-bar-fill {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    left: 17%;
+    top: 22%;
+    width: 80%;
+    height: 56%;
     background-color: rgb(220, 40, 40);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
 .health-text {
-    font-size: 14px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    font-size: 18px;
     color: white;
+    -unity-font-style: bold;
     -unity-text-align: middle-center;
-    margin-top: 2px;
+    padding-left: 15%;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* ===== 상단 중앙: 타이머 ===== */
+.exp-area {
+    position: absolute;
+    left: 1%;
+    top: 7%;
+    width: 25%;
+    height: 4%;
+    background-image: resource('Sprites/UI/InGame/HUD/expbar_bg');
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.exp-bar-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.exp-bar-fill {
+    position: absolute;
+    left: 5%;
+    top: 20%;
+    width: 0%;
+    height: 60%;
+    background-color: rgb(50, 200, 255);
+    border-radius: 3px;
+    transition-property: width;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+.level-text {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    font-size: 16px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
 .timer-area {
     position: absolute;
     left: 50%;
@@ -61,7 +103,6 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* ===== 상단 우측: 킬/골드 ===== */
 .stats-area {
     position: absolute;
     right: 1%;
@@ -72,45 +113,90 @@
 }
 
 .kills-text {
-    font-size: 16px;
+    font-size: 28px;
     color: white;
+    -unity-font-style: bold;
     -unity-text-align: middle-right;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .gold-text {
-    font-size: 16px;
+    font-size: 28px;
     color: rgb(255, 220, 80);
+    -unity-font-style: bold;
     -unity-text-align: middle-right;
     margin-top: 4px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* ===== 하단: 경험치바 ===== */
-.exp-area {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3%;
-    flex-direction: column;
+.key-area {
+    flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
+    margin-top: 8%;
+    height: 10%;
 }
 
-.exp-bar-bg {
-    width: 100%;
-    height: 60%;
-    background-color: rgba(20, 40, 60, 0.8);
+.key-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 6px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
-.exp-bar-fill {
-    width: 0%;
-    height: 100%;
-    background-color: rgb(50, 200, 255);
+.key-text {
+    font-size: 24px;
+    color: rgb(200, 160, 255);
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-.level-text {
+.summon-btn {
+    margin-top: 4%;
+    padding: 2% 5%;
     font-size: 18px;
     color: white;
     -unity-font-style: bold;
+    background-color: rgb(180, 50, 50);
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: rgb(255, 100, 100);
+    align-self: flex-end;
+    display: none;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.summon-btn:hover {
+    background-color: rgb(220, 70, 70);
+}
+
+.summon-btn:active {
+    background-color: rgb(150, 30, 30);
+}
+
+.countdown-text {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    translate: -50% -50%;
+    font-size: 80px;
+    color: rgb(255, 60, 60);
+    -unity-font-style: bold;
     -unity-text-align: middle-center;
-    margin-top: 2px;
+    text-shadow: 3px 3px 4px rgba(0, 0, 0, 0.9);
+    display: none;
+}
+
+.warning-text {
+    position: absolute;
+    left: 50%;
+    top: 12%;
+    translate: -50% 0;
+    font-size: 24px;
+    color: rgb(255, 80, 80);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.9);
+    display: none;
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 /// <summary>
 /// Bootstraps the entire game scene at runtime.
@@ -10,6 +11,7 @@ public class GameBootstrap : MonoBehaviour
     private GameObject playerCar;
     private PartsDatabase partsDB;
     private List<MonsterData> monsterDataList = new List<MonsterData>();
+    private List<MonsterData> bossDataList = new List<MonsterData>();
 
     private void Awake()
     {
@@ -22,6 +24,7 @@ public class GameBootstrap : MonoBehaviour
         CreateCamera();
         CreateGameManager();
         CreateEnemySpawner();
+        CreateStageManager();
         CreateUI();
         CreateBackground();
     }
@@ -51,8 +54,8 @@ public class GameBootstrap : MonoBehaviour
     {
         var part = ScriptableObject.CreateInstance<PartsData>();
         part.itemId = row.weapon_id;
-        part.partName = row.weapon_name;
-        part.description = row.effect_desc;
+        part.partName = TableManager.Instance.GetLangName(row.weapon_id);
+        part.description = TableManager.Instance.GetLangDesc(row.weapon_id);
         part.category = row.weapon_category == "Main" ? ItemCategory.MainWeapon : ItemCategory.SubWeapon;
         part.damage = row.damage;
         part.weaponType = ParseWeaponType(row.weapon_type);
@@ -74,8 +77,8 @@ public class GameBootstrap : MonoBehaviour
     {
         var part = ScriptableObject.CreateInstance<PartsData>();
         part.itemId = row.book_id;
-        part.partName = row.book_name;
-        part.description = row.effect_desc;
+        part.partName = TableManager.Instance.GetLangName(row.book_id);
+        part.description = TableManager.Instance.GetLangDesc(row.book_id);
         part.category = ItemCategory.SpellBook;
         part.maxLevel = row.max_level;
         part.dropWeight = row.drop_weight;
@@ -133,11 +136,18 @@ public class GameBootstrap : MonoBehaviour
         foreach (var row in tm.Monsters)
         {
             var monster = ScriptableObject.CreateInstance<MonsterData>();
+            monster.monId = row.mon_id;
             monster.monsterName = row.mon_name;
+            monster.isBoss = row.is_boss;
             monster.health = row.base_hp;
             monster.moveSpeed = row.base_speed;
             monster.contactDamage = row.contact_damage;
             monster.scale = row.scale;
+            monster.spawnWeight = row.spawn_weight;
+            monster.specialAbility = row.special_ability;
+            monster.bounceSpeed = row.bounce_speed;
+            monster.bounceHeight = row.bounce_height;
+            monster.bounceSquash = row.bounce_squash;
 
             // 드랍 정보는 TB_MonsterDrop에서 가져옴
             var drop = tm.GetMonsterDrop(row.mon_id);
@@ -153,10 +163,14 @@ public class GameBootstrap : MonoBehaviour
             if (sprite != null)
                 monster.sprite = sprite;
 
-            monsterDataList.Add(monster);
+            // 보스와 일반 몬스터 분리
+            if (row.is_boss)
+                bossDataList.Add(monster);
+            else
+                monsterDataList.Add(monster);
         }
     }
-
+   
     // ─── Player ───
     private void CreatePlayer()
     {
@@ -172,7 +186,7 @@ public class GameBootstrap : MonoBehaviour
         sr.sprite = carSprite != null ? carSprite : CreateCarSprite(Color.cyan);
         sr.sortingOrder = 10;
         if (carSprite != null)
-            playerCar.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
+            playerCar.transform.localScale = new Vector3(0.8F,0.8F,0.8F);
 
         // Collider
         var col = playerCar.AddComponent<BoxCollider2D>();
@@ -196,8 +210,9 @@ public class GameBootstrap : MonoBehaviour
         firePoint.transform.localPosition = new Vector3(0, 0.7f, 0);
         autoAttack.firePoint = firePoint.transform;
 
-        // 차량 먼지 트레일
+        // 차량 파티클 트레일
         playerCar.AddComponent<DustTrail>();
+        playerCar.AddComponent<CarExhaustTrail>();
     }
 
     // ─── Camera ───
@@ -217,17 +232,38 @@ public class GameBootstrap : MonoBehaviour
         gm.partsDatabase = partsDB;
     }
 
+    // ─── Stage Manager ───
+    private void CreateStageManager()
+    {
+        var stageObj = new GameObject("StageManager");
+        stageObj.AddComponent<StageManager>();
+    }
+
     // ─── Enemy Spawner ───
     private void CreateEnemySpawner()
     {
         var spawnerObj = new GameObject("EnemySpawner");
         var spawner = spawnerObj.AddComponent<EnemySpawner>();
 
-        // 각 몬스터 타입별 프리팹 생성
+        // 일반 몬스터만 스포너에 등록 (보스 제외)
         foreach (var data in monsterDataList)
         {
             spawner.enemyPrefabs.Add(CreateEnemyPrefab());
             spawner.monsterDataList.Add(data);
+        }
+
+        // 보스 데이터 등록
+        foreach (var bossData in bossDataList)
+        {
+            spawner.bossPrefabs.Add(CreateEnemyPrefab());
+            spawner.bossDataList.Add(bossData);
+        }
+
+        // Wave 데이터 로드
+        var tm = TableManager.Instance;
+        if (tm.Waves != null)
+        {
+            spawner.waveRows = tm.GetWavesByGroup("WG_CH1");
         }
 
         // fallback: 몬스터 데이터가 없으면 기본 적 프리팹 사용
@@ -329,7 +365,7 @@ public class GameBootstrap : MonoBehaviour
         var uiDoc = luObj.AddComponent<UnityEngine.UIElements.UIDocument>();
         uiDoc.panelSettings = panelSettings;
         uiDoc.sortingOrder = 200;
-        var uxml = Resources.Load<UnityEngine.UIElements.VisualTreeAsset>("Sprites/UI/InGame/LevelUp/LevelUp");
+        var uxml = Resources.Load<UnityEngine.UIElements.VisualTreeAsset>("Sprites/UI/InGame/LevelUpSelect/LevelUpUXML");
         if (uxml != null) uiDoc.visualTreeAsset = uxml;
         var lu = luObj.AddComponent<LevelUpUI>();
         lu.partsDatabase = partsDB;
@@ -399,7 +435,7 @@ public class GameBootstrap : MonoBehaviour
         eh.goldDrop = 5;
         eh.expPickupPrefab = CreateExpPickupPrefab();
 
-        // 몬스터 이펙트: 걷는 느낌 바운스 + 그림자
+        // 몬스터 이펙트: 걷는 느낌 바운스 + 그림자 
         enemy.AddComponent<BounceEffect>();
         enemy.AddComponent<ShadowEffect>();
 

@@ -1,62 +1,69 @@
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.SceneManagement;
 using System;
 
 public class MainLobbyUI : MonoBehaviour
 {
     private UIDocument uiDocument;
 
-    private Label playerNameLabel;
-    private Label lvLabel;
-    private Label coinLabel;
-    private ProgressBar expBar;
-    private VisualElement startBtn;
+    private Button startBtn;
+    private Button settingBtn;
+    private Button paintBtn;
+    private Button upgradeBtn;
+
+    private float bounceTimer;
+    private const float bounceCycle = 1.5f;
+    private bool isHovering;
+    private bool isPressed;
 
     public event Action OnStartGameClicked;
+    public event Action OnSettingClicked;
+    public event Action OnPaintClicked;
+    public event Action OnUpgradeClicked;
 
     void OnEnable()
     {
         uiDocument = GetComponent<UIDocument>();
         var root = uiDocument.rootVisualElement;
 
-        playerNameLabel = root.Q<Label>("player-name");
-        lvLabel = root.Q<Label>("lv-label");
-        expBar = root.Q<ProgressBar>();
+        startBtn = root.Q<Button>("start__btn");
+        settingBtn = root.Q<Button>("setting-btn");
+        paintBtn = root.Q<Button>("paint-btn");
+        upgradeBtn = root.Q<Button>("upgrade-btn");
 
-        coinLabel = root.Q("coin-box")?.Q<Label>(className: "currency-label");
+        // 자식 VisualElement가 이벤트를 가로채지 않도록 설정
+        var startBg = startBtn?.Q(className: "start-btn-bg");
+        if (startBg != null) startBg.pickingMode = PickingMode.Ignore;
 
-        // Steam 버전: fuel/gem UI 제거
-        var energyBox = root.Q("energy-box");
-        if (energyBox != null) energyBox.style.display = DisplayStyle.None;
-        var gemBox = root.Q("gem-box");
-        if (gemBox != null) gemBox.style.display = DisplayStyle.None;
+        settingBtn?.RegisterCallback<ClickEvent>(evt => OnSettingClicked?.Invoke());
+        paintBtn?.RegisterCallback<ClickEvent>(evt => OnPaintClicked?.Invoke());
+        upgradeBtn?.RegisterCallback<ClickEvent>(evt => OnUpgradeClicked?.Invoke());
 
-        startBtn = root.Q("start__btn");
-        startBtn?.RegisterCallback<ClickEvent>(evt =>
-        {
-            OnStartGameClicked?.Invoke();
-        });
-
-        SetPlayerInfo("DRIVER_001", 25, 22);
-        SetGold(163000);
+        startBtn?.RegisterCallback<MouseEnterEvent>(evt => isHovering = true);
+        startBtn?.RegisterCallback<MouseLeaveEvent>(evt => { isHovering = false; isPressed = false; });
+        startBtn?.RegisterCallback<PointerDownEvent>(evt => isPressed = true);
+        startBtn?.RegisterCallback<PointerUpEvent>(evt => isPressed = false);
+        startBtn?.RegisterCallback<ClickEvent>(evt => OnStartGameClicked?.Invoke());
     }
 
-    public void SetPlayerInfo(string name, int level, float expPercent)
+    void Update()
     {
-        if (playerNameLabel != null) playerNameLabel.text = name;
-        if (lvLabel != null) lvLabel.text = $"LV{level}";
-        if (expBar != null) expBar.value = expPercent;
-    }
+        if (startBtn == null) return;
 
-    public void SetGold(int gold)
-    {
-        if (coinLabel != null)
+        if (isPressed)
         {
-            if (gold >= 1000)
-                coinLabel.text = $"{gold / 1000}K";
-            else
-                coinLabel.text = gold.ToString();
+            startBtn.transform.scale = new Vector3(0.92f, 0.92f, 1f);
+        }
+        else if (isHovering)
+        {
+            startBtn.transform.scale = new Vector3(1.08f, 1.08f, 1f);
+        }
+        else
+        {
+            bounceTimer += Time.deltaTime;
+            float t = (Mathf.Sin(bounceTimer / bounceCycle * Mathf.PI * 2f) + 1f) * 0.5f;
+            float s = Mathf.Lerp(1f, 1.02f, t);
+            startBtn.transform.scale = new Vector3(s, s, 1f);
         }
     }
 }

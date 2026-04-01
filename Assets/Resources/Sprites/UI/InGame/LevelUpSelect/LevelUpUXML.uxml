@@ -1,0 +1,33 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Sprites/UI/InGame/LevelUpSelect/LevelUp.uss?fileID=7433441132597879392&amp;guid=7520d42ad56ee3242b65eb10f5c2b139&amp;type=3#LevelUp" />
+    <ui:VisualElement name="levelup-overlay" class="levelup-overlay">
+        <ui:VisualElement name="title-banner" class="title-banner" />
+        <ui:VisualElement name="card-container" class="card-container">
+            <ui:VisualElement name="card-template" class="levelup-card">
+                <ui:VisualElement name="card-top" class="card-top" style="padding-top: 10%; padding-bottom: 0%; height: 100%; width: 100%;">
+                    <ui:Label name="card-category" text="[Main Weapon]" class="card-category" style="margin-top: 0; font-size: 20px; width: 80%; height: 20%; padding-top: 15%;" />
+                    <ui:VisualElement name="card-icon" class="card-icon" style="width: 80%; height: 25%; margin-top: 10%; margin-bottom: 10%; padding-top: 0%; padding-bottom: 0%; padding-right: 0%; padding-left: 0%; margin-left: 0%;" />
+                    <ui:Label name="card-desc" text="Description" class="card-desc" style="width: 80%; height: 33%; padding-top: 0; padding-right: 0; padding-bottom: 30%; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; font-size: 30px; justify-content: flex-end;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="card-template2" class="levelup-card">
+                <ui:VisualElement name="card-top" class="card-top" style="padding-top: 10%; padding-bottom: 0%; height: 100%; width: 100%;">
+                    <ui:Label name="card-category" text="[Sub Weapon]" class="card-category" style="margin-top: 0; font-size: 20px; width: 80%; height: 20%; padding-top: 15%;" />
+                    <ui:VisualElement name="card-icon" class="card-icon" style="width: 80%; height: 25%; margin-top: 10%; margin-bottom: 10%; padding-top: 0%; padding-bottom: 0%; padding-right: 0%; padding-left: 0%; margin-left: 0%;" />
+                    <ui:Label name="card-desc" text="Description" class="card-desc" style="width: 80%; height: 33%; padding-top: 0; padding-right: 0; padding-bottom: 30%; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; font-size: 30px; justify-content: flex-end;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="card-template3" class="levelup-card">
+                <ui:VisualElement name="card-top" class="card-top" style="padding-top: 10%; padding-bottom: 0%; height: 100%; width: 100%;">
+                    <ui:Label name="card-category" text="[Spell Book]" class="card-category" style="margin-top: 0; font-size: 20px; width: 80%; height: 20%; padding-top: 15%;" />
+                    <ui:VisualElement name="card-icon" class="card-icon" style="width: 80%; height: 25%; margin-top: 10%; margin-bottom: 10%; padding-top: 0%; padding-bottom: 0%; padding-right: 0%; padding-left: 0%; margin-left: 0%;" />
+                    <ui:Label name="card-desc" text="Description" class="card-desc" style="width: 80%; height: 33%; padding-top: 0; padding-right: 0; padding-bottom: 30%; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; font-size: 30px; justify-content: flex-end;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="reroll-area" class="reroll-area">
+            <ui:Button name="reroll-btn" class="reroll-btn" />
+            <ui:Label name="reroll-count" text="Remaining Rerolls: 1" class="reroll-count" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

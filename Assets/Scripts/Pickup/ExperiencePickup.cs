@@ -5,9 +5,10 @@ public class ExperiencePickup : MonoBehaviour
     public int expAmount = 1;
     public float magnetRange = 3f;
     public float magnetSpeed = 10f;
-    public float collectRange = 0.5f;
+    public float collectRange = 1f;
 
     private Transform player;
+    private PlayerStats playerStats;
     private bool isMagneted;
 
     private void Start()
@@ -15,6 +16,8 @@ public class ExperiencePickup : MonoBehaviour
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
+
+        playerStats = PlayerStats.Instance;
 
         // Auto-destroy after 30 seconds
         Destroy(gameObject, 30f);
@@ -40,10 +43,9 @@ public class ExperiencePickup : MonoBehaviour
 
             if (dist < collectRange)
             {
-                PlayerStats stats = player.GetComponent<PlayerStats>();
-                if (stats != null)
+                if (playerStats != null)
                 {
-                    stats.AddExperience(expAmount);
+                    playerStats.AddExperience(expAmount);
                 }
                 Destroy(gameObject);
             }

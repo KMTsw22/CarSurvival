@@ -43,7 +43,7 @@ public class GameOverUI : MonoBehaviour
         var completeRetryBtn = root.Q("complete-retry-btn");
         completeRetryBtn?.RegisterCallback<ClickEvent>(evt => GameManager.Instance.RestartRun());
 
-        playerStats = FindAnyObjectByType<PlayerStats>();
+        playerStats = PlayerStats.Instance;
 
         HideAll();
         GameManager.Instance.OnGameStateChanged += OnStateChanged;

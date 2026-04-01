@@ -88,11 +88,14 @@ public class AutoAttack : MonoBehaviour
         Bullet b = bullet.GetComponent<Bullet>();
         if (b != null)
         {
-            // 기관총 무기 데미지 = 기본 스탯 데미지 + 장착된 기관총 레벨 보너스
+            // 기관총 무기 데미지 = 기본 스탯 데미지 + 레벨당 증가 (etcValue4)
             float weaponDamage = stats.damage;
             var gunPart = stats.equippedParts.Find(p => p.data.weaponType == WeaponType.MachineGun);
             if (gunPart != null)
-                weaponDamage += gunPart.data.damage * gunPart.level;
+            {
+                float perLevel = gunPart.data.etcValue4 > 0 ? gunPart.data.etcValue4 : gunPart.data.damage;
+                weaponDamage += perLevel * gunPart.level;
+            }
 
             b.Initialize(aimDir, bulletSpeed, weaponDamage, bulletLifetime);
         }
@@ -116,7 +119,8 @@ public class AutoAttack : MonoBehaviour
         oil.transform.position = transform.position;
 
         float baseRadius = data.etcValue3 > 0 ? data.etcValue3 : 0.8f;
-        float radius = baseRadius + level * 0.2f;
+        float radiusPerLevel = data.etcValue4 > 0 ? data.etcValue4 : 0.2f;
+        float radius = baseRadius + level * radiusPerLevel;
 
         var col = oil.AddComponent<CircleCollider2D>();
         col.radius = radius;
@@ -129,32 +133,13 @@ public class AutoAttack : MonoBehaviour
         oil.tag = "PlayerProjectile";
 
         var sr = oil.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateCircleSprite();
-        sr.color = new Color(0.2f, 0.8f, 0.1f, 0.4f);
+        sr.sprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EFT_OilSlug");
+        sr.color = Color.white;
         sr.sortingOrder = -1;
-        oil.transform.localScale = Vector3.one * radius * 2f;
+        oil.transform.localScale = new Vector3(radius * 2f, radius * 3f, 1f);
 
         float duration = data.duration > 0 ? data.duration : 5f;
         Destroy(oil, duration);
-    }
-
-    private Sprite CreateCircleSprite()
-    {
-        int size = 32;
-        var tex = new Texture2D(size, size);
-        float center = size / 2f;
-        float r = center - 1;
-        for (int x = 0; x < size; x++)
-        {
-            for (int y = 0; y < size; y++)
-            {
-                float dist = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
-                tex.SetPixel(x, y, dist <= r ? Color.white : Color.clear);
-            }
-        }
-        tex.Apply();
-        tex.filterMode = FilterMode.Bilinear;
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
     }
 
     // ─── 회전 톱날: 레벨 = 톱날 개수, 상시 회전 ───
@@ -179,10 +164,14 @@ public class AutoAttack : MonoBehaviour
 
             // 비주얼: 톱날 스프라이트
             var sr = blade.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateSawSprite();
-            sr.color = new Color(0.8f, 0.8f, 0.8f);
+            sr.sprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EFT_SpinBlade");
+            sr.color = Color.white;
             sr.sortingOrder = 9;
-            blade.transform.localScale = Vector3.one * 0.8f;
+            blade.transform.localScale = Vector3.one * 0.4f;
+
+            // Rigidbody2D (트리거 충돌 감지용)
+            var rb = blade.AddComponent<Rigidbody2D>();
+            rb.isKinematic = true;
 
             // 콜라이더
             var col = blade.AddComponent<CircleCollider2D>();
@@ -203,25 +192,4 @@ public class AutoAttack : MonoBehaviour
         }
     }
 
-    private Sprite CreateSawSprite()
-    {
-        int size = 16;
-        var tex = new Texture2D(size, size);
-        float center = size / 2f;
-
-        for (int x = 0; x < size; x++)
-        {
-            for (int y = 0; y < size; y++)
-            {
-                float dist = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
-                float angle = Mathf.Atan2(y - center, x - center) * Mathf.Rad2Deg;
-                // 톱니 패턴: 원형 + 톱니
-                float toothRadius = center - 1 + Mathf.Sin(angle * Mathf.Deg2Rad * 6) * 1.5f;
-                tex.SetPixel(x, y, dist <= toothRadius ? Color.white : Color.clear);
-            }
-        }
-        tex.Apply();
-        tex.filterMode = FilterMode.Point;
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-    }
 }

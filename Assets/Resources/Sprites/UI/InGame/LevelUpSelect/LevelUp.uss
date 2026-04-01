@@ -1,0 +1,183 @@
+/* ================================================
+   LevelUp Select UI
+================================================ */
+
+* {
+    -unity-font: resource("Fonts/BlackHanSans-Regular");
+}
+
+.levelup-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding-top: 2%;
+    padding-bottom: 2%;
+}
+
+/* ===== 타이틀 배너 ===== */
+.title-banner {
+    width: 55%;
+    height: 10%;
+    background-image: resource("Sprites/UI/InGame/LevelUpSelect/levelup_title_banner");
+    -unity-background-scale-mode: scale-to-fit;
+    margin-bottom: 2%;
+}
+
+/* ===== 카드 컨테이너 ===== */
+.card-container {
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    width: 85%;
+    height: 62%;
+    margin-bottom: 2%;
+}
+
+/* ===== 카드 한 장 ===== */
+.levelup-card {
+    width: 30%;
+    margin-left: 1%;
+    margin-right: 1%;
+    background-image: resource("Sprites/UI/InGame/LevelUpSelect/card_bg");
+    -unity-background-scale-mode: stretch-to-fill;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    border-width: 0;
+    flex-direction: column;
+    overflow: hidden;
+    transition-duration: 0.15s;
+}
+
+.levelup-card:hover {
+    scale: 1.04;
+}
+
+/* 카테고리 (카드 상단 헤더 영역 12%) */
+.card-category {
+    width: 100%;
+    height: 12%;
+    font-size: 16px;
+    color: rgb(200, 200, 220);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.card-category-main {
+    color: rgb(255, 100, 80);
+}
+
+.card-category-sub {
+    color: rgb(255, 180, 50);
+}
+
+.card-category-spellbook {
+    color: rgb(80, 180, 255);
+}
+
+/* 카드 상단 박스 (아이콘 + 이름, 40%) */
+.card-top {
+    width: 100%;
+    height: 44%;
+    background-color: rgba(0, 0, 0, 0);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-left: 10%;
+    padding-right: 10%;
+    padding-top: 3%;
+    padding-bottom: 3%;
+}
+
+/* 카드 하단 박스 (설명 + 레벨, 44%) */
+.card-bottom {
+    width: 100%;
+    height: 44%;
+    background-color: rgba(0, 0, 0, 0);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-left: 10%;
+    padding-right: 10%;
+    padding-top: 3%;
+    padding-bottom: 5%;
+}
+
+/* 아이콘 */
+.card-icon {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 10px;
+    margin-bottom: 4%;
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+/* 이름 */
+.card-title {
+    font-size: 24px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* 설명 */
+.card-desc {
+    font-size: 16px;
+    color: rgb(200, 200, 210);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    flex-grow: 1;
+    margin-bottom: 3%;
+}
+
+/* 레벨 */
+.card-level {
+    font-size: 20px;
+    color: rgb(255, 220, 80);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* ===== 리롤 영역 ===== */
+.reroll-area {
+    flex-direction: column;
+    align-items: center;
+}
+
+.reroll-btn {
+    width: 280px;
+    height: 65px;
+    background-image: resource("Sprites/UI/InGame/LevelUpSelect/btn_reroll");
+    -unity-background-scale-mode: scale-to-fit;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    margin-bottom: 8px;
+    transition-duration: 0.1s;
+}
+
+.reroll-btn:hover {
+    scale: 1.05;
+}
+
+.reroll-btn:active {
+    scale: 0.95;
+}
+
+.reroll-btn:disabled {
+    opacity: 0.4;
+}
+
+.reroll-count {
+    font-size: 20px;
+    color: rgb(220, 220, 220);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}

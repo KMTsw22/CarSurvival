@@ -23,6 +23,9 @@ public class TableManager
     public WaveRow[] Waves { get; private set; }
     public LevelRow[] Levels { get; private set; }
     public MapRow[] Maps { get; private set; }
+    public StageRow[] Stages { get; private set; }
+    public LangNameRow[] LangNames { get; private set; }
+    public LangDesRow[] LangDescs { get; private set; }
 
     // Lookup dictionaries
     private Dictionary<string, CurrencyRow> _currencyDict;
@@ -33,6 +36,9 @@ public class TableManager
     private Dictionary<string, MonsterDropRow> _dropByMonDict;
     private Dictionary<int, LevelRow> _levelDict;
     private Dictionary<string, MapRow> _mapDict;
+    private Dictionary<string, StageRow> _stageDict;
+    private Dictionary<string, LangNameRow> _langNameDict;
+    private Dictionary<string, LangDesRow> _langDesDict;
 
     public bool IsLoaded { get; private set; }
 
@@ -48,6 +54,9 @@ public class TableManager
         Waves = Load<WaveRow[]>("Tables/TB_Wave");
         Levels = Load<LevelRow[]>("Tables/TB_Level");
         Maps = Load<MapRow[]>("Tables/TB_Map");
+        Stages = Load<StageRow[]>("Tables/TB_Stage");
+        LangNames = Load<LangNameRow[]>("Tables/TB_LangLevelUpSelect_name");
+        LangDescs = Load<LangDesRow[]>("Tables/TB_LangLevelUpSelect_des");
 
         BuildDictionaries();
         IsLoaded = true;
@@ -75,9 +84,41 @@ public class TableManager
         _dropByMonDict = MonsterDrops?.ToDictionary(r => r.mon_id);
         _levelDict = Levels?.ToDictionary(r => r.level);
         _mapDict = Maps?.ToDictionary(r => r.map_id);
+        _stageDict = Stages?.ToDictionary(r => r.stage_id);
+        _langNameDict = LangNames?.ToDictionary(r => r.item_id);
+        _langDesDict = LangDescs?.ToDictionary(r => r.item_id);
     }
 
     // ─── 조회 API ───
+
+    /// <summary>현재 언어 설정 ("en" 또는 "ko")</summary>
+    public string CurrentLanguage { get; set; } = "en";
+
+    /// <summary>아이템 ID로 이름 조회</summary>
+    public string GetLangName(string itemId)
+    {
+        if (_langNameDict != null && _langNameDict.TryGetValue(itemId, out var row))
+        {
+            string text = CurrentLanguage == "ko" ? row.ko : row.en;
+            if (string.IsNullOrEmpty(text))
+                text = !string.IsNullOrEmpty(row.en) ? row.en : row.ko;
+            return !string.IsNullOrEmpty(text) ? text : itemId;
+        }
+        return itemId;
+    }
+
+    /// <summary>아이템 ID로 설명 조회</summary>
+    public string GetLangDesc(string itemId)
+    {
+        if (_langDesDict != null && _langDesDict.TryGetValue(itemId, out var row))
+        {
+            string text = CurrentLanguage == "ko" ? row.ko : row.en;
+            if (string.IsNullOrEmpty(text))
+                text = !string.IsNullOrEmpty(row.en) ? row.en : row.ko;
+            return !string.IsNullOrEmpty(text) ? text : itemId;
+        }
+        return itemId;
+    }
 
     public CurrencyRow GetCurrency(string id) => _currencyDict.GetValueOrDefault(id);
     public CarRow GetCar(string id) => _carDict.GetValueOrDefault(id);
@@ -106,10 +147,10 @@ public class TableManager
         return Waves?.Where(w => w.wave_group_id == groupId).ToArray();
     }
 
-    /// <summary>특정 그룹 + 시간대(분)의 웨이브 행 목록 반환</summary>
-    public WaveRow[] GetWavesByGroupAndMinute(string groupId, int minute)
+    /// <summary>특정 그룹 + 웨이브 번호의 행 목록 반환</summary>
+    public WaveRow[] GetWavesByGroupAndNo(string groupId, int waveNo)
     {
-        return Waves?.Where(w => w.wave_group_id == groupId && w.time_min == minute).ToArray();
+        return Waves?.Where(w => w.wave_group_id == groupId && w.wave_no == waveNo).ToArray();
     }
 
     /// <summary>특정 챕터의 몬스터 목록</summary>
@@ -123,4 +164,18 @@ public class TableManager
     {
         return Monsters?.Where(m => m.chapter == chapter && m.is_boss).ToArray();
     }
+
+    /// <summary>특정 맵의 스테이지 목록 (stage_no 순)</summary>
+    public StageRow[] GetStagesByMap(string mapId)
+    {
+        return Stages?.Where(s => s.map_id == mapId).OrderBy(s => s.stage_no).ToArray();
+    }
+
+    /// <summary>특정 맵 + 스테이지 번호의 스테이지 조회</summary>
+    public StageRow GetStage(string mapId, int stageNo)
+    {
+        return Stages?.FirstOrDefault(s => s.map_id == mapId && s.stage_no == stageNo);
+    }
+
+    public StageRow GetStageById(string stageId) => _stageDict?.GetValueOrDefault(stageId);
 }
