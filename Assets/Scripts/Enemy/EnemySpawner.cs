@@ -341,9 +341,25 @@ public class EnemySpawner : MonoBehaviour
         Debug.Log($"[EnemySpawner] BOSS spawned: {bossData.monsterName} at {elapsedTime / 60f:F1} min");
     }
 
+    private Vector3 lastPlayerPos;
+    private Vector3 playerMoveDir = Vector3.right;
+
     private Vector3 GetRandomSpawnPosition()
     {
-        float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        // 플레이어 이동 방향 갱신
+        Vector3 delta = player.position - lastPlayerPos;
+        if (delta.sqrMagnitude > 0.001f)
+            playerMoveDir = delta.normalized;
+        lastPlayerPos = player.position;
+
+        // 70% 확률로 앞쪽(±90도), 30% 확률로 뒤쪽
+        float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
+        float angle;
+        if (Random.value < 0.7f)
+            angle = baseAngle + Random.Range(-90f, 90f) * Mathf.Deg2Rad;
+        else
+            angle = baseAngle + Random.Range(90f, 270f) * Mathf.Deg2Rad;
+
         float distance = Random.Range(minSpawnDistance, maxSpawnDistance);
         return player.position + new Vector3(
             Mathf.Cos(angle) * distance,
