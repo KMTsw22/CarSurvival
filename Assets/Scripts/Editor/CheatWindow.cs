@@ -12,6 +12,10 @@ public class CheatWindow : EditorWindow
     private float bounceSquash = 0.15f;
     private GameObject spawnedMonster;
 
+    // 몬스터 스탯 테이블 오버라이드 (런타임 MonsterRow 직접 수정)
+    private Vector2 statScrollPos;
+    private bool statFoldout = true;
+
     // 몬스터 이름 (런타임에 스포너에서 자동 생성)
     private string[] monsterNames = null;
 
@@ -122,6 +126,66 @@ public class CheatWindow : EditorWindow
             EditorGUILayout.HelpBox(
                 $"현재: {spawnedMonster.name}\nScale: {scaleOverride:F2} | Bounce: spd={bounceSpeed:F1} hgt={bounceHeight:F2} sqsh={bounceSquash:F2}",
                 MessageType.Info);
+        }
+
+        // ─── 몬스터 스탯 조정 (테이블 기반) ───
+        EditorGUILayout.Space(10);
+        statFoldout = EditorGUILayout.Foldout(statFoldout, "몬스터 스탯 조정 (TB_Monster)", true, EditorStyles.foldoutHeader);
+
+        if (statFoldout)
+        {
+            if (!Application.isPlaying || !TableManager.Instance.IsLoaded)
+            {
+                EditorGUILayout.HelpBox("Play 모드에서 테이블 로드 후 사용 가능합니다.", MessageType.Info);
+            }
+            else
+            {
+                var monsters = TableManager.Instance.Monsters;
+                if (monsters != null && monsters.Length > 0)
+                {
+                    // 헤더
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("mon_id", EditorStyles.miniLabel, GUILayout.Width(100));
+                    EditorGUILayout.LabelField("이름", EditorStyles.miniLabel, GUILayout.Width(80));
+                    EditorGUILayout.LabelField("base_hp", EditorStyles.miniLabel, GUILayout.Width(70));
+                    EditorGUILayout.LabelField("base_speed", EditorStyles.miniLabel, GUILayout.Width(70));
+                    EditorGUILayout.LabelField("dmg", EditorStyles.miniLabel, GUILayout.Width(50));
+                    EditorGUILayout.EndHorizontal();
+
+                    statScrollPos = EditorGUILayout.BeginScrollView(statScrollPos, GUILayout.Height(Mathf.Min(monsters.Length * 22 + 10, 200)));
+                    for (int i = 0; i < monsters.Length; i++)
+                    {
+                        var m = monsters[i];
+                        EditorGUILayout.BeginHorizontal();
+
+                        // mon_id (읽기 전용)
+                        EditorGUILayout.LabelField(m.mon_id, GUILayout.Width(100));
+                        // 이름 (읽기 전용)
+                        EditorGUILayout.LabelField(m.mon_name, GUILayout.Width(80));
+                        // base_hp (수정 가능)
+                        m.base_hp = EditorGUILayout.FloatField(m.base_hp, GUILayout.Width(70));
+                        // base_speed (수정 가능)
+                        m.base_speed = EditorGUILayout.FloatField(m.base_speed, GUILayout.Width(70));
+                        // contact_damage (수정 가능)
+                        m.contact_damage = EditorGUILayout.FloatField(m.contact_damage, GUILayout.Width(50));
+
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    EditorGUILayout.EndScrollView();
+
+                    EditorGUILayout.Space(4);
+                    if (GUILayout.Button("변경사항 → 필드 몬스터에 적용", GUILayout.Height(28)))
+                        ApplyTableStatsToAlive();
+
+                    int aliveCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                    if (aliveCount > 0)
+                        EditorGUILayout.HelpBox($"생존 몬스터: {aliveCount}마리 (적용 시 테이블 값으로 덮어씁니다)", MessageType.Info);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("TB_Monster 데이터가 비어있습니다.", MessageType.Warning);
+                }
+            }
         }
 
         // ─── 시간 이동 ───
@@ -321,6 +385,11 @@ public class CheatWindow : EditorWindow
         spawnedMonster.transform.position = spawnPos;
         spawnedMonster.name = $"[CHEAT] {data.monsterName}";
 
+        // mon_id 기록
+        var eid = spawnedMonster.GetComponent<EnemyIdentifier>();
+        if (eid == null) eid = spawnedMonster.AddComponent<EnemyIdentifier>();
+        eid.monId = data.monId;
+
         // 스프라이트 적용
         var sr = spawnedMonster.GetComponent<SpriteRenderer>();
         if (sr != null && data.sprite != null)
@@ -400,6 +469,43 @@ public class CheatWindow : EditorWindow
             bounce.bounceHeight = bounceHeight;
             bounce.squashAmount = bounceSquash;
         }
+    }
+
+    // ─── Monster Stat Override (테이블 기반) ───
+
+    private void ApplyTableStatsToAlive()
+    {
+        if (!Application.isPlaying || !TableManager.Instance.IsLoaded) return;
+
+        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        int applied = 0;
+        foreach (var enemy in enemies)
+        {
+            // mon_id 매칭: EnemySpawner가 monId를 저장했는지 확인
+            var identifier = enemy.GetComponent<EnemyIdentifier>();
+            if (identifier == null) continue;
+
+            var row = TableManager.Instance.GetMonster(identifier.monId);
+            if (row == null) continue;
+
+            var ai = enemy.GetComponent<EnemyAI>();
+            if (ai != null)
+            {
+                ai.moveSpeed = row.base_speed;
+                ai.contactDamage = row.contact_damage;
+            }
+
+            var eh = enemy.GetComponent<EnemyHealth>();
+            if (eh != null)
+            {
+                float hpRatio = eh.maxHealth > 0 ? eh.currentHealth / eh.maxHealth : 1f;
+                eh.maxHealth = row.base_hp;
+                eh.currentHealth = row.base_hp * hpRatio;
+            }
+
+            applied++;
+        }
+        Debug.Log($"[Cheat] 테이블 스탯 적용: {applied}/{enemies.Length}마리 (EnemyIdentifier 필요)");
     }
 
     // ─── Game Cheats ───

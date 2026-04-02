@@ -469,6 +469,12 @@ public class EnemySpawner : MonoBehaviour
 
     private void ApplyMonsterData(GameObject enemy, MonsterData data, float difficultyScale)
     {
+        // mon_id 기록 (CheatWindow 테이블 스탯 적용용)
+        var identifier = enemy.GetComponent<EnemyIdentifier>();
+        if (identifier == null)
+            identifier = enemy.AddComponent<EnemyIdentifier>();
+        identifier.monId = data.monId;
+
         var sr = enemy.GetComponent<SpriteRenderer>();
         if (sr != null && data.sprite != null)
         {

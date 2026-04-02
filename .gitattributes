@@ -1,0 +1,2 @@
+# Unity .bytes files are binary (MessagePack, etc.) — never convert line endings
+*.bytes binary
