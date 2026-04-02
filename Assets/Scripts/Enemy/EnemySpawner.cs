@@ -120,6 +120,13 @@ public class EnemySpawner : MonoBehaviour
         if (StageManager.Instance != null && StageManager.Instance.IsBossFight)
             return;
 
+        // Warning Wave: 대량 스폰
+        if (StageManager.Instance != null && StageManager.Instance.IsWarningWave)
+        {
+            UpdateWarningWaveSpawn();
+            return;
+        }
+
         // 현재 시간에 맞는 웨이브 찾기
         float rawTime = PlayerStats.Instance != null ? PlayerStats.Instance.survivalTime : 0f;
         int waveNo = GetWaveNoForTime(rawTime);
@@ -342,6 +349,122 @@ public class EnemySpawner : MonoBehaviour
             Mathf.Cos(angle) * distance,
             Mathf.Sin(angle) * distance,
             0f);
+    }
+
+    // ─── WARNING WAVE ───
+    private List<ActiveWave> warningWaves = new List<ActiveWave>();
+    private WarningWaveRow[] warningWaveRows;
+    private float warningWaveTime;
+    private bool warningWaveInitialized;
+
+    /// <summary>Warning Wave 테이블 데이터 로드 (StageManager에서 호출)</summary>
+    public void InitWarningWave(string wwGroupId)
+    {
+        warningWaves.Clear();
+        warningWaveTime = 0f;
+        warningWaveInitialized = true;
+
+        warningWaveRows = TableManager.Instance.GetWarningWavesByGroup(wwGroupId);
+        if (warningWaveRows == null || warningWaveRows.Length == 0)
+        {
+            // 테이블 데이터 없으면 기본 하드코딩 폴백
+            warningWaveRows = null;
+            Debug.LogWarning($"[EnemySpawner] Warning Wave 테이블 없음: {wwGroupId}, 기본 스폰 사용");
+        }
+        else
+        {
+            Debug.Log($"[EnemySpawner] Warning Wave 로드: {wwGroupId}, {warningWaveRows.Length}행");
+        }
+    }
+
+    private void UpdateWarningWaveSpawn()
+    {
+        warningWaveTime += Time.deltaTime;
+
+        if (warningWaveRows != null && warningWaveRows.Length > 0)
+        {
+            // 테이블 기반 스폰
+            // 현재 시간에 맞는 웨이브 활성화
+            foreach (var row in warningWaveRows)
+            {
+                if (row.start_time <= warningWaveTime)
+                {
+                    // 이미 활성화된 웨이브인지 확인
+                    bool exists = false;
+                    foreach (var w in warningWaves)
+                    {
+                        if (w.monId == row.mon_id && w.spawnInterval == row.spawn_interval)
+                        { exists = true; break; }
+                    }
+                    if (!exists)
+                    {
+                        warningWaves.Add(new ActiveWave
+                        {
+                            monId = row.mon_id,
+                            spawnCount = row.spawn_count,
+                            spawnInterval = row.spawn_interval,
+                            maxEnemies = row.max_enemies,
+                            difficultyScale = row.difficulty_scale,
+                            spawnTimer = 0f
+                        });
+                    }
+                }
+            }
+
+            int totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+            foreach (var wave in warningWaves)
+            {
+                wave.spawnTimer -= Time.deltaTime;
+                if (wave.spawnTimer <= 0f)
+                {
+                    for (int i = 0; i < wave.spawnCount; i++)
+                    {
+                        if (totalEnemies >= wave.maxEnemies) break;
+                        SpawnMonster(wave);
+                        totalEnemies++;
+                    }
+                    wave.spawnTimer = wave.spawnInterval;
+                }
+            }
+        }
+        else
+        {
+            // 폴백: 기본 대량 스폰
+            int totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+            if (totalEnemies >= 100) return;
+
+            foreach (var wave in warningWaves)
+            {
+                wave.spawnTimer -= Time.deltaTime;
+                if (wave.spawnTimer <= 0f)
+                {
+                    for (int i = 0; i < wave.spawnCount; i++)
+                    {
+                        if (totalEnemies >= 100) break;
+                        SpawnMonster(wave);
+                        totalEnemies++;
+                    }
+                    wave.spawnTimer = wave.spawnInterval;
+                }
+            }
+
+            // 폴백 웨이브가 비어있으면 기본 생성
+            if (warningWaves.Count == 0 && monsterDataList.Count > 0)
+            {
+                foreach (var data in monsterDataList)
+                {
+                    warningWaves.Add(new ActiveWave
+                    {
+                        monId = data.monId,
+                        spawnCount = 5,
+                        spawnInterval = 0.5f,
+                        maxEnemies = 100,
+                        difficultyScale = 3f,
+                        spawnTimer = 0f
+                    });
+                }
+            }
+        }
     }
 
     private void ApplyMonsterData(GameObject enemy, MonsterData data, float difficultyScale)

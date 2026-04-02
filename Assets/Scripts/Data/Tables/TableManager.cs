@@ -21,6 +21,7 @@ public class TableManager
     public MonsterRow[] Monsters { get; private set; }
     public MonsterDropRow[] MonsterDrops { get; private set; }
     public WaveRow[] Waves { get; private set; }
+    public WarningWaveRow[] WarningWaves { get; private set; }
     public LevelRow[] Levels { get; private set; }
     public MapRow[] Maps { get; private set; }
     public StageRow[] Stages { get; private set; }
@@ -52,6 +53,7 @@ public class TableManager
         Monsters = Load<MonsterRow[]>("Tables/TB_Monster");
         MonsterDrops = Load<MonsterDropRow[]>("Tables/TB_MonsterDrop");
         Waves = Load<WaveRow[]>("Tables/TB_Wave");
+        WarningWaves = Load<WarningWaveRow[]>("Tables/TB_WarningWave");
         Levels = Load<LevelRow[]>("Tables/TB_Level");
         Maps = Load<MapRow[]>("Tables/TB_Map");
         Stages = Load<StageRow[]>("Tables/TB_Stage");
@@ -178,4 +180,10 @@ public class TableManager
     }
 
     public StageRow GetStageById(string stageId) => _stageDict?.GetValueOrDefault(stageId);
+
+    /// <summary>특정 그룹의 Warning Wave 전체 반환</summary>
+    public WarningWaveRow[] GetWarningWavesByGroup(string groupId)
+    {
+        return WarningWaves?.Where(w => w.ww_group_id == groupId).OrderBy(w => w.wave_no).ToArray();
+    }
 }

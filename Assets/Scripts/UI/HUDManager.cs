@@ -7,7 +7,7 @@ public class HUDManager : MonoBehaviour
 
     private VisualElement healthBarFill;
     private Label healthText;
-    private VisualElement expBarFill;
+    private VisualElement expBarClip;
     private Label levelText;
     private Label killCountText;
     private Label timerText;
@@ -30,7 +30,7 @@ public class HUDManager : MonoBehaviour
         var root = uiDocument.rootVisualElement;
         healthBarFill = root.Q("health-bar-fill");
         healthText = root.Q<Label>("health-text");
-        expBarFill = root.Q("exp-bar-fill");
+        expBarClip = root.Q("exp-bar-clip");
         levelText = root.Q<Label>("level-text");
         killCountText = root.Q<Label>("kills-text");
         timerText = root.Q<Label>("timer-text");
@@ -66,6 +66,7 @@ public class HUDManager : MonoBehaviour
         stageManager.OnForceSummonWarning += OnForceSummonWarning;
         stageManager.OnBossDefeatedEvent += OnBossDefeated;
         stageManager.OnForceGameOver += OnForceGameOver;
+        stageManager.OnWarningWaveStart += OnWarningWaveStart;
 
         UpdateKeyCount(stageManager.collectedKeys, stageManager.RequiredKeys);
         UpdateKeyIcon();
@@ -101,8 +102,13 @@ public class HUDManager : MonoBehaviour
                 int seconds = Mathf.FloorToInt(playerStats.survivalTime % 60f);
                 timerText.text = $"{minutes:00}:{seconds:00}";
 
+                // Warning Wave 중에는 빨간색 타이머
+                if (stageManager != null && stageManager.IsWarningWave)
+                {
+                    timerText.style.color = new Color(1f, 0.3f, 0.3f);
+                }
                 // 9분30초 이후 타이머 빨간색
-                if (stageManager != null && stageManager.CurrentPhase == StageManager.BossPhase.Collecting
+                else if (stageManager != null && stageManager.CurrentPhase == StageManager.BossPhase.Collecting
                     && playerStats.survivalTime >= stageManager.forceSummonTime - 30f)
                 {
                     timerText.style.color = new Color(1f, 0.3f, 0.3f);
@@ -126,7 +132,7 @@ public class HUDManager : MonoBehaviour
         if (healthBarFill != null)
         {
             float ratio = Mathf.Clamp01(current / max);
-            healthBarFill.style.width = new StyleLength(new Length(ratio * 80f, LengthUnit.Percent));
+            healthBarFill.style.width = new StyleLength(new Length(ratio * 100f, LengthUnit.Percent));
         }
         if (healthText != null)
             healthText.text = $"{Mathf.CeilToInt(current)}/{Mathf.CeilToInt(max)}";
@@ -134,10 +140,10 @@ public class HUDManager : MonoBehaviour
 
     private void UpdateExp(int current, int toNext, int level)
     {
-        if (expBarFill != null)
+        if (expBarClip != null)
         {
             float ratio = Mathf.Clamp01((float)current / toNext);
-            expBarFill.style.width = new StyleLength(new Length(ratio * 90f, LengthUnit.Percent));
+            expBarClip.style.width = new StyleLength(new Length(ratio * 100f, LengthUnit.Percent));
         }
         if (levelText != null)
             levelText.text = $"Lv.{level}";
@@ -200,6 +206,30 @@ public class HUDManager : MonoBehaviour
             countdownText.style.display = DisplayStyle.None;
     }
 
+    // ─── Warning Wave ───
+
+    private void OnWarningWaveStart()
+    {
+        // 카운트다운 텍스트에 WARNING 표시
+        if (countdownText != null)
+        {
+            countdownText.style.display = DisplayStyle.Flex;
+            countdownText.text = "WARNING!";
+            Invoke(nameof(HideCountdown), 2f);
+        }
+
+        // 경고 텍스트
+        if (warningText != null)
+        {
+            warningText.style.display = DisplayStyle.Flex;
+            warningText.text = "포탈로 이동하세요!";
+        }
+
+        // 소환 버튼 숨기기
+        if (summonBtn != null)
+            summonBtn.style.display = DisplayStyle.None;
+    }
+
     // ─── 강제 소환 경고 ───
 
     private void OnForceSummonWarning()
@@ -255,6 +285,7 @@ public class HUDManager : MonoBehaviour
             stageManager.OnForceSummonWarning -= OnForceSummonWarning;
             stageManager.OnBossDefeatedEvent -= OnBossDefeated;
             stageManager.OnForceGameOver -= OnForceGameOver;
+            stageManager.OnWarningWaveStart -= OnWarningWaveStart;
         }
         if (summonBtn != null)
             summonBtn.clicked -= OnSummonBossClicked;

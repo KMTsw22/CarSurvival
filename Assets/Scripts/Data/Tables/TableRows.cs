@@ -179,6 +179,23 @@ public class LangDesRow
 }
 
 // ============================================================
+// TB_WarningWave (포탈 생성 후 Warning Wave 스폰 설정)
+// ============================================================
+[MessagePackObject]
+public class WarningWaveRow
+{
+    [Key(0)] public string ww_group_id;      // Warning Wave 그룹 ID (예: WW_CH1_1)
+    [Key(1)] public int wave_no;             // 웨이브 번호 (시간순)
+    [Key(2)] public string mon_id;           // 몬스터 ID
+    [Key(3)] public int spawn_count;         // 한번에 소환 수
+    [Key(4)] public float spawn_interval;    // 소환 간격 (초)
+    [Key(5)] public int max_enemies;         // 최대 동시 존재 수
+    [Key(6)] public float difficulty_scale;  // 난이도 배율
+    [Key(7)] public float start_time;        // 이 웨이브 시작 시간 (초)
+    [Key(8)] public string note;
+}
+
+// ============================================================
 // TB_Stage (스테이지 별 보스 소환 열쇠 정보)
 // ============================================================
 [MessagePackObject]
@@ -193,6 +210,7 @@ public class StageRow
     [Key(6)] public string key_icon;        // 열쇠 아이콘 스프라이트 키
     [Key(7)] public string key_name;        // 열쇠 아이템 표시 이름
     [Key(8)] public float arena_radius;     // 보스 아레나 반경
+    [Key(9)] public string ww_group_id;     // Warning Wave 그룹 ID (예: WW_CH1_1)
 }
 
 // ============================================================

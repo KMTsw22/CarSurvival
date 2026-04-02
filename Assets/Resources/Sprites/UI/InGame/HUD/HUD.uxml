@@ -1,15 +1,20 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/Resources/Sprites/UI/InGame/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=cf2420109145fad4b8a3a50b06c3faa6&amp;type=3#HUD" />
-    <ui:VisualElement name="hud-root" picking-mode="Ignore" class="hud-root">
+    <ui:VisualElement name="hud-root" picking-mode="Ignore" class="hud-root" style="top: 0; left: 10px;">
         <ui:VisualElement name="health-area" class="health-area">
             <ui:VisualElement name="health-bar-bg" class="health-bar-bg">
-                <ui:VisualElement name="health-bar-fill" class="health-bar-fill" style="height: 28px; top: 14px; width: 384px;" />
+                <ui:VisualElement name="health-bar-clip" class="health-bar-clip" style="top: 15px; left: 126px; height: 25px; width: 339px; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;">
+                    <ui:VisualElement name="health-bar-fill" class="health-bar-fill" style="width: 339px;">
+                        <ui:Label name="health-text" text="100/100" class="health-text" style="top: 0; left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; font-size: 14px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Label name="health-text" text="100/100" class="health-text" />
         </ui:VisualElement>
         <ui:VisualElement name="exp-area" class="exp-area">
             <ui:VisualElement name="exp-bar-bg" class="exp-bar-bg">
-                <ui:VisualElement name="exp-bar-fill" class="exp-bar-fill" />
+                <ui:VisualElement name="exp-bar-clip" class="exp-bar-clip">
+                    <ui:VisualElement name="exp-bar-fill" class="exp-bar-fill" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="level-text" text="Lv.1" class="level-text" />
         </ui:VisualElement>
@@ -25,7 +30,7 @@
             </ui:VisualElement>
             <ui:Button name="summon-btn" text="SUMMON BOSS" class="summon-btn" />
         </ui:VisualElement>
-        <ui:Label name="countdown-text" text="" class="countdown-text" />
-        <ui:Label name="warning-text" text="" class="warning-text" />
+        <ui:Label name="countdown-text" class="countdown-text" />
+        <ui:Label name="warning-text" class="warning-text" />
     </ui:VisualElement>
 </ui:UXML>

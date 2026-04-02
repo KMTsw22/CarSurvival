@@ -20,7 +20,7 @@ public class StageManager : MonoBehaviour
     public float forceSummonTime = 600f;         // 강제 소환 시간 (10분)
 
     // 상태
-    public enum BossPhase { Collecting, Countdown, Fighting, Defeated }
+    public enum BossPhase { Collecting, Countdown, WarningWave, Fighting, Defeated }
     public BossPhase CurrentPhase { get; private set; } = BossPhase.Collecting;
 
     // 카운트다운
@@ -30,6 +30,9 @@ public class StageManager : MonoBehaviour
     // 보스 아레나
     private GameObject arenaObj;
     private GameObject currentBoss;
+
+    // 포탈
+    private GameObject portalObj;
 
     // 현재 스테이지 테이블 데이터
     private StageRow currentStage;
@@ -47,6 +50,7 @@ public class StageManager : MonoBehaviour
     public event Action OnForceGameOver;                    // 열쇠 부족 게임오버
     public event Action OnBossDefeatedEvent;
     public event Action OnForceSummonWarning;               // 강제 소환 임박 경고
+    public event Action OnWarningWaveStart;                  // Warning Wave 시작
 
     /// <summary>현재 스테이지에서 필요한 열쇠 개수</summary>
     public int RequiredKeys => currentStage != null ? currentStage.key_item_count : 0;
@@ -63,6 +67,9 @@ public class StageManager : MonoBehaviour
 
     /// <summary>보스전 진행 중 여부 (스포너에서 참조)</summary>
     public bool IsBossFight => CurrentPhase == BossPhase.Countdown || CurrentPhase == BossPhase.Fighting;
+
+    /// <summary>Warning Wave 진행 중 여부 (스포너에서 참조)</summary>
+    public bool IsWarningWave => CurrentPhase == BossPhase.WarningWave;
 
     private bool forceSummonTriggered = false;
     private bool warningTriggered = false;
@@ -202,25 +209,86 @@ public class StageManager : MonoBehaviour
         Debug.Log($"[StageManager] Countdown started: {countdownDuration}s");
     }
 
-    /// <summary>카운트다운 완료 → 실제 보스 소환</summary>
+    /// <summary>카운트다운 완료 → 포탈 생성 + Warning Wave 시작</summary>
     private void ExecuteBossSummon()
     {
-        CurrentPhase = BossPhase.Fighting;
+        CurrentPhase = BossPhase.WarningWave;
 
-        // 1) 모든 일반 몬스터 제거
-        DestroyAllEnemies();
+        // 타이머 리셋
+        if (PlayerStats.Instance != null)
+            PlayerStats.Instance.survivalTime = 0f;
 
-        // 2) 보스 소환
-        SpawnBossById(currentStage.boss_mon_id);
-
-        // 3) 아레나 생성
-        if (currentBoss != null)
+        // EnemySpawner에 Warning Wave 테이블 데이터 전달
+        if (enemySpawner != null && currentStage != null
+            && !string.IsNullOrEmpty(currentStage.ww_group_id))
         {
-            CreateArena();
+            enemySpawner.InitWarningWave(currentStage.ww_group_id);
         }
 
+        // 포탈 생성
+        SpawnPortal();
+
+        // Warning Wave 시작 이벤트
+        OnWarningWaveStart?.Invoke();
+
+        Debug.Log("[StageManager] Warning Wave started! Portal spawned.");
+    }
+
+    /// <summary>포탈 생성</summary>
+    private void SpawnPortal()
+    {
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+
+        // 플레이어 앞 8유닛 위치에 포탈 생성
+        float angle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        Vector3 spawnPos = player.transform.position + new Vector3(
+            Mathf.Cos(angle) * 8f, Mathf.Sin(angle) * 8f, 0f);
+
+        portalObj = new GameObject("BossPortal");
+        portalObj.transform.position = spawnPos;
+        portalObj.tag = "BossPortal";
+
+        // 스프라이트 설정
+        var sr = portalObj.AddComponent<SpriteRenderer>();
+        string portalImagePath = $"Sprites/Icons/BossEnter/map1_stage{currentStageNo}_boss_enter";
+        sr.sprite = Resources.Load<Sprite>(portalImagePath);
+        sr.sortingOrder = 5;
+
+        // 포탈 스크립트 추가
+        portalObj.AddComponent<BossPortal>();
+
+        portalObj.transform.localScale = new Vector3(3f, 3f, 1f);
+
+        Debug.Log($"[StageManager] Portal spawned at {spawnPos}");
+    }
+
+    /// <summary>플레이어가 포탈에 진입했을 때 호출</summary>
+    public void OnPortalEntered()
+    {
+        if (CurrentPhase != BossPhase.WarningWave) return;
+
+        CurrentPhase = BossPhase.Fighting;
+
+        // 포탈 제거
+        if (portalObj != null)
+        {
+            Destroy(portalObj);
+            portalObj = null;
+        }
+
+        // 모든 일반 몬스터 제거
+        DestroyAllEnemies();
+
+        // 보스 소환
+        SpawnBossById(currentStage.boss_mon_id);
+
+        // 아레나 생성
+        if (currentBoss != null)
+            CreateArena();
+
         OnBossSummoned?.Invoke();
-        Debug.Log($"[StageManager] Boss summoned: {currentStage.boss_mon_id}");
+        Debug.Log($"[StageManager] Portal entered! Boss summoned: {currentStage.boss_mon_id}");
     }
 
     /// <summary>모든 일반 몬스터 제거</summary>
