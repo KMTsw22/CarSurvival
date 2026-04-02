@@ -4,13 +4,21 @@
     height: 100%;
 }
 
+/* ─── HP Bar (1번째) ─── */
+
 .health-area {
     position: absolute;
     left: 1%;
     top: 1%;
     width: 25%;
     height: 5%;
-    background-image: resource('Sprites/UI/InGame/HUD/hpbar_bg');
+}
+
+.health-area-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/BAR');
     -unity-background-scale-mode: stretch-to-fill;
 }
 
@@ -37,7 +45,19 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgb(152, 25, 25);
+    background-image: resource('Sprites/UI/InGame/HUD/Barinner');
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: rgb(220, 40, 40);
+}
+
+.health-word {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 22%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/Word_Hp');
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .health-text {
@@ -52,13 +72,89 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-.exp-area {
+/* ─── Booster Bar (2번째) ─── */
+
+.booster-area {
     position: absolute;
     left: 1%;
     top: 7%;
     width: 25%;
     height: 4%;
-    background-image: resource('Sprites/UI/InGame/HUD/expbar_bg');
+}
+
+.booster-area-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/BAR');
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.booster-bar-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.booster-bar-clip {
+    position: absolute;
+    left: 17%;
+    top: 22%;
+    width: 80%;
+    height: 56%;
+    overflow: hidden;
+    border-radius: 3px;
+}
+
+.booster-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/Barinner');
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: rgb(40, 100, 220);
+}
+
+.booster-word {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 22%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/Word_Boost');
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.booster-text {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    font-size: 16px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    padding-left: 15%;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* ─── EXP Bar (3번째) ─── */
+
+.exp-area {
+    position: absolute;
+    left: 1%;
+    top: 12%;
+    width: 25%;
+    height: 4%;
+}
+
+.exp-area-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/BAR');
     -unity-background-scale-mode: stretch-to-fill;
 }
 
@@ -71,10 +167,10 @@
 
 .exp-bar-clip {
     position: absolute;
-    left: 5%;
-    top: 20%;
-    width: 90%;
-    height: 60%;
+    left: 17%;
+    top: 22%;
+    width: 80%;
+    height: 56%;
     overflow: hidden;
     border-radius: 3px;
 }
@@ -85,9 +181,19 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-image: resource('Sprites/UI/InGame/HUD/ExpBarInner');
+    background-image: resource('Sprites/UI/InGame/HUD/Barinner');
     -unity-background-scale-mode: stretch-to-fill;
-    background-color: rgb(50, 200, 255);
+    -unity-background-image-tint-color: rgb(40, 180, 60);
+}
+
+.exp-word {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 22%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/Word_Exp');
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .level-text {
@@ -98,6 +204,7 @@
     color: white;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
+    padding-left: 15%;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 

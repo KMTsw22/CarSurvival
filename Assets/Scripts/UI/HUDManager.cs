@@ -5,8 +5,9 @@ public class HUDManager : MonoBehaviour
 {
     private UIDocument uiDocument;
 
-    private VisualElement healthBarFill;
+    private VisualElement healthBarClip;
     private Label healthText;
+    private VisualElement boosterBarClip;
     private VisualElement expBarClip;
     private Label levelText;
     private Label killCountText;
@@ -28,8 +29,9 @@ public class HUDManager : MonoBehaviour
         if (uiDocument == null) return;
 
         var root = uiDocument.rootVisualElement;
-        healthBarFill = root.Q("health-bar-fill");
+        healthBarClip = root.Q("health-bar-clip");
         healthText = root.Q<Label>("health-text");
+        boosterBarClip = root.Q("booster-bar-clip");
         expBarClip = root.Q("exp-bar-clip");
         levelText = root.Q<Label>("level-text");
         killCountText = root.Q<Label>("kills-text");
@@ -127,23 +129,36 @@ public class HUDManager : MonoBehaviour
         }
     }
 
+    private float healthBarMaxWidth = -1f;
+
     private void UpdateHealth(float current, float max)
     {
-        if (healthBarFill != null)
+        if (healthBarClip != null)
         {
+            // 초기 width 저장
+            if (healthBarMaxWidth < 0f)
+                healthBarMaxWidth = healthBarClip.resolvedStyle.width;
+
             float ratio = Mathf.Clamp01(current / max);
-            healthBarFill.style.width = new StyleLength(new Length(ratio * 100f, LengthUnit.Percent));
+            if (healthBarMaxWidth > 0f)
+                healthBarClip.style.width = healthBarMaxWidth * ratio;
         }
         if (healthText != null)
             healthText.text = $"{Mathf.CeilToInt(current)}/{Mathf.CeilToInt(max)}";
     }
 
+    private float expBarMaxWidth = -1f;
+
     private void UpdateExp(int current, int toNext, int level)
     {
         if (expBarClip != null)
         {
+            if (expBarMaxWidth < 0f)
+                expBarMaxWidth = expBarClip.resolvedStyle.width;
+
             float ratio = Mathf.Clamp01((float)current / toNext);
-            expBarClip.style.width = new StyleLength(new Length(ratio * 100f, LengthUnit.Percent));
+            if (expBarMaxWidth > 0f)
+                expBarClip.style.width = expBarMaxWidth * ratio;
         }
         if (levelText != null)
             levelText.text = $"Lv.{level}";
