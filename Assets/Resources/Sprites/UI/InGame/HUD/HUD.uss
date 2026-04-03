@@ -33,10 +33,10 @@
     position: absolute;
     left: 17%;
     top: 22%;
-    width: 80%;
+    width: 74%;
     height: 56%;
     overflow: hidden;
-    border-radius: 3px;
+    border-radius: 0.3%;
 }
 
 .health-bar-fill {
@@ -101,10 +101,10 @@
     position: absolute;
     left: 17%;
     top: 22%;
-    width: 80%;
+    width: 74%;
     height: 56%;
     overflow: hidden;
-    border-radius: 3px;
+    border-radius: 0.3%;
 }
 
 .booster-bar-fill {
@@ -169,10 +169,10 @@
     position: absolute;
     left: 17%;
     top: 22%;
-    width: 80%;
+    width: 74%;
     height: 56%;
     overflow: hidden;
-    border-radius: 3px;
+    border-radius: 0.3%;
 }
 
 .exp-bar-fill {
@@ -249,7 +249,7 @@
     color: rgb(255, 220, 80);
     -unity-font-style: bold;
     -unity-text-align: middle-right;
-    margin-top: 4px;
+    margin-top: 0.4%;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
@@ -262,9 +262,9 @@
 }
 
 .key-icon {
-    width: 32px;
-    height: 32px;
-    margin-right: 6px;
+    width: 1.7%;
+    height: 3%;
+    margin-right: 0.3%;
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -283,8 +283,8 @@
     color: white;
     -unity-font-style: bold;
     background-color: rgb(180, 50, 50);
-    border-radius: 6px;
-    border-width: 2px;
+    border-radius: 0.5%;
+    border-width: 0.2%;
     border-color: rgb(255, 100, 100);
     align-self: flex-end;
     display: none;
@@ -323,4 +323,57 @@
     -unity-text-align: middle-center;
     text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.9);
     display: none;
+}
+
+/* ─── Item Slots (Weapon / SpellBook) ─── */
+
+.slot-container {
+    position: absolute;
+    bottom: 2%;
+    width: 25%;
+    height: 8%;
+    flex-direction: row;
+}
+
+.weapon-slots {
+    left: 1%;
+}
+
+.spellbook-slots {
+    right: 1%;
+    flex-direction: row-reverse;
+}
+
+.item-slot {
+    width: 23%;
+    height: 100%;
+    margin-right: 1.5%;
+}
+
+.item-frame {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: resource('Sprites/UI/InGame/HUD/slot');
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.item-icon {
+    position: absolute;
+    left: 15%;
+    top: 10%;
+    width: 70%;
+    height: 60%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.item-level {
+    position: absolute;
+    bottom: 5%;
+    width: 100%;
+    font-size: 14px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
 }

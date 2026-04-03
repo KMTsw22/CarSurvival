@@ -197,6 +197,9 @@ public class LevelUpUI : MonoBehaviour
             if (data.healthBonus > 0) lines.Add($"HP +{data.healthBonus:F0}%/Lv");
             if (data.attackSpeedBonus > 0) lines.Add($"ASPD +{data.attackSpeedBonus:F0}%/Lv");
             if (data.defenseBonus > 0) lines.Add($"DEF +{data.defenseBonus:F0}%/Lv");
+            if (data.healthRegenBonus > 0) lines.Add($"REGEN +{data.healthRegenBonus:F0}%/Lv");
+            if (data.expBonus > 0) lines.Add($"EXP +{data.expBonus:F0}%/Lv");
+            if (data.magnetBonus > 0) lines.Add($"MAGNET +{data.magnetBonus:F0}%/Lv");
         }
 
         return lines.Count > 0 ? string.Join("\n", lines) : data.description;

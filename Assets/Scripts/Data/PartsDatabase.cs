@@ -8,11 +8,31 @@ public class PartsDatabase : ScriptableObject
 
     public List<PartsData> GetRandomParts(int count, List<PartsData> exclude = null)
     {
-        List<PartsData> available = new List<PartsData>(allParts);
+        var stats = PlayerStats.Instance;
+        List<PartsData> available = new List<PartsData>();
 
-        if (exclude != null)
+        bool weaponFull = stats != null && stats.IsWeaponSlotFull();
+        bool spellFull = stats != null && stats.IsSpellBookSlotFull();
+
+        foreach (var part in allParts)
         {
-            available.RemoveAll(p => exclude.Contains(p));
+            if (exclude != null && exclude.Contains(part)) continue;
+
+            bool isWeapon = part.category == ItemCategory.MainWeapon || part.category == ItemCategory.SubWeapon;
+            bool isSpell = part.category == ItemCategory.SpellBook;
+
+            // 이미 보유한 파츠는 만렙이면 제외
+            if (stats != null)
+            {
+                var owned = stats.equippedParts.Find(p => p.data == part);
+                if (owned != null && owned.level >= part.maxLevel) continue;
+
+                // 미보유 + 슬롯 꽉 찬 카테고리 → 제외
+                if (owned == null && isWeapon && weaponFull) continue;
+                if (owned == null && isSpell && spellFull) continue;
+            }
+
+            available.Add(part);
         }
 
         List<PartsData> result = new List<PartsData>();

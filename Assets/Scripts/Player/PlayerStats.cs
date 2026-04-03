@@ -55,6 +55,7 @@ public class PlayerStats : MonoBehaviour
     public event Action<int, int, int> OnExpChanged; // current, toNext, level
     public event Action OnLevelUp;
     public event Action OnPlayerDeath;
+    public event Action OnPartChanged;
 
     private void Start()
     {
@@ -89,6 +90,19 @@ public class PlayerStats : MonoBehaviour
             expToNextLevel = levelData.required_exp_gap;
 
         currentHealth = maxHealth;
+
+        // 기본 무기(MachineGun)를 equippedParts에 등록
+        if (GameManager.Instance != null && GameManager.Instance.partsDatabase != null)
+        {
+            var defaultWeapon = GameManager.Instance.partsDatabase.allParts
+                .Find(p => p.weaponType == WeaponType.MachineGun);
+            if (defaultWeapon != null && equippedParts.Find(p => p.data == defaultWeapon) == null)
+            {
+                equippedParts.Add(new OwnedPart { data = defaultWeapon, level = 1 });
+                OnPartChanged?.Invoke();
+            }
+        }
+
         NotifyAll();
     }
 
@@ -205,9 +219,24 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
+    public const int MaxWeaponSlots = 4;
+    public const int MaxSpellBookSlots = 4;
+
+    public bool IsWeaponSlotFull()
+    {
+        int count = equippedParts.FindAll(p =>
+            p.data.category == ItemCategory.MainWeapon || p.data.category == ItemCategory.SubWeapon).Count;
+        return count >= MaxWeaponSlots;
+    }
+
+    public bool IsSpellBookSlotFull()
+    {
+        int count = equippedParts.FindAll(p => p.data.category == ItemCategory.SpellBook).Count;
+        return count >= MaxSpellBookSlots;
+    }
+
     public void ApplyPart(PartsData part)
     {
-        // Check if we already have this part
         var existing = equippedParts.Find(p => p.data == part);
         if (existing != null)
         {
@@ -216,11 +245,22 @@ public class PlayerStats : MonoBehaviour
         }
         else
         {
+            bool isWeapon = part.category == ItemCategory.MainWeapon || part.category == ItemCategory.SubWeapon;
+            if (isWeapon && IsWeaponSlotFull()) return;
+            if (part.category == ItemCategory.SpellBook && IsSpellBookSlotFull()) return;
+
             equippedParts.Add(new OwnedPart { data = part, level = 1 });
         }
 
         RecalculateStats();
+        OnPartChanged?.Invoke();
     }
+
+    // 마법서 보너스 (외부 시스템에서 참조)
+    [HideInInspector] public float expBonusPercent = 0f;
+    [HideInInspector] public float magnetBonusPercent = 0f;
+
+    private float healthRegenPercent = 0f;
 
     private void RecalculateStats()
     {
@@ -229,6 +269,9 @@ public class PlayerStats : MonoBehaviour
         float bonusDamage = 0f;
         float bonusHealth = 0f;
         float bonusDefense = 0f;
+        float bonusHealthRegen = 0f;
+        float bonusExp = 0f;
+        float bonusMagnet = 0f;
 
         foreach (var part in equippedParts)
         {
@@ -244,18 +287,31 @@ public class PlayerStats : MonoBehaviour
             bonusDamage += part.data.damageBonus * multiplier;
             bonusHealth += part.data.healthBonus * multiplier;
             bonusDefense += part.data.defenseBonus * multiplier;
+            bonusHealthRegen += part.data.healthRegenBonus * multiplier;
+            bonusExp += part.data.expBonus * multiplier;
+            bonusMagnet += part.data.magnetBonus * multiplier;
         }
 
         moveSpeed = baseMoveSpeed * (1f + bonusSpeed / 100f);
         attackSpeed = baseAtkSpeed * (1f + bonusAttackSpeed / 100f);
         damage = baseDamage * (1f + bonusDamage / 100f);
+        float prevMax = maxHealth;
         maxHealth = baseMaxHealth * (1f + bonusHealth / 100f);
+        // 최대 체력 증가분만큼 현재 체력도 같이 올려줌
+        if (maxHealth > prevMax)
+            currentHealth += maxHealth - prevMax;
         defense = Mathf.Clamp01(bonusDefense / 100f);
+        healthRegenPercent = bonusHealthRegen;
+        expBonusPercent = bonusExp;
+        magnetBonusPercent = bonusMagnet;
+
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
     private float GetTotalHealthRegen()
     {
-        return 0f;
+        // 초당 최대 체력의 (healthRegenPercent / 100)만큼 회복
+        return healthRegenPercent / 100f;
     }
 
     private void NotifyAll()

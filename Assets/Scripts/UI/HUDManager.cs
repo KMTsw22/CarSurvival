@@ -20,8 +20,18 @@ public class HUDManager : MonoBehaviour
     private Label countdownText;
     private Label warningText;
 
+    // Item Slots (4 weapons + 4 spellbooks)
+    private const int SlotCount = 4;
+    private VisualElement[] weaponSlots = new VisualElement[SlotCount];
+    private VisualElement[] weaponIcons = new VisualElement[SlotCount];
+    private Label[] weaponLevels = new Label[SlotCount];
+    private VisualElement[] spellbookSlots = new VisualElement[SlotCount];
+    private VisualElement[] spellbookIcons = new VisualElement[SlotCount];
+    private Label[] spellbookLevels = new Label[SlotCount];
+
     private PlayerStats playerStats;
     private StageManager stageManager;
+    private CarController carController;
 
     private void Start()
     {
@@ -43,6 +53,26 @@ public class HUDManager : MonoBehaviour
         countdownText = root.Q<Label>("countdown-text");
         warningText = root.Q<Label>("warning-text");
 
+        // Item Slots (4 weapons + 4 spellbooks)
+        for (int i = 0; i < SlotCount; i++)
+        {
+            weaponSlots[i] = root.Q($"weapon-slot-{i}");
+            if (weaponSlots[i] != null)
+            {
+                weaponIcons[i] = weaponSlots[i].Q(className: "item-icon");
+                weaponLevels[i] = weaponSlots[i].Q<Label>(className: "item-level");
+                weaponSlots[i].style.display = DisplayStyle.None;
+            }
+
+            spellbookSlots[i] = root.Q($"spellbook-slot-{i}");
+            if (spellbookSlots[i] != null)
+            {
+                spellbookIcons[i] = spellbookSlots[i].Q(className: "item-icon");
+                spellbookLevels[i] = spellbookSlots[i].Q<Label>(className: "item-level");
+                spellbookSlots[i].style.display = DisplayStyle.None;
+            }
+        }
+
         if (summonBtn != null)
             summonBtn.clicked += OnSummonBossClicked;
 
@@ -51,6 +81,12 @@ public class HUDManager : MonoBehaviour
         {
             playerStats.OnHealthChanged += UpdateHealth;
             playerStats.OnExpChanged += UpdateExp;
+            playerStats.OnPartChanged += UpdateItemSlots;
+            UpdateItemSlots();
+
+            carController = playerStats.GetComponent<CarController>();
+            if (carController != null)
+                carController.OnBoosterChanged += UpdateBooster;
         }
 
         BindStageManager();
@@ -82,6 +118,7 @@ public class HUDManager : MonoBehaviour
             if (playerStats == null) return;
             playerStats.OnHealthChanged += UpdateHealth;
             playerStats.OnExpChanged += UpdateExp;
+            playerStats.OnPartChanged += UpdateItemSlots;
         }
 
         if (stageManager == null)
@@ -129,36 +166,32 @@ public class HUDManager : MonoBehaviour
         }
     }
 
-    private float healthBarMaxWidth = -1f;
+    private void UpdateBooster(float current, float max)
+    {
+        if (boosterBarClip != null)
+        {
+            float ratio = Mathf.Clamp01(current / max);
+            boosterBarClip.style.width = new Length(63f * ratio, LengthUnit.Percent);
+        }
+    }
 
     private void UpdateHealth(float current, float max)
     {
         if (healthBarClip != null)
         {
-            // 초기 width 저장
-            if (healthBarMaxWidth < 0f)
-                healthBarMaxWidth = healthBarClip.resolvedStyle.width;
-
             float ratio = Mathf.Clamp01(current / max);
-            if (healthBarMaxWidth > 0f)
-                healthBarClip.style.width = healthBarMaxWidth * ratio;
+            healthBarClip.style.width = new Length(63f * ratio, LengthUnit.Percent);
         }
         if (healthText != null)
             healthText.text = $"{Mathf.CeilToInt(current)}/{Mathf.CeilToInt(max)}";
     }
 
-    private float expBarMaxWidth = -1f;
-
     private void UpdateExp(int current, int toNext, int level)
     {
         if (expBarClip != null)
         {
-            if (expBarMaxWidth < 0f)
-                expBarMaxWidth = expBarClip.resolvedStyle.width;
-
             float ratio = Mathf.Clamp01((float)current / toNext);
-            if (expBarMaxWidth > 0f)
-                expBarClip.style.width = expBarMaxWidth * ratio;
+            expBarClip.style.width = new Length(63f * ratio, LengthUnit.Percent);
         }
         if (levelText != null)
             levelText.text = $"Lv.{level}";
@@ -278,6 +311,52 @@ public class HUDManager : MonoBehaviour
         UpdateKeyIcon();
     }
 
+    // ─── Item Slots ───
+
+    private void UpdateItemSlots()
+    {
+        if (playerStats == null) return;
+
+        int weaponIdx = 0;
+        int spellIdx = 0;
+
+        foreach (var part in playerStats.equippedParts)
+        {
+            if (part.data.category == ItemCategory.MainWeapon || part.data.category == ItemCategory.SubWeapon)
+            {
+                if (weaponIdx < SlotCount && weaponSlots[weaponIdx] != null)
+                {
+                    weaponSlots[weaponIdx].style.display = DisplayStyle.Flex;
+                    if (weaponIcons[weaponIdx] != null && part.data.icon != null)
+                        weaponIcons[weaponIdx].style.backgroundImage = new StyleBackground(part.data.icon);
+                    if (weaponLevels[weaponIdx] != null)
+                        weaponLevels[weaponIdx].text = $"Lv.{part.level}";
+                    weaponIdx++;
+                }
+            }
+            else if (part.data.category == ItemCategory.SpellBook)
+            {
+                if (spellIdx < SlotCount && spellbookSlots[spellIdx] != null)
+                {
+                    spellbookSlots[spellIdx].style.display = DisplayStyle.Flex;
+                    if (spellbookIcons[spellIdx] != null && part.data.icon != null)
+                        spellbookIcons[spellIdx].style.backgroundImage = new StyleBackground(part.data.icon);
+                    if (spellbookLevels[spellIdx] != null)
+                        spellbookLevels[spellIdx].text = $"Lv.{part.level}";
+                    spellIdx++;
+                }
+            }
+        }
+
+        // Hide unused slots
+        for (int i = weaponIdx; i < SlotCount; i++)
+            if (weaponSlots[i] != null)
+                weaponSlots[i].style.display = DisplayStyle.None;
+        for (int i = spellIdx; i < SlotCount; i++)
+            if (spellbookSlots[i] != null)
+                spellbookSlots[i].style.display = DisplayStyle.None;
+    }
+
     private void OnSummonBossClicked()
     {
         if (stageManager != null)
@@ -290,7 +369,10 @@ public class HUDManager : MonoBehaviour
         {
             playerStats.OnHealthChanged -= UpdateHealth;
             playerStats.OnExpChanged -= UpdateExp;
+            playerStats.OnPartChanged -= UpdateItemSlots;
         }
+        if (carController != null)
+            carController.OnBoosterChanged -= UpdateBooster;
         if (stageManager != null)
         {
             stageManager.OnKeyCountChanged -= UpdateKeyCount;

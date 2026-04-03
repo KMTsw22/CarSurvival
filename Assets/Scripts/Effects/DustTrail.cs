@@ -20,16 +20,16 @@ public class DustTrail : MonoBehaviour
         ps = dustObj.AddComponent<ParticleSystem>();
 
         var main = ps.main;
-        main.startLifetime = 0.5f;
-        main.startSpeed = 0.5f;
-        main.startSize = new ParticleSystem.MinMaxCurve(0.15f, 0.3f);
-        main.startColor = new Color(0.6f, 0.55f, 0.5f, 0.4f);
+        main.startLifetime = 1.5f;
+        main.startSpeed = 1f;
+        main.startSize = new ParticleSystem.MinMaxCurve(1f, 2f);
+        main.startColor = new Color(0.55f, 0.5f, 0.45f, 0.4f);
         main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.maxParticles = 30;
-        main.gravityModifier = -0.1f;
+        main.maxParticles = 100;
+        main.gravityModifier = -0.05f;
 
         var emission = ps.emission;
-        emission.rateOverTime = 15f;
+        emission.rateOverTime = 30f;
 
         var shape = ps.shape;
         shape.shapeType = ParticleSystemShapeType.Circle;
@@ -38,7 +38,8 @@ public class DustTrail : MonoBehaviour
         var sizeOverLifetime = ps.sizeOverLifetime;
         sizeOverLifetime.enabled = true;
         sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
-            new Keyframe(0, 1f),
+            new Keyframe(0, 0.8f),
+            new Keyframe(0.5f, 1f),
             new Keyframe(1, 0f)));
 
         var colorOverLifetime = ps.colorOverLifetime;
@@ -53,8 +54,40 @@ public class DustTrail : MonoBehaviour
 
         var renderer = dustObj.GetComponent<ParticleSystemRenderer>();
         renderer.sortingOrder = 1;
-        renderer.material = new Material(Shader.Find("Particles/Standard Unlit"));
-        renderer.material.color = Color.white;
+        renderer.material = CreateMaterial("Sprites/Cars/particle/Particle-DustTrail");
+    }
+
+    private Material CreateMaterial(string texturePath)
+    {
+        string[] shaderNames = {
+            "Particles/Standard Unlit",
+            "Mobile/Particles/Alpha Blended",
+            "Sprites/Default"
+        };
+
+        Shader shader = null;
+        foreach (var name in shaderNames)
+        {
+            shader = Shader.Find(name);
+            if (shader != null) break;
+        }
+
+        var mat = new Material(shader);
+        if (mat.HasProperty("_Mode"))
+        {
+            mat.SetFloat("_Mode", 2f);
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetInt("_ZWrite", 0);
+            mat.EnableKeyword("_ALPHABLEND_ON");
+            mat.renderQueue = 3000;
+        }
+
+        var tex = Resources.Load<Texture2D>(texturePath);
+        if (tex != null)
+            mat.mainTexture = tex;
+
+        return mat;
     }
 
     private void Update()
@@ -62,6 +95,6 @@ public class DustTrail : MonoBehaviour
         if (ps == null || rb == null) return;
 
         var emission = ps.emission;
-        emission.enabled = rb.velocity.sqrMagnitude > 1f;
+        emission.enabled = rb.linearVelocity.sqrMagnitude > 1f;
     }
 }

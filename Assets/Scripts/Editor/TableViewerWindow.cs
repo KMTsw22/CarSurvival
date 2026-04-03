@@ -165,8 +165,8 @@ public class TableViewerWindow : EditorWindow
                     (CarRow r) => new[] { r.car_id, r.car_name, r.car_type, F(r.base_hp), F(r.base_speed), F(r.base_atk_speed), F(r.base_damage), F(r.collision_damage), r.passive_type, F(r.passive_value), r.passive_desc, r.unlock_cost.ToString(), r.unlock_currency_id, r.unlocked_by_default.ToString(), r.sprite_key });
                 break;
             case "TB_Weapon":
-                LoadRows(data, new[] { "weapon_id","weapon_name","category","damage","effect_desc","aim_type","weapon_type","cooldown","duration","max_level","drop_weight","icon_key","etc1","etc2","etc3","etc4","etc5" },
-                    (WeaponRow r) => new[] { r.weapon_id, r.weapon_name, r.weapon_category, F(r.damage), r.effect_desc, r.aim_type, r.weapon_type, F(r.cooldown), F(r.duration), r.max_level.ToString(), r.drop_weight.ToString(), r.icon_key, F(r.etc_value1), F(r.etc_value2), F(r.etc_value3), F(r.etc_value4), F(r.etc_value5) });
+                LoadRows(data, new[] { "weapon_id","weapon_name","category","damage","effect_desc","aim_type","weapon_type","cooldown","duration","max_level","drop_weight","icon_key","etc1","etc2","etc3","etc4","etc5","dmg/lv" },
+                    (WeaponRow r) => new[] { r.weapon_id, r.weapon_name, r.weapon_category, F(r.damage), r.effect_desc, r.aim_type, r.weapon_type, F(r.cooldown), F(r.duration), r.max_level.ToString(), r.drop_weight.ToString(), r.icon_key, F(r.etc_value1), F(r.etc_value2), F(r.etc_value3), F(r.etc_value4), F(r.etc_value5), F(r.damage_per_level) });
                 break;
             case "TB_SpellBook":
                 LoadRows(data, new[] { "book_id","book_name","effect_type","base_value","effect_desc","max_level","stackable","drop_weight","icon_key" },

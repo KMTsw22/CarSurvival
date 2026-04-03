@@ -15,6 +15,9 @@ public class PartsData : ScriptableObject
     public float damageBonus = 0f;
     public float healthBonus = 0f;
     public float defenseBonus = 0f;
+    public float healthRegenBonus = 0f;
+    public float expBonus = 0f;
+    public float magnetBonus = 0f;
 
     [Header("Weapon")]
     public WeaponType weaponType = WeaponType.None;
@@ -27,6 +30,7 @@ public class PartsData : ScriptableObject
     public float etcValue3 = 0f;
     public float etcValue4 = 0f;
     public float etcValue5 = 0f;
+    public float damagePerLevel = 0f;
 
     [Header("Level")]
     public int maxLevel = 5;
@@ -45,7 +49,12 @@ public enum WeaponType
     None,
     MachineGun,
     OilSlick,
-    SawBlade
+    SawBlade,
+    ChainLightning,
+    EMPPulse,
+    Flamethrower,
+    LaserCannon,
+    MissilePod
 }
 
 public enum AimType

@@ -4,6 +4,10 @@ using System.Collections.Generic;
 
 public class CheatWindow : EditorWindow
 {
+    // 탭
+    private int selectedTab = 0;
+    private readonly string[] tabNames = { "일반", "아이템 테스트" };
+
     // 몬스터 소환
     private int selectedMonsterIndex = 0;
     private float scaleOverride = 1f;
@@ -20,6 +24,11 @@ public class CheatWindow : EditorWindow
     private string[] monsterNames = null;
 
     private Vector2 scrollPos;
+
+    // 아이템 테스트 탭
+    private Vector2 itemScrollPos;
+    private bool weaponFoldout = true;
+    private bool spellBookFoldout = true;
 
     [MenuItem("Car Survivor/Cheat Window %#D")]  // Ctrl+Shift+D
     public static void ShowWindow()
@@ -45,6 +54,21 @@ public class CheatWindow : EditorWindow
     }
 
     private void OnGUI()
+    {
+        selectedTab = GUILayout.Toolbar(selectedTab, tabNames, GUILayout.Height(28));
+        EditorGUILayout.Space(4);
+
+        switch (selectedTab)
+        {
+            case 0: DrawGeneralTab(); break;
+            case 1: DrawItemTestTab(); break;
+        }
+    }
+
+    // ════════════════════════════════════════
+    // 탭 0: 일반 (기존 기능)
+    // ════════════════════════════════════════
+    private void DrawGeneralTab()
     {
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
@@ -301,6 +325,192 @@ public class CheatWindow : EditorWindow
             ExportTables();
 
         EditorGUILayout.EndScrollView();
+    }
+
+    // ════════════════════════════════════════
+    // 탭 1: 아이템 테스트 (무기 / 스펠북)
+    // ════════════════════════════════════════
+    private void DrawItemTestTab()
+    {
+        if (!Application.isPlaying)
+        {
+            EditorGUILayout.HelpBox("Play 모드에서만 사용 가능합니다.", MessageType.Warning);
+            return;
+        }
+
+        var player = PlayerStats.Instance;
+        var gm = GameManager.Instance;
+        if (player == null || gm == null || gm.partsDatabase == null)
+        {
+            EditorGUILayout.HelpBox("PlayerStats 또는 PartsDatabase를 찾을 수 없습니다.", MessageType.Warning);
+            return;
+        }
+
+        var db = gm.partsDatabase;
+
+        // ─── 현재 장착 현황 ───
+        EditorGUILayout.LabelField("현재 장착 중", EditorStyles.boldLabel);
+        EditorGUILayout.Space(2);
+
+        if (player.equippedParts.Count == 0)
+        {
+            EditorGUILayout.HelpBox("장착된 아이템이 없습니다.", MessageType.Info);
+        }
+        else
+        {
+            for (int i = player.equippedParts.Count - 1; i >= 0; i--)
+            {
+                var owned = player.equippedParts[i];
+                EditorGUILayout.BeginHorizontal();
+
+                string catTag = owned.data.category switch
+                {
+                    ItemCategory.MainWeapon => "[주무기]",
+                    ItemCategory.SubWeapon => "[보조]",
+                    ItemCategory.SpellBook => "[마법서]",
+                    _ => "[???]"
+                };
+                EditorGUILayout.LabelField($"{catTag} {owned.data.partName}", GUILayout.Width(180));
+                EditorGUILayout.LabelField($"Lv.{owned.level}/{owned.data.maxLevel}", GUILayout.Width(60));
+
+                if (owned.level < owned.data.maxLevel)
+                {
+                    if (GUILayout.Button("레벨업", GUILayout.Width(55), GUILayout.Height(20)))
+                    {
+                        owned.level++;
+                        ForceRecalculate(player);
+                    }
+                }
+
+                if (GUILayout.Button("MAX", GUILayout.Width(40), GUILayout.Height(20)))
+                {
+                    owned.level = owned.data.maxLevel;
+                    ForceRecalculate(player);
+                }
+
+                if (GUILayout.Button("해제", GUILayout.Width(40), GUILayout.Height(20)))
+                {
+                    player.equippedParts.RemoveAt(i);
+                    ForceRecalculate(player);
+                }
+
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        EditorGUILayout.Space(4);
+        if (GUILayout.Button("전부 해제", GUILayout.Height(24)))
+        {
+            player.equippedParts.Clear();
+            ForceRecalculate(player);
+        }
+
+        EditorGUILayout.Space(10);
+
+        // ─── 무기 / 스펠북 목록 ───
+        itemScrollPos = EditorGUILayout.BeginScrollView(itemScrollPos);
+
+        // 무기
+        weaponFoldout = EditorGUILayout.Foldout(weaponFoldout, "무기 목록", true, EditorStyles.foldoutHeader);
+        if (weaponFoldout)
+        {
+            foreach (var part in db.allParts)
+            {
+                if (part.category != ItemCategory.MainWeapon && part.category != ItemCategory.SubWeapon)
+                    continue;
+                DrawItemRow(player, part);
+            }
+        }
+
+        EditorGUILayout.Space(6);
+
+        // 스펠북
+        spellBookFoldout = EditorGUILayout.Foldout(spellBookFoldout, "스펠북 목록", true, EditorStyles.foldoutHeader);
+        if (spellBookFoldout)
+        {
+            foreach (var part in db.allParts)
+            {
+                if (part.category != ItemCategory.SpellBook) continue;
+                DrawItemRow(player, part);
+            }
+        }
+
+        EditorGUILayout.EndScrollView();
+    }
+
+    private void DrawItemRow(PlayerStats player, PartsData part)
+    {
+        var owned = player.equippedParts.Find(p => p.data == part);
+        bool isEquipped = owned != null;
+
+        EditorGUILayout.BeginHorizontal();
+
+        // 상태 색상
+        var oldBg = GUI.backgroundColor;
+        if (isEquipped)
+            GUI.backgroundColor = new Color(0.5f, 1f, 0.5f, 1f);
+
+        string catLabel = part.category switch
+        {
+            ItemCategory.MainWeapon => "[주]",
+            ItemCategory.SubWeapon => "[보]",
+            ItemCategory.SpellBook => "[마]",
+            _ => ""
+        };
+
+        string statusText = isEquipped ? $"Lv.{owned.level}/{part.maxLevel}" : "미장착";
+        EditorGUILayout.LabelField($"{catLabel} {part.partName}", GUILayout.Width(150));
+        EditorGUILayout.LabelField(statusText, GUILayout.Width(70));
+
+        if (!isEquipped)
+        {
+            if (GUILayout.Button("장착", GUILayout.Width(45), GUILayout.Height(20)))
+            {
+                player.equippedParts.Add(new OwnedPart { data = part, level = 1 });
+                ForceRecalculate(player);
+            }
+        }
+        else
+        {
+            if (owned.level < part.maxLevel)
+            {
+                if (GUILayout.Button("+Lv", GUILayout.Width(35), GUILayout.Height(20)))
+                {
+                    owned.level++;
+                    ForceRecalculate(player);
+                }
+            }
+            if (GUILayout.Button("MAX", GUILayout.Width(35), GUILayout.Height(20)))
+            {
+                owned.level = part.maxLevel;
+                ForceRecalculate(player);
+            }
+            if (GUILayout.Button("X", GUILayout.Width(22), GUILayout.Height(20)))
+            {
+                player.equippedParts.Remove(owned);
+                ForceRecalculate(player);
+            }
+        }
+
+        GUI.backgroundColor = oldBg;
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void ForceRecalculate(PlayerStats player)
+    {
+        // RecalculateStats는 private이므로 리플렉션 사용
+        var method = typeof(PlayerStats).GetMethod("RecalculateStats",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        method?.Invoke(player, null);
+
+        // OnPartChanged는 event이므로 backing field는 NonPublic
+        var evt = typeof(PlayerStats).GetField("OnPartChanged",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (evt != null)
+        {
+            var action = evt.GetValue(player) as System.Action;
+            action?.Invoke();
+        }
     }
 
     // ─── Table Export ───

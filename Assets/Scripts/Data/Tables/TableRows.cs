@@ -58,6 +58,7 @@ public class WeaponRow
     [Key(14)] public float etc_value3;
     [Key(15)] public float etc_value4;
     [Key(16)] public float etc_value5;
+    [Key(17)] public float damage_per_level;
 }
 
 // ============================================================

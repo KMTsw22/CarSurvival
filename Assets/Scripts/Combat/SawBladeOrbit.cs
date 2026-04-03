@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// 플레이어 차량 주변을 회전하는 톱날 하나.
@@ -15,11 +16,10 @@ public class SawBladeOrbit : MonoBehaviour
     public int totalBlades = 1;
 
     private float angle;
-    private float damageTimer;
+    private Dictionary<int, float> hitTimers = new Dictionary<int, float>();
 
     private void Start()
     {
-        // 각 톱날을 균등 간격으로 배치
         angle = 360f / totalBlades * bladeIndex;
     }
 
@@ -32,7 +32,6 @@ public class SawBladeOrbit : MonoBehaviour
         Vector3 offset = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0) * orbitRadius;
         transform.position = center.position + offset;
 
-        // 톱날 자체 회전 (비주얼)
         transform.Rotate(0, 0, -rotateSpeed * 2f * Time.deltaTime);
     }
 
@@ -40,12 +39,17 @@ public class SawBladeOrbit : MonoBehaviour
     {
         if (!other.CompareTag("Enemy")) return;
 
-        damageTimer -= Time.deltaTime;
-        if (damageTimer > 0f) return;
-        damageTimer = damageInterval;
+        int id = other.GetInstanceID();
+        if (hitTimers.ContainsKey(id) && Time.time < hitTimers[id]) return;
+        hitTimers[id] = Time.time + damageInterval;
 
         EnemyHealth eh = other.GetComponent<EnemyHealth>();
         if (eh != null)
             eh.TakeDamage(damage);
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        hitTimers.Remove(other.GetInstanceID());
     }
 }

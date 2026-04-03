@@ -1,48 +1,92 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Assets/Resources/Sprites/UI/InGame/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=cf2420109145fad4b8a3a50b06c3faa6&amp;type=3#HUD" />
+    <Style src="project://database/Assets/Resources/Sprites/UI/InGame/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=cf2420109145fad4b8a3a50b06c3faa6&amp;type=3#HUD"/>
     <ui:VisualElement name="hud-root" picking-mode="Ignore" class="hud-root">
-        <ui:VisualElement name="health-area" class="health-area" style="height: 6%; top: 6px; left: 19px;">
-            <ui:VisualElement name="health-area-bg" class="health-area-bg" />
-            <ui:VisualElement name="health-word" class="health-word" style="margin-left: 4%; height: 80%; margin-top: 1%;" />
+        <ui:VisualElement name="health-area" class="health-area" style="height: 6%; top: 0.6%; left: 1%;">
+            <ui:VisualElement name="health-area-bg" class="health-area-bg"/>
+            <ui:VisualElement name="health-word" class="health-word" style="margin-left: 4%; height: 80%; margin-top: 1%;"/>
             <ui:VisualElement name="health-bar-bg" class="health-bar-bg">
-                <ui:VisualElement name="health-bar-clip" class="health-bar-clip" style="left: 131px; width: 335px; height: 35px;">
-                    <ui:VisualElement name="health-bar-fill" class="health-bar-fill" style="width: 307px; -unity-background-image-tint-color: rgb(220, 40, 40); height: 29px; top: 4px; left: 1px;" />
+                <ui:VisualElement name="health-bar-clip" class="health-bar-clip" style="left: 27.5%; width: 64%; height: 48%; top: 26%;">
+                    <ui:VisualElement name="health-bar-fill" class="health-bar-fill" style="width: 100%; -unity-background-image-tint-color: rgb(220, 40, 40); height: 87%; top: 6%; left: 0;"/>
                 </ui:VisualElement>
-                <ui:Label name="health-text" text="100/100" class="health-text" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0%; padding-right: 0; padding-bottom: 0; padding-left: 17%; font-size: 15px;" />
+                <ui:Label name="health-text" text="100/100" class="health-text" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0%; padding-right: 0; padding-bottom: 0; padding-left: 17%; font-size: 15px;"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="booster-area" class="booster-area" style="height: 6%; top: 70px; left: 19px;">
-            <ui:VisualElement name="booster-area-bg" class="booster-area-bg" />
-            <ui:VisualElement name="booster-word" class="booster-word" style="margin-left: 4%;" />
+        <ui:VisualElement name="booster-area" class="booster-area" style="height: 6%; top: 6.5%; left: 1%;">
+            <ui:VisualElement name="booster-area-bg" class="booster-area-bg"/>
+            <ui:VisualElement name="booster-word" class="booster-word" style="margin-left: 4%;"/>
             <ui:VisualElement name="booster-bar-bg" class="booster-bar-bg">
-                <ui:VisualElement name="booster-bar-clip" class="booster-bar-clip" style="left: 126px; width: 340px;">
-                    <ui:VisualElement name="booster-bar-fill" class="booster-bar-fill" style="width: 304px; left: 7px; height: 28px; top: 4px; -unity-background-image-tint-color: rgb(45, 74, 255);" />
+                <ui:VisualElement name="booster-bar-clip" class="booster-bar-clip" style="left: 27.5%; width: 64%; height: 49%; top: 26%;">
+                    <ui:VisualElement name="booster-bar-fill" class="booster-bar-fill" style="width: 100%; left: 0; height: 87%; top: 5%; -unity-background-image-tint-color: rgb(45, 74, 255);"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="exp-area" class="exp-area" style="height: 6%; top: 134px; left: 19px;">
-            <ui:VisualElement name="exp-area-bg" class="exp-area-bg" />
-            <ui:VisualElement name="exp-word" class="exp-word" style="margin-left: 4%;" />
+        <ui:VisualElement name="exp-area" class="exp-area" style="height: 6%; top: 12.4%; left: 1%;">
+            <ui:VisualElement name="exp-area-bg" class="exp-area-bg"/>
+            <ui:VisualElement name="exp-word" class="exp-word" style="margin-left: 4%;"/>
             <ui:VisualElement name="exp-bar-bg" class="exp-bar-bg">
-                <ui:VisualElement name="exp-bar-clip" class="exp-bar-clip" style="left: 133px; width: 0; height: 31px; top: 19px;">
-                    <ui:VisualElement name="exp-bar-fill" class="exp-bar-fill" style="width: 304px; height: 26px; top: 0; -unity-background-image-tint-color: rgb(0, 255, 36);" />
+                <ui:VisualElement name="exp-bar-clip" class="exp-bar-clip" style="left: 27.5%; width: 64%; height: 46%; top: 28%;">
+                    <ui:VisualElement name="exp-bar-fill" class="exp-bar-fill" style="width: 100%; height: 94%; top: 0; -unity-background-image-tint-color: rgb(0, 255, 36);"/>
                 </ui:VisualElement>
-                <ui:Label name="level-text" text="Lv.1" class="level-text" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 18%; font-size: 13px;" />
+                <ui:Label name="level-text" text="Lv.1" class="level-text" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 18%; font-size: 13px;"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="timer-area" class="timer-area">
-            <ui:Label name="timer-text" text="00:00" class="timer-text" />
+            <ui:Label name="timer-text" text="00:00" class="timer-text"/>
         </ui:VisualElement>
         <ui:VisualElement name="stats-area" class="stats-area">
-            <ui:Label name="kills-text" text="KILLS: 0" class="kills-text" />
-            <ui:Label name="gold-text" text="GOLD: 0" class="gold-text" />
+            <ui:Label name="kills-text" text="KILLS: 0" class="kills-text"/>
+            <ui:Label name="gold-text" text="GOLD: 0" class="gold-text"/>
             <ui:VisualElement name="key-area" class="key-area">
-                <ui:VisualElement name="key-icon" class="key-icon" />
-                <ui:Label name="key-text" text="0/3" class="key-text" />
+                <ui:VisualElement name="key-icon" class="key-icon"/>
+                <ui:Label name="key-text" text="0/3" class="key-text"/>
             </ui:VisualElement>
-            <ui:Button name="summon-btn" text="SUMMON BOSS" class="summon-btn" />
+            <ui:Button name="summon-btn" text="SUMMON BOSS" class="summon-btn"/>
         </ui:VisualElement>
-        <ui:Label name="countdown-text" class="countdown-text" />
-        <ui:Label name="warning-text" class="warning-text" />
+        <ui:Label name="countdown-text" class="countdown-text"/>
+        <ui:Label name="warning-text" class="warning-text"/>
+        <ui:VisualElement name="weapon-slots" class="slot-container weapon-slots" style="height: 12.5%; width: 30%;">
+            <ui:VisualElement name="weapon-slot-0" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="weapon-slot-1" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="weapon-slot-2" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="weapon-slot-3" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="spellbook-slots" class="slot-container spellbook-slots" style="height: 12.5%; width: 30%;">
+            <ui:VisualElement name="spellbook-slot-0" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="spellbook-slot-1" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="spellbook-slot-2" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="spellbook-slot-3" class="item-slot">
+                <ui:VisualElement class="item-frame"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:Label text="Lv.1" class="item-level"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

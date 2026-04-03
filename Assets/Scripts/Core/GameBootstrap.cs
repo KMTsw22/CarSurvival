@@ -69,6 +69,7 @@ public class GameBootstrap : MonoBehaviour
         part.etcValue3 = row.etc_value3;
         part.etcValue4 = row.etc_value4;
         part.etcValue5 = row.etc_value5;
+        part.damagePerLevel = row.damage_per_level;
         part.icon = LoadIcon(row.icon_key);
         return part;
     }
@@ -94,6 +95,18 @@ public class GameBootstrap : MonoBehaviour
                 break;
             case "HpUp":
                 part.healthBonus = row.base_value;
+                break;
+            case "HP Regen":
+                part.healthRegenBonus = row.base_value;
+                break;
+            case "EXP Boost":
+                part.expBonus = row.base_value;
+                break;
+            case "Damage Shield":
+                part.defenseBonus = row.base_value;
+                break;
+            case "Magnet":
+                part.magnetBonus = row.base_value;
                 break;
         }
 
@@ -124,6 +137,11 @@ public class GameBootstrap : MonoBehaviour
             "MachineGun" => WeaponType.MachineGun,
             "OilSlick" => WeaponType.OilSlick,
             "SawBlade" => WeaponType.SawBlade,
+            "ChainLightning" => WeaponType.ChainLightning,
+            "EMPPulse" => WeaponType.EMPPulse,
+            "Flamethrower" => WeaponType.Flamethrower,
+            "LaserCannon" => WeaponType.LaserCannon,
+            "MissilePod" => WeaponType.MissilePod,
             _ => WeaponType.None,
         };
     }
@@ -195,7 +213,7 @@ public class GameBootstrap : MonoBehaviour
         // Rigidbody
         var rb = playerCar.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
-        rb.drag = 0f;
+        rb.linearDamping = 0f;
         rb.freezeRotation = true;
 
         // Scripts
@@ -389,10 +407,20 @@ public class GameBootstrap : MonoBehaviour
         bullet.SetActive(false);
 
         var sr = bullet.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateSquareSprite();
-        sr.color = Color.yellow;
+        var bulletSprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EFT_MachineGun_bullet");
+        if (bulletSprite != null)
+        {
+            sr.sprite = bulletSprite;
+            sr.color = Color.white;
+            bullet.transform.localScale = new Vector3(0.3f, 0.3f, 1f);
+        }
+        else
+        {
+            sr.sprite = CreateSquareSprite();
+            sr.color = Color.yellow;
+            bullet.transform.localScale = new Vector3(0.15f, 0.3f, 1f);
+        }
         sr.sortingOrder = 5;
-        bullet.transform.localScale = new Vector3(0.15f, 0.3f, 1f);
 
         var col = bullet.AddComponent<BoxCollider2D>();
         col.isTrigger = true;
@@ -423,7 +451,7 @@ public class GameBootstrap : MonoBehaviour
 
         var rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
-        rb.drag = 0f;
+        rb.linearDamping = 0f;
         rb.freezeRotation = true;
 
         var ai = enemy.AddComponent<EnemyAI>();
