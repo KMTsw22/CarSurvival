@@ -112,12 +112,21 @@ public class PlayerStats : MonoBehaviour
 
         survivalTime += Time.deltaTime;
 
-        // Health regen from parts
+        // Health regen from parts (1초마다 회복)
         float regen = GetTotalHealthRegen();
         if (regen > 0f && currentHealth < maxHealth)
         {
-            currentHealth = Mathf.Min(maxHealth, currentHealth + regen * maxHealth * Time.deltaTime);
-            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            regenTimer += Time.deltaTime;
+            if (regenTimer >= 1f)
+            {
+                regenTimer -= 1f;
+                currentHealth = Mathf.Min(maxHealth, currentHealth + regen);
+                OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            }
+        }
+        else
+        {
+            regenTimer = 0f;
         }
     }
 
@@ -261,12 +270,13 @@ public class PlayerStats : MonoBehaviour
     [HideInInspector] public float magnetBonusPercent = 0f;
 
     private float healthRegenPercent = 0f;
+    private float regenTimer = 0f;
 
     private void RecalculateStats()
     {
         float bonusSpeed = 0f;
         float bonusAttackSpeed = 0f;
-        float bonusDamage = 0f;
+        float bonusDamage = 0f; 
         float bonusHealth = 0f;
         float bonusDefense = 0f;
         float bonusHealthRegen = 0f;
@@ -287,7 +297,7 @@ public class PlayerStats : MonoBehaviour
             bonusDamage += part.data.damageBonus * multiplier;
             bonusHealth += part.data.healthBonus * multiplier;
             bonusDefense += part.data.defenseBonus * multiplier;
-            bonusHealthRegen += part.data.healthRegenBonus * multiplier;
+            bonusHealthRegen += part.data.healthRegenBonus > 0 ? part.level : 0;
             bonusExp += part.data.expBonus * multiplier;
             bonusMagnet += part.data.magnetBonus * multiplier;
         }
@@ -310,8 +320,8 @@ public class PlayerStats : MonoBehaviour
 
     private float GetTotalHealthRegen()
     {
-        // 초당 최대 체력의 (healthRegenPercent / 100)만큼 회복
-        return healthRegenPercent / 100f;
+        // 1초당 healthRegenPercent 고정값 회복 (레벨 * base_value)
+        return healthRegenPercent;
     }
 
     private void NotifyAll()

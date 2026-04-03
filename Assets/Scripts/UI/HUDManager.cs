@@ -164,6 +164,10 @@ public class HUDManager : MonoBehaviour
             if (summonBtn != null)
                 summonBtn.style.display = DisplayStyle.None;
         }
+
+        // R키로 보스 소환
+        if (Input.GetKeyDown(KeyCode.R) && stageManager != null && stageManager.CanSummonBoss)
+            stageManager.TrySummonBoss();
     }
 
     private void UpdateBooster(float current, float max)

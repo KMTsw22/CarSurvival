@@ -190,6 +190,7 @@ public class AutoAttack : MonoBehaviour
 
         int count = level;
         float orbitRadius = data.etcValue2 > 0 ? data.etcValue2 : 2f;
+        orbitRadius += 2f; //보정값
         float dmg = CalcDamage(data, level);
 
         for (int i = 0; i < count; i++)
