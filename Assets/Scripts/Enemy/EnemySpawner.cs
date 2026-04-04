@@ -40,6 +40,10 @@ public class EnemySpawner : MonoBehaviour
     private bool bossSpawned = false;
     private const float BOSS_SPAWN_SEC = 600f;
 
+    // 플레이어 이동 방향 추적
+    private Vector3 lastPlayerPos;
+    private Vector3 playerMoveDir = Vector3.right;
+
     // 디버그용: 현재 소환된 디버그 몬스터
     private GameObject debugMonster;
 
@@ -51,6 +55,13 @@ public class EnemySpawner : MonoBehaviour
         public int maxEnemies;
         public float difficultyScale;
         public float spawnTimer;
+        // 스폰 위치 제어 (테이블 기반)
+        public float spawnDistMin;
+        public float spawnDistMax;
+        public float forwardBias;
+        public int clusterSize;
+        public float clusterRadius;
+        public float speedScale;
     }
 
     private float elapsedTime
@@ -65,6 +76,7 @@ public class EnemySpawner : MonoBehaviour
         {
             player = playerObj.transform;
             playerStats = playerObj.GetComponent<PlayerStats>();
+            lastPlayerPos = player.position;
         }
         BuildWaveSchedule();
     }
@@ -97,8 +109,14 @@ public class EnemySpawner : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
         if (player == null) return;
+
+        // 플레이어 이동 방향 추적
+        Vector3 delta = player.position - lastPlayerPos;
+        if (delta.sqrMagnitude > 0.001f)
+            playerMoveDir = delta.normalized;
+        lastPlayerPos = player.position;
 
         // 디버그 모드: 자동 스폰 차단, 스케일 실시간 반영
         if (debugMode)
@@ -186,8 +204,6 @@ public class EnemySpawner : MonoBehaviour
         ApplyMonsterData(debugMonster, data, 1f);
         debugScaleOverride = data.scale;
 
-        // 원래 속도로 이동 (바운스 테스트용)
-
         Debug.Log($"[DEBUG] Spawned: {data.monsterName} (scale: {data.scale})");
     }
 
@@ -231,7 +247,14 @@ public class EnemySpawner : MonoBehaviour
                 spawnInterval = row.spawn_interval,
                 maxEnemies = row.max_enemies,
                 difficultyScale = row.difficulty_scale,
-                spawnTimer = 0f
+                spawnTimer = 0f,
+                // 테이블 값이 0이면 기본값 사용
+                spawnDistMin = row.spawn_dist_min > 0 ? row.spawn_dist_min : minSpawnDistance,
+                spawnDistMax = row.spawn_dist_max > 0 ? row.spawn_dist_max : maxSpawnDistance,
+                forwardBias = row.forward_bias > 0 ? row.forward_bias : 0.7f,
+                clusterSize = row.cluster_size > 1 ? row.cluster_size : 1,
+                clusterRadius = row.cluster_radius > 0 ? row.cluster_radius : 1.5f,
+                speedScale = row.speed_scale > 0 ? row.speed_scale : 1f,
             });
         }
 
@@ -239,7 +262,7 @@ public class EnemySpawner : MonoBehaviour
         int startSec = (int)startF;
         int min = startSec / 60;
         int sec = startSec % 60;
-        Debug.Log($"[Wave #{waveNo}] {min:00}:{sec:00}~ → {activeWaves.Count}개: {string.Join(", ", activeWaves.Select(w => $"{w.monId}(x{w.spawnCount}/{w.spawnInterval}s, diff={w.difficultyScale})"))}");
+        Debug.Log($"[Wave #{waveNo}] {min:00}:{sec:00}~ → {activeWaves.Count}개: {string.Join(", ", activeWaves.Select(w => $"{w.monId}(x{w.spawnCount}/{w.spawnInterval}s, diff={w.difficultyScale}, dist={w.spawnDistMin}~{w.spawnDistMax}, fwd={w.forwardBias}, cluster={w.clusterSize})"))}");
     }
 
     private void SetupLegacyWave()
@@ -262,10 +285,18 @@ public class EnemySpawner : MonoBehaviour
                 spawnInterval = 5f,
                 maxEnemies = 30 + elapsed / 60 * 5,
                 difficultyScale = 1f + elapsed / 60 * 0.1f,
-                spawnTimer = 0f
+                spawnTimer = 0f,
+                spawnDistMin = minSpawnDistance,
+                spawnDistMax = maxSpawnDistance,
+                forwardBias = 0.7f,
+                clusterSize = 1,
+                clusterRadius = 1.5f,
+                speedScale = 1f,
             });
         }
     }
+
+    // ─── SPAWN ───
 
     private void SpawnMonster(ActiveWave wave)
     {
@@ -281,12 +312,152 @@ public class EnemySpawner : MonoBehaviour
         GameObject prefab = enemyPrefabs[index];
         MonsterData data = monsterDataList[index];
 
-        Vector3 spawnPos = GetRandomSpawnPosition();
+        // 군집 스폰: cluster_size > 1이면 전방 부채꼴(±30°)로 분산 배치
+        if (wave.clusterSize > 1)
+        {
+            float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
+            float spreadDeg = 60f; // 총 부채꼴 각도 (±30°)
+            float sliceAngle = spreadDeg / (wave.clusterSize - 1);
+            float startAngle = baseAngle - (spreadDeg * 0.5f) * Mathf.Deg2Rad;
+
+            for (int c = 0; c < wave.clusterSize; c++)
+            {
+                // 부채꼴 내 균등 배치 + 약간의 랜덤
+                float angle = startAngle + (sliceAngle * c) * Mathf.Deg2Rad;
+                angle += Random.Range(-5f, 5f) * Mathf.Deg2Rad; // 살짝 흔들림
+                float dist = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
+                Vector3 pos = player.position + new Vector3(Mathf.Cos(angle) * dist, Mathf.Sin(angle) * dist, 0f);
+                SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
+            }
+        }
+        else
+        {
+            Vector3 pos = GetSpawnPosition(wave);
+            SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
+        }
+    }
+
+    private void SpawnOneEnemy(GameObject prefab, MonsterData data, Vector3 pos, float difficultyScale, float speedScale)
+    {
         GameObject enemy = Instantiate(prefab);
         enemy.SetActive(true);
-        enemy.transform.position = spawnPos;
+        enemy.transform.position = pos;
+        ApplyMonsterData(enemy, data, difficultyScale);
 
-        ApplyMonsterData(enemy, data, wave.difficultyScale);
+        // 속도 배율 적용
+        if (speedScale > 0f && !Mathf.Approximately(speedScale, 1f))
+        {
+            var ai = enemy.GetComponent<EnemyAI>();
+            if (ai != null)
+                ai.moveSpeed = data.moveSpeed * speedScale;
+        }
+    }
+
+    /// <summary>
+    /// 웨이브 설정에 따라 스폰 위치 결정.
+    /// forwardBias: 전방 스폰 확률, spawnDistMin/Max: 거리 범위
+    /// </summary>
+    private Vector3 GetSpawnPosition(ActiveWave wave)
+    {
+        float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
+        float angle;
+
+        if (Random.value < wave.forwardBias)
+            angle = baseAngle + Random.Range(-90f, 90f) * Mathf.Deg2Rad;   // 전방 반원
+        else
+            angle = baseAngle + Random.Range(90f, 270f) * Mathf.Deg2Rad;   // 후방 반원
+
+        float distance = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
+        return player.position + new Vector3(
+            Mathf.Cos(angle) * distance,
+            Mathf.Sin(angle) * distance,
+            0f);
+    }
+
+    /// <summary>
+    /// 포위 스폰: 플레이어 주변 360°에 균등하게 N마리 동시 배치.
+    /// 이벤트성 호출용 (Warning Wave, 특정 웨이브 트리거 등).
+    /// </summary>
+    public void SpawnSurround(string monId, int count, float distance, float difficultyScale, float speedScale = 1f)
+    {
+        int index = FindMonsterIndex(monId);
+        if (index < 0) index = GetWeightedRandomIndex();
+        if (index < 0 || index >= enemyPrefabs.Count) return;
+
+        GameObject prefab = enemyPrefabs[index];
+        MonsterData data = monsterDataList[index];
+
+        float sliceAngle = 360f / count;
+        float randomOffset = Random.Range(0f, 360f); // 매번 다른 시작 각도
+
+        for (int i = 0; i < count; i++)
+        {
+            float angle = (randomOffset + sliceAngle * i) * Mathf.Deg2Rad;
+            // 약간의 거리/각도 랜덤 추가 (기계적이지 않게)
+            float dist = distance + Random.Range(-0.5f, 0.5f);
+            float jitter = Random.Range(-sliceAngle * 0.2f, sliceAngle * 0.2f) * Mathf.Deg2Rad;
+
+            Vector3 pos = player.position + new Vector3(
+                Mathf.Cos(angle + jitter) * dist,
+                Mathf.Sin(angle + jitter) * dist,
+                0f);
+
+            SpawnOneEnemy(prefab, data, pos, difficultyScale, speedScale);
+        }
+
+        Debug.Log($"[Surround] {data.monsterName} x{count} at dist={distance}, diff={difficultyScale}");
+    }
+
+    /// <summary>
+    /// 포위 스폰 (여러 종류 혼합): 전체 count를 균등 배치하되 몬스터 종류를 랜덤 선택.
+    /// </summary>
+    public void SpawnSurroundMixed(int count, float distance, float difficultyScale, float speedScale = 1f)
+    {
+        if (monsterDataList.Count == 0 || enemyPrefabs.Count == 0) return;
+
+        float sliceAngle = 360f / count;
+        float randomOffset = Random.Range(0f, 360f);
+
+        for (int i = 0; i < count; i++)
+        {
+            int index = GetWeightedRandomIndex();
+            if (index < 0) continue;
+
+            GameObject prefab = enemyPrefabs[index];
+            MonsterData data = monsterDataList[index];
+
+            float angle = (randomOffset + sliceAngle * i) * Mathf.Deg2Rad;
+            float dist = distance + Random.Range(-0.5f, 0.5f);
+            float jitter = Random.Range(-sliceAngle * 0.2f, sliceAngle * 0.2f) * Mathf.Deg2Rad;
+
+            Vector3 pos = player.position + new Vector3(
+                Mathf.Cos(angle + jitter) * dist,
+                Mathf.Sin(angle + jitter) * dist,
+                0f);
+
+            SpawnOneEnemy(prefab, data, pos, difficultyScale, speedScale);
+        }
+
+        Debug.Log($"[Surround Mixed] x{count} at dist={distance}, diff={difficultyScale}");
+    }
+
+    // ─── LEGACY ───
+
+    /// <summary>기존 코드 호환용: 기본 설정으로 랜덤 스폰</summary>
+    private Vector3 GetRandomSpawnPosition()
+    {
+        float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
+        float angle;
+        if (Random.value < 0.7f)
+            angle = baseAngle + Random.Range(-90f, 90f) * Mathf.Deg2Rad;
+        else
+            angle = baseAngle + Random.Range(90f, 270f) * Mathf.Deg2Rad;
+
+        float distance = Random.Range(minSpawnDistance, maxSpawnDistance);
+        return player.position + new Vector3(
+            Mathf.Cos(angle) * distance,
+            Mathf.Sin(angle) * distance,
+            0f);
     }
 
     private int FindMonsterIndex(string monId)
@@ -339,32 +510,6 @@ public class EnemySpawner : MonoBehaviour
         ApplyMonsterData(boss, bossData, 1f);
 
         Debug.Log($"[EnemySpawner] BOSS spawned: {bossData.monsterName} at {elapsedTime / 60f:F1} min");
-    }
-
-    private Vector3 lastPlayerPos;
-    private Vector3 playerMoveDir = Vector3.right;
-
-    private Vector3 GetRandomSpawnPosition()
-    {
-        // 플레이어 이동 방향 갱신
-        Vector3 delta = player.position - lastPlayerPos;
-        if (delta.sqrMagnitude > 0.001f)
-            playerMoveDir = delta.normalized;
-        lastPlayerPos = player.position;
-
-        // 70% 확률로 앞쪽(±90도), 30% 확률로 뒤쪽
-        float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
-        float angle;
-        if (Random.value < 0.7f)
-            angle = baseAngle + Random.Range(-90f, 90f) * Mathf.Deg2Rad;
-        else
-            angle = baseAngle + Random.Range(90f, 270f) * Mathf.Deg2Rad;
-
-        float distance = Random.Range(minSpawnDistance, maxSpawnDistance);
-        return player.position + new Vector3(
-            Mathf.Cos(angle) * distance,
-            Mathf.Sin(angle) * distance,
-            0f);
     }
 
     // ─── WARNING WAVE ───
@@ -421,7 +566,13 @@ public class EnemySpawner : MonoBehaviour
                             spawnInterval = row.spawn_interval,
                             maxEnemies = row.max_enemies,
                             difficultyScale = row.difficulty_scale,
-                            spawnTimer = 0f
+                            spawnTimer = 0f,
+                            spawnDistMin = minSpawnDistance,
+                            spawnDistMax = maxSpawnDistance,
+                            forwardBias = 0.7f,
+                            clusterSize = 1,
+                            clusterRadius = 1.5f,
+                            speedScale = 1f,
                         });
                     }
                 }
@@ -476,7 +627,13 @@ public class EnemySpawner : MonoBehaviour
                         spawnInterval = 0.5f,
                         maxEnemies = 100,
                         difficultyScale = 3f,
-                        spawnTimer = 0f
+                        spawnTimer = 0f,
+                        spawnDistMin = minSpawnDistance,
+                        spawnDistMax = maxSpawnDistance,
+                        forwardBias = 0.7f,
+                        clusterSize = 1,
+                        clusterRadius = 1.5f,
+                        speedScale = 1f,
                     });
                 }
             }

@@ -38,7 +38,7 @@ public class AutoAttack : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
 
         // 주무기 처리
         HandleMainWeapons();

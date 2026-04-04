@@ -143,6 +143,12 @@ public class WaveRow
     [Key(5)] public int max_enemies;
     [Key(6)] public float difficulty_scale;
     [Key(7)] public string note;
+    [Key(8)] public float spawn_dist_min;    // 스폰 최소 거리 (0이면 기본값 사용)
+    [Key(9)] public float spawn_dist_max;    // 스폰 최대 거리 (0이면 기본값 사용)
+    [Key(10)] public float forward_bias;     // 전방 편향 (0.0~1.0, 0이면 기본값 0.7)
+    [Key(11)] public int cluster_size;       // 군집 크기 (0 or 1이면 군집 없음)
+    [Key(12)] public float cluster_radius;   // 군집 반경 (cluster_size > 1일 때 사용)
+    [Key(13)] public float speed_scale;      // 속도 배율 (0이면 1.0 취급)
 }
 
 // ============================================================

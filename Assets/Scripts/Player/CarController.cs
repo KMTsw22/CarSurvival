@@ -47,7 +47,7 @@ public class CarController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
 
         // 키보드 입력
         float h = Input.GetAxisRaw("Horizontal");
@@ -97,7 +97,7 @@ public class CarController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
 
         if (moveInput.sqrMagnitude > 0.01f)
         {

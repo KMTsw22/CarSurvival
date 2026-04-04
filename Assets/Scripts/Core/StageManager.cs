@@ -92,7 +92,7 @@ public class StageManager : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
 
         float survivalTime = PlayerStats.Instance != null ? PlayerStats.Instance.survivalTime : 0f;
 
