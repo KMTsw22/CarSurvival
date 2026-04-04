@@ -1,16 +1,22 @@
 fileFormatVersion: 2
-guid: 544b3fe0ff1aad1489fe43b4da2e83a8
+guid: 69c2d1df1ab01ee47ac8d9280a1485fb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4068960280012580677
-    second: Flamethrower-in game-removebg_0
+      213: -3157062478745422463
+    second: ico_magnet_0
   - first:
-      213: 4025338786913661710
-    second: Flamethrower-in game-removebg_1
+      213: -5430110073840857260
+    second: ico_magnet_1
   - first:
-      213: -8203175541230019542
-    second: Flamethrower-in game-removebg_2
+      213: 1300670311116461695
+    second: ico_magnet_2
+  - first:
+      213: 1768090242731200538
+    second: ico_magnet_3
+  - first:
+      213: 5171022909591781225
+    second: ico_magnet_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -132,13 +138,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Flamethrower-in game-removebg_0
+      name: ico_magnet_0
       rect:
         serializedVersion: 2
-        x: 200
-        y: 78
-        width: 985
-        height: 544
+        x: 0
+        y: 0
+        width: 744
+        height: 586
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,20 +153,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 547e25ff0d9d77830800000000000000
-      internalID: 4068960280012580677
+      spriteID: 1853aa4076cdf24d0800000000000000
+      internalID: -3157062478745422463
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Flamethrower-in game-removebg_1
+      name: ico_magnet_1
       rect:
         serializedVersion: 2
-        x: 1140
-        y: 458
-        width: 66
-        height: 62
+        x: 175
+        y: 488
+        width: 98
+        height: 103
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -169,20 +175,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e03379eac40ecd730800000000000000
-      internalID: 4025338786913661710
+      spriteID: 45f027568af54a4b0800000000000000
+      internalID: -5430110073840857260
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Flamethrower-in game-removebg_2
+      name: ico_magnet_2
       rect:
         serializedVersion: 2
-        x: 1107
-        y: 169
-        width: 94
-        height: 82
+        x: 255
+        y: 586
+        width: 54
+        height: 30
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -191,8 +197,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a2cdfcabe47782e80800000000000000
-      internalID: -8203175541230019542
+      spriteID: f765ef7b1c8ec0210800000000000000
+      internalID: 1300670311116461695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ico_magnet_3
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 573
+        width: 97
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a10d3d045b4898810800000000000000
+      internalID: 1768090242731200538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ico_magnet_4
+      rect:
+        serializedVersion: 2
+        x: 689
+        y: 157
+        width: 61
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96fff9360f923c740800000000000000
+      internalID: 5171022909591781225
       vertices: []
       indices: 
       edges: []
@@ -211,9 +261,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Flamethrower-in game-removebg_0: 4068960280012580677
-      Flamethrower-in game-removebg_1: 4025338786913661710
-      Flamethrower-in game-removebg_2: -8203175541230019542
+      ico_magnet_0: -3157062478745422463
+      ico_magnet_1: -5430110073840857260
+      ico_magnet_2: 1300670311116461695
+      ico_magnet_3: 1768090242731200538
+      ico_magnet_4: 5171022909591781225
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -23,6 +23,14 @@ public class AutoAttack : MonoBehaviour
     // 레이저 캐논 쿨타임 (주무기이므로 별도 관리)
     private float laserCooldownTimer;
 
+    // 화염방사기 (상시 부착)
+    private FlamethrowerEffect activeFlamethrower;
+    private int currentFlamethrowerLevel = 0;
+
+    // EMP 펄스 (상시 부착)
+    private EMPPulseEffect activeEMP;
+    private int currentEMPLevel = 0;
+
     private void Awake()
     {
         stats = GetComponent<PlayerStats>();
@@ -48,6 +56,26 @@ public class AutoAttack : MonoBehaviour
             {
                 if (part.level != currentSawBladeLevel)
                     RebuildSawBlades(part.level, part.data);
+                continue;
+            }
+
+            // EMP 펄스는 상시 부착 — 레벨 변경 시만 갱신
+            if (type == WeaponType.EMPPulse)
+            {
+                if (activeEMP == null)
+                    CreateEMP(part.level, part.data);
+                else if (part.level != currentEMPLevel)
+                    UpdateEMP(part.level, part.data);
+                continue;
+            }
+
+            // 화염방사기는 상시 부착 — 레벨 변경 시만 갱신
+            if (type == WeaponType.Flamethrower)
+            {
+                if (activeFlamethrower == null)
+                    CreateFlamethrower(part.level, part.data);
+                else if (part.level != currentFlamethrowerLevel)
+                    UpdateFlamethrower(part.level, part.data);
                 continue;
             }
 
@@ -135,10 +163,10 @@ public class AutoAttack : MonoBehaviour
                 FireChainLightning(level, data);
                 break;
             case WeaponType.EMPPulse:
-                FireEMPPulse(level, data);
+                // 상시 부착 방식 — Update에서 관리
                 break;
             case WeaponType.Flamethrower:
-                FireFlamethrower(level, data);
+                // 상시 부착 방식 — Update에서 관리
                 break;
             case WeaponType.MissilePod:
                 FireMissilePod(level, data);
@@ -229,7 +257,7 @@ public class AutoAttack : MonoBehaviour
     }
 
     // ─── 체인 라이트닝: 연쇄 번개 공격 ───
-    // etc1=기본타격인원, etc2=레벨당추가인원
+    // etc1=기본타격인원, etc2=레벨당추가인원, etc3=체인범위
     private void FireChainLightning(int level, PartsData data)
     {
         var obj = new GameObject("ChainLightning");
@@ -238,46 +266,78 @@ public class AutoAttack : MonoBehaviour
         int baseChain = data.etcValue1 > 0 ? (int)data.etcValue1 : 3;
         int chainPerLevel = data.etcValue2 > 0 ? (int)data.etcValue2 : 1;
         int totalChain = baseChain + chainPerLevel * (level - 1);
+        float chainRange = data.etcValue3 > 0 ? data.etcValue3 : 5f;
         float dmg = CalcDamage(data, level);
 
-        effect.Fire(transform.position, dmg, totalChain, 5f);
+        effect.Fire(transform.position, dmg, totalChain, chainRange);
     }
 
-    // ─── EMP 펄스: 범위 스턴 + 데미지 ───
-    // etc1=기본지속시간(초), etc2=기본반경, etc3=레벨당반경증가
-    private void FireEMPPulse(int level, PartsData data)
+    // ─── EMP 펄스: 플레이어 주변 상시 자기장 ───
+    // etc1=타격간격(초), etc2=기본반경, etc3=레벨당반경증가
+    private void CreateEMP(int level, PartsData data)
     {
         var obj = new GameObject("EMPPulse");
-        var effect = obj.AddComponent<EMPPulseEffect>();
+        activeEMP = obj.AddComponent<EMPPulseEffect>();
+        currentEMPLevel = level;
 
-        float stunDur = data.etcValue1 > 0 ? data.etcValue1 : 2f;
+        float dmg = CalcDamage(data, level);
+        float hitInterval = data.etcValue1 > 0 ? data.etcValue1 : 0.5f;
         float baseRadius = data.etcValue2 > 0 ? data.etcValue2 : 3f;
         float radiusPerLevel = data.etcValue3 > 0 ? data.etcValue3 : 0.5f;
         float radius = baseRadius + radiusPerLevel * (level - 1);
-        float dmg = CalcDamage(data, level);
 
-        effect.Fire(transform.position, dmg, stunDur, radius);
+        activeEMP.Setup(transform, dmg, radius, hitInterval);
     }
 
-    // ─── 화염방사기: 전방 화염 영역 ───
-    // etc1=기본지속시간(초), etc2=기본반경, etc3=레벨당반경증가
-    private void FireFlamethrower(int level, PartsData data)
+    private void UpdateEMP(int level, PartsData data)
+    {
+        currentEMPLevel = level;
+
+        float dmg = CalcDamage(data, level);
+        float hitInterval = data.etcValue1 > 0 ? data.etcValue1 : 0.5f;
+        float baseRadius = data.etcValue2 > 0 ? data.etcValue2 : 3f;
+        float radiusPerLevel = data.etcValue3 > 0 ? data.etcValue3 : 0.5f;
+        float radius = baseRadius + radiusPerLevel * (level - 1);
+
+        activeEMP.UpdateStats(dmg, radius, hitInterval);
+    }
+
+    // ─── 화염방사기: 차량 앞 상시 부착, 닿은 적에게 화상 부여 ───
+    // etc1=화상데미지, etc2=기본반경, etc3=레벨당반경증가, etc4=화상지속시간
+    private void CreateFlamethrower(int level, PartsData data)
     {
         var obj = new GameObject("Flamethrower");
-        var effect = obj.AddComponent<FlamethrowerEffect>();
+        activeFlamethrower = obj.AddComponent<FlamethrowerEffect>();
+        currentFlamethrowerLevel = level;
 
-        float dur = data.etcValue1 > 0 ? data.etcValue1 : 3f;
+        float burnDmg = data.etcValue1 > 0 ? data.etcValue1 : 8f;
         float baseRadius = data.etcValue2 > 0 ? data.etcValue2 : 2f;
         float radiusPerLevel = data.etcValue3 > 0 ? data.etcValue3 : 0.3f;
+        float burnDuration = data.etcValue4 > 0 ? data.etcValue4 : 3f;
         float radius = baseRadius + radiusPerLevel * (level - 1);
-        float dmg = CalcDamage(data, level);
 
-        // 차량이 바라보는 방향 (마우스 방향)
-        Vector2 dir = GetMouseDirection();
-        effect.Fire(transform.position, dir, dmg, radius, dur);
+        float flameOffset = 3f;
+        var carRow = TableManager.Instance?.GetCar(stats.currentCarId);
+        if (carRow != null && carRow.flame_offset > 0)
+            flameOffset = carRow.flame_offset;
+
+        activeFlamethrower.Setup(transform, burnDmg, radius, flameOffset, burnDuration);
     }
 
-    // ─── 레이저 캐논: 관통 레이저 (주무기) ───
+    private void UpdateFlamethrower(int level, PartsData data)
+    {
+        currentFlamethrowerLevel = level;
+
+        float burnDmg = data.etcValue1 > 0 ? data.etcValue1 : 8f;
+        float baseRadius = data.etcValue2 > 0 ? data.etcValue2 : 2f;
+        float radiusPerLevel = data.etcValue3 > 0 ? data.etcValue3 : 0.3f;
+        float burnDuration = data.etcValue4 > 0 ? data.etcValue4 : 3f;
+        float radius = baseRadius + radiusPerLevel * (level - 1);
+
+        activeFlamethrower.UpdateStats(burnDmg, radius, burnDuration);
+    }
+
+    // ─── 레이저 캐논: 관통 레이저 (자동 조준) ───
     // etc1=기본레이저수, etc2=레벨당레이저추가
     private void FireLaserCannon(int level, PartsData data)
     {
@@ -286,15 +346,23 @@ public class AutoAttack : MonoBehaviour
         int totalLasers = baseLasers + lasersPerLevel * (level - 1);
         float dmg = CalcDamage(data, level);
 
-        Vector2 baseDir = GetMouseDirection();
+        // 가까운 적 순서로 타겟 선정
+        var allEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+        if (allEnemies.Length == 0) return;
+
+        System.Array.Sort(allEnemies, (a, b) =>
+        {
+            float da = Vector3.Distance(a.transform.position, transform.position);
+            float db = Vector3.Distance(b.transform.position, transform.position);
+            return da.CompareTo(db);
+        });
 
         for (int i = 0; i < totalLasers; i++)
         {
-            // 여러 줄기일 경우 부채꼴로 퍼짐
-            float spreadAngle = (i - (totalLasers - 1) / 2f) * 10f;
-            float baseAngle = Mathf.Atan2(baseDir.y, baseDir.x) * Mathf.Rad2Deg;
-            float finalAngle = (baseAngle + spreadAngle) * Mathf.Deg2Rad;
-            Vector2 dir = new Vector2(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle));
+            var target = allEnemies[i % allEnemies.Length];
+            if (target == null) continue;
+
+            Vector2 dir = ((Vector2)target.transform.position - (Vector2)transform.position).normalized;
 
             var obj = new GameObject($"Laser_{i}");
             var effect = obj.AddComponent<LaserCannonEffect>();

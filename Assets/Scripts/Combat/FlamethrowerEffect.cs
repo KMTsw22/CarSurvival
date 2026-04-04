@@ -1,34 +1,36 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 /// <summary>
-/// 화염방사기: 차량 전방에 화염 영역 생성, 지속 데미지.
-/// etc1=기본지속시간(초), etc2=기본반경, etc3=레벨당반경증가
+/// 화염방사기: 차량 앞에 상시 부착, 닿은 적에게 화상(BurnEffect) 부여.
+/// AutoAttack에서 한 번만 생성하고 차량의 자식으로 붙임.
 /// </summary>
 public class FlamethrowerEffect : MonoBehaviour
 {
-    public float damage = 8f;
+    public float burnDamage = 8f;
+    public float burnDuration = 3f;
     public float radius = 2f;
-    public float duration = 3f;
 
-    private float timer;
+    // 에디터 조정용
+    public float offsetDist = 3f;
+    public float scaleX = 0.18f;
+    public float scaleY = 0.5f;
+    public float alpha = 0.6f;
+
     private SpriteRenderer sr;
-    private Dictionary<int, float> hitTimers = new Dictionary<int, float>();
-    private float damageInterval = 0.25f;
-    private CircleCollider2D col;
+    private Transform player;
+    private CarController carController;
 
-    public void Fire(Vector3 position, Vector2 direction, float dmg, float rad, float dur)
+    public void Setup(Transform playerTransform, float dmg, float rad, float offset = 3f, float duration = 3f)
     {
-        damage = dmg;
+        player = playerTransform;
+        carController = player.GetComponent<CarController>();
+        burnDamage = dmg;
+        burnDuration = duration;
         radius = rad;
-        duration = dur;
-        timer = duration;
-
-        // 차량 앞쪽에 배치
-        transform.position = position + (Vector3)direction * (radius * 0.8f);
+        offsetDist = Mathf.Max(offset, 3f);
 
         // 콜라이더
-        col = gameObject.AddComponent<CircleCollider2D>();
+        var col = gameObject.AddComponent<CircleCollider2D>();
         col.radius = radius;
         col.isTrigger = true;
 
@@ -38,49 +40,62 @@ public class FlamethrowerEffect : MonoBehaviour
 
         // 비주얼
         sr = gameObject.AddComponent<SpriteRenderer>();
-        var sprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/Flamethrower-in game-removebg");
+        var sprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EFT_Flamethrower");
         if (sprite != null)
-        {
             sr.sprite = sprite;
-        }
         else
-        {
             sr.sprite = CreateFlameSprite();
-        }
+
         sr.color = new Color(1f, 0.6f, 0.2f, 0.6f);
         sr.sortingOrder = 11;
-        transform.localScale = Vector3.one * radius;
+        transform.localScale = new Vector3(radius * 0.5f, radius * 0.3f, 1f);
 
         gameObject.tag = "PlayerProjectile";
     }
 
+    public void UpdateStats(float dmg, float rad, float duration = 3f)
+    {
+        burnDamage = dmg;
+        burnDuration = duration;
+        radius = rad;
+        transform.localScale = new Vector3(radius * 0.5f, radius * 0.3f, 1f);
+        var col = GetComponent<CircleCollider2D>();
+        if (col != null) col.radius = radius;
+    }
+
     private void Update()
     {
-        timer -= Time.deltaTime;
+        if (player == null) return;
+
+        // 차량 진행 방향 고정
+        Vector2 dir = carController != null ? carController.CurrentDirection : Vector2.up;
+        if (dir.sqrMagnitude < 0.01f) dir = Vector2.up;
+        transform.position = player.position + (Vector3)dir * offsetDist;
+
+        // 방향에 맞춰 회전
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
 
         // 불꽃 깜빡임
         float flicker = 0.5f + Mathf.PingPong(Time.time * 3f, 0.3f);
-        float alpha = Mathf.Clamp01(timer / duration) * flicker;
-        sr.color = new Color(1f, 0.5f + Random.Range(0f, 0.2f), 0.2f, alpha);
+        sr.color = new Color(1f, 0.5f + Random.Range(0f, 0.2f), 0.2f, alpha * flicker / 0.6f);
 
         // 스케일 미세 흔들림
-        float s = radius * (1f + Mathf.Sin(Time.time * 8f) * 0.05f);
-        transform.localScale = Vector3.one * s;
-
-        if (timer <= 0f)
-            Destroy(gameObject);
+        float sx = radius * scaleX * (1f + Mathf.Sin(Time.time * 8f) * 0.05f);
+        float sy = radius * scaleY * (1f + Mathf.Sin(Time.time * 8f) * 0.05f);
+        transform.localScale = new Vector3(sx, sy, 1f);
     }
 
     private void OnTriggerStay2D(Collider2D other)
     {
         if (!other.CompareTag("Enemy")) return;
 
-        int id = other.GetInstanceID();
-        if (hitTimers.ContainsKey(id) && Time.time < hitTimers[id]) return;
-        hitTimers[id] = Time.time + damageInterval;
+        // 화상 부여 (이미 있으면 갱신, 중첩 안 됨)
+        var burn = other.GetComponent<BurnEffect>();
+        if (burn == null)
+            burn = other.gameObject.AddComponent<BurnEffect>();
 
-        var eh = other.GetComponent<EnemyHealth>();
-        if (eh != null) eh.TakeDamage(damage * damageInterval);
+        burn.Apply(burnDamage, burnDuration);
     }
 
     private Sprite CreateFlameSprite()

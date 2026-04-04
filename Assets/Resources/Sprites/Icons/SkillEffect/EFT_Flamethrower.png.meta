@@ -1,22 +1,16 @@
 fileFormatVersion: 2
-guid: d5235ae5ff875e24aa11426c124cf5f6
+guid: 6091cc5cc7befc24b8da2400314b5c13
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5142282574972112311
-    second: Magnet-removebg_0
+      213: -5322586185255300563
+    second: EFT_Flamethrower_0
   - first:
-      213: -6325091457669068534
-    second: Magnet-removebg_1
+      213: 795932717628920517
+    second: EFT_Flamethrower_1
   - first:
-      213: -9127637462258884333
-    second: Magnet-removebg_2
-  - first:
-      213: -1060327437083744114
-    second: Magnet-removebg_3
-  - first:
-      213: 144481712700798647
-    second: Magnet-removebg_4
+      213: -3879140974899880344
+    second: EFT_Flamethrower_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -138,13 +132,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Magnet-removebg_0
+      name: EFT_Flamethrower_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1280
-        height: 698
+        width: 984
+        height: 541
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,20 +147,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7bdc4e7c1ce0d5740800000000000000
-      internalID: 5142282574972112311
+      spriteID: d22d47590106226b0800000000000000
+      internalID: -5322586185255300563
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Magnet-removebg_1
+      name: EFT_Flamethrower_1
       rect:
         serializedVersion: 2
-        x: 427
-        y: 533
-        width: 98
-        height: 103
+        x: 939
+        y: 378
+        width: 64
+        height: 62
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -175,20 +169,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a0907cdb4d2c838a0800000000000000
-      internalID: -6325091457669068534
+      spriteID: 5c21263f698bb0b00800000000000000
+      internalID: 795932717628920517
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Magnet-removebg_2
+      name: EFT_Flamethrower_2
       rect:
         serializedVersion: 2
-        x: 507
-        y: 631
-        width: 54
-        height: 30
+        x: 906
+        y: 89
+        width: 94
+        height: 82
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -197,52 +191,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 311e28f961e145180800000000000000
-      internalID: -9127637462258884333
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Magnet-removebg_3
-      rect:
-        serializedVersion: 2
-        x: 519
-        y: 618
-        width: 97
-        height: 45
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e88e50750d5f841f0800000000000000
-      internalID: -1060327437083744114
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Magnet-removebg_4
-      rect:
-        serializedVersion: 2
-        x: 941
-        y: 202
-        width: 63
-        height: 94
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7b6321a2a5d410200800000000000000
-      internalID: 144481712700798647
+      spriteID: 86e1e6df5d58a2ac0800000000000000
+      internalID: -3879140974899880344
       vertices: []
       indices: 
       edges: []
@@ -261,11 +211,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Magnet-removebg_0: 5142282574972112311
-      Magnet-removebg_1: -6325091457669068534
-      Magnet-removebg_2: -9127637462258884333
-      Magnet-removebg_3: -1060327437083744114
-      Magnet-removebg_4: 144481712700798647
+      EFT_Flamethrower_0: -5322586185255300563
+      EFT_Flamethrower_1: 795932717628920517
+      EFT_Flamethrower_2: -3879140974899880344
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

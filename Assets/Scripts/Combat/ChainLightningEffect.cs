@@ -12,8 +12,6 @@ public class ChainLightningEffect : MonoBehaviour
     public float chainRange = 5f;
     public float lifetime = 0.4f;
 
-    private List<Transform> hitTargets = new List<Transform>();
-    private LineRenderer lineRenderer;
     private float timer;
 
     public void Fire(Vector3 origin, float dmg, int chains, float range)
@@ -31,26 +29,13 @@ public class ChainLightningEffect : MonoBehaviour
             return;
         }
 
-        // 데미지 적용
+        // 번개 이펙트 먼저 생성 후 데미지 적용 (스케일 펀치 전에 위치 캡처)
         foreach (var enemy in enemies)
         {
+            SpawnLightningStrike(enemy);
             var eh = enemy.GetComponent<EnemyHealth>();
             if (eh != null) eh.TakeDamage(damage);
         }
-
-        // 번개 라인 렌더러
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.startWidth = 0.12f;
-        lineRenderer.endWidth = 0.06f;
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = new Color(0.4f, 0.7f, 1f, 1f);
-        lineRenderer.endColor = new Color(0.8f, 0.9f, 1f, 0.6f);
-        lineRenderer.sortingOrder = 15;
-
-        lineRenderer.positionCount = enemies.Count + 1;
-        lineRenderer.SetPosition(0, origin);
-        for (int i = 0; i < enemies.Count; i++)
-            lineRenderer.SetPosition(i + 1, enemies[i].position);
 
         timer = lifetime;
     }
@@ -91,24 +76,40 @@ public class ChainLightningEffect : MonoBehaviour
         return result;
     }
 
+    private void SpawnLightningStrike(Transform enemy)
+    {
+        Vector3 targetPos = enemy.position;
+        float boltHeight = 3f;
+        float monsterScale = Mathf.Max(enemy.localScale.x, enemy.localScale.y);
+        float scaleX = monsterScale * 0.6f;
+
+        var obj = new GameObject("LightningBolt");
+        var sr = obj.AddComponent<SpriteRenderer>();
+
+        // pivot을 하단 중앙(0.5, 0)으로 스프라이트 재생성
+        var srcSprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EFT_Chain_Lightning");
+        if (srcSprite != null)
+        {
+            var tex = srcSprite.texture;
+            var rect = srcSprite.textureRect;
+            sr.sprite = Sprite.Create(tex, rect, new Vector2(0.5f, 0f), srcSprite.pixelsPerUnit);
+        }
+
+        sr.sortingOrder = 16;
+        sr.color = new Color(1f, 0.9f, 0.3f, 0.6f);
+
+        // 몬스터 위치에 배치 → pivot이 하단이므로 위로만 뻗음
+        obj.transform.position = targetPos;
+        obj.transform.localScale = new Vector3(scaleX, boltHeight, 1f);
+
+        var anim = obj.AddComponent<LightningStrikeAnim>();
+        anim.targetPos = targetPos;
+        anim.fadeTime = 0.3f;
+    }
+
     private void Update()
     {
         timer -= Time.deltaTime;
-
-        // 번개 지글지글 효과
-        if (lineRenderer != null && lineRenderer.positionCount > 1)
-        {
-            for (int i = 1; i < lineRenderer.positionCount - 1; i++)
-            {
-                Vector3 pos = lineRenderer.GetPosition(i);
-                pos += (Vector3)Random.insideUnitCircle * 0.08f;
-                lineRenderer.SetPosition(i, pos);
-            }
-
-            float alpha = Mathf.Clamp01(timer / lifetime);
-            lineRenderer.startColor = new Color(0.4f, 0.7f, 1f, alpha);
-            lineRenderer.endColor = new Color(0.8f, 0.9f, 1f, alpha * 0.6f);
-        }
 
         if (timer <= 0f)
             Destroy(gameObject);

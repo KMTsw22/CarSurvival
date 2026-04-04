@@ -66,7 +66,7 @@ public class PlayerStats : MonoBehaviour
         if (carData != null)
         {
             baseMaxHealth = carData.base_hp;
-            baseMoveSpeed = carData.base_speed;
+            baseMoveSpeed = carData.base_speed * 1f;
             baseAtkSpeed = carData.base_atk_speed;
             baseDamage = carData.base_damage;
 
@@ -140,7 +140,7 @@ public class PlayerStats : MonoBehaviour
         if (carData == null) return;
 
         baseMaxHealth = carData.base_hp;
-        baseMoveSpeed = carData.base_speed;
+        baseMoveSpeed = carData.base_speed * 0.5f;
         baseAtkSpeed = carData.base_atk_speed;
         baseDamage = carData.base_damage;
 

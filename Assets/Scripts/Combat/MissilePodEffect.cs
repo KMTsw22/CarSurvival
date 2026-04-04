@@ -19,10 +19,10 @@ public class MissilePodEffect : MonoBehaviour
             return da.CompareTo(db);
         });
 
-        for (int i = 0; i < count; i++)
+        int actualCount = Mathf.Min(count, enemies.Length);
+        for (int i = 0; i < actualCount; i++)
         {
-            // 타겟 선택 (적이 미사일 수보다 적으면 순환)
-            var target = enemies[i % enemies.Length];
+            var target = enemies[i];
             if (target == null) continue;
 
             // 미사일 생성 — 약간의 각도 오프셋으로 퍼지며 발사
@@ -40,11 +40,19 @@ public class MissilePodEffect : MonoBehaviour
             {
                 missile = Object.Instantiate(bulletPrefab, spawnPos, Quaternion.Euler(0, 0, rot));
                 missile.SetActive(true);
-                // 미사일 색상 변경
                 var sr = missile.GetComponent<SpriteRenderer>();
                 if (sr != null)
                 {
-                    sr.color = new Color(1f, 0.4f, 0.2f);
+                    var missileSprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EFT_Missile_Pod");
+                    if (missileSprite != null)
+                    {
+                        sr.sprite = missileSprite;
+                        sr.color = Color.white;
+                    }
+                    else
+                    {
+                        sr.color = new Color(1f, 0.4f, 0.2f);
+                    }
                     missile.transform.localScale = new Vector3(0.2f, 0.4f, 1f);
                 }
             }
@@ -56,7 +64,7 @@ public class MissilePodEffect : MonoBehaviour
                 missile.tag = "PlayerProjectile";
 
                 var sr = missile.AddComponent<SpriteRenderer>();
-                var missileSprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/Missile Pod-in game-removebg");
+                var missileSprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EFT_Missile_Pod");
                 if (missileSprite != null)
                 {
                     sr.sprite = missileSprite;

@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 77dd95f7c28dd0144bcc7b05c8f774f3
+guid: 9f83c2c7683643b409a13f3aa4b5f2fd
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3526543348296123460
-    second: Damage Shield-removebg_0
+      213: 6257981406228365624
+    second: ico_expboost_0
+  - first:
+      213: -6841855900558517628
+    second: ico_expboost_1
+  - first:
+      213: 3478080983948331502
+    second: ico_expboost_2
+  - first:
+      213: -2157863418387029476
+    second: ico_expboost_3
+  - first:
+      213: -5694069712708919688
+    second: ico_expboost_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +138,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Damage Shield-removebg_0
+      name: ico_expboost_0
       rect:
         serializedVersion: 2
-        x: 356
-        y: 73
-        width: 589
-        height: 549
+        x: 0
+        y: 0
+        width: 768
+        height: 600
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +153,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cbbfac752833f0fc0800000000000000
-      internalID: -3526543348296123460
+      spriteID: 831cd39cee0d8d650800000000000000
+      internalID: 6257981406228365624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ico_expboost_1
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 561
+        width: 29
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48a9cc2ee48dc01a0800000000000000
+      internalID: -6841855900558517628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ico_expboost_2
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 570
+        width: 22
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee9084c2a30a44030800000000000000
+      internalID: 3478080983948331502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ico_expboost_3
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 572
+        width: 25
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c122b3167aabd02e0800000000000000
+      internalID: -2157863418387029476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ico_expboost_4
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 578
+        width: 23
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87e9ca7c3c99af0b0800000000000000
+      internalID: -5694069712708919688
       vertices: []
       indices: 
       edges: []
@@ -161,7 +261,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Damage Shield-removebg_0: -3526543348296123460
+      ico_expboost_0: 6257981406228365624
+      ico_expboost_1: -6841855900558517628
+      ico_expboost_2: 3478080983948331502
+      ico_expboost_3: -2157863418387029476
+      ico_expboost_4: -5694069712708919688
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

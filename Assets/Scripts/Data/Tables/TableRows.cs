@@ -33,6 +33,7 @@ public class CarRow
     [Key(12)] public string unlock_currency_id;
     [Key(13)] public bool unlocked_by_default;
     [Key(14)] public string sprite_key;
+    [Key(15)] public float flame_offset;      // 화염방사기 오프셋 거리 (최소 3)
 }
 
 // ============================================================

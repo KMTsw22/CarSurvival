@@ -1,76 +1,94 @@
 using UnityEngine;
 
 /// <summary>
-/// EMP 펄스: 범위 내 모든 적에게 데미지 + 스턴.
-/// etc1=기본지속시간(초), etc2=기본반경, etc3=레벨당반경증가
+/// EMP 펄스: 플레이어 주변 상시 자기장. 범위 내 적에게 지속 데미지.
+/// etc1=타격간격(초), etc2=기본반경, etc3=레벨당반경증가
 /// </summary>
 public class EMPPulseEffect : MonoBehaviour
 {
     public float damage = 10f;
-    public float stunDuration = 2f;
     public float radius = 3f;
-    public float expandSpeed = 15f;
+    public float hitInterval = 0.5f;
 
+    private Transform player;
     private SpriteRenderer sr;
-    private float currentScale;
-    private float targetScale;
-    private float lifetime;
-    private float timer;
-    private bool hasDamaged;
+    private float hitTimer;
 
-    public void Fire(Vector3 position, float dmg, float stun, float rad)
+    public void Setup(Transform playerTransform, float dmg, float rad, float interval)
+    {
+        player = playerTransform;
+        damage = dmg;
+        radius = rad;
+        hitInterval = interval;
+
+        // 비주얼
+        sr = gameObject.AddComponent<SpriteRenderer>();
+        // 텍스처 전체를 스프라이트로 사용
+        Sprite sprite = null;
+        var tex = Resources.Load<Texture2D>("Sprites/Icons/SkillEffect/EFT_EMP_Pulse");
+        if (tex != null)
+            sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+        sr.sprite = sprite != null ? sprite : CreateCircleSprite();
+
+        sr.color = new Color(1f, 1f, 1f, 0.3f);
+        sr.sortingOrder = -1;
+        ApplyScale();
+
+        gameObject.tag = "PlayerProjectile";
+    }
+
+    public void UpdateStats(float dmg, float rad, float interval)
     {
         damage = dmg;
-        stunDuration = stun;
         radius = rad;
-        transform.position = position;
-        targetScale = radius * 2f;
-        lifetime = 0.6f;
-        timer = lifetime;
+        hitInterval = interval;
+        ApplyScale();
+    }
 
-        sr = gameObject.AddComponent<SpriteRenderer>();
-        var sprite = Resources.Load<Sprite>("Sprites/Icons/SkillEffect/EMP Pulse-in game-removebg");
-        sr.sprite = sprite != null ? sprite : CreateCircleSprite();
-        sr.color = new Color(0.3f, 0.6f, 1f, 0.5f);
-        sr.sortingOrder = 12;
-
-        currentScale = 0f;
-        transform.localScale = Vector3.zero;
+    private void ApplyScale()
+    {
+        if (sr.sprite != null)
+        {
+            float diameter = radius * 2f;
+            float spriteW = sr.sprite.rect.width / sr.sprite.pixelsPerUnit;
+            float spriteH = sr.sprite.rect.height / sr.sprite.pixelsPerUnit;
+            transform.localScale = new Vector3(diameter / spriteW, diameter / spriteH, 1f);
+        }
+        else
+        {
+            transform.localScale = Vector3.one * radius * 2f;
+        }
     }
 
     private void Update()
     {
-        timer -= Time.deltaTime;
+        if (player == null) return;
 
-        // 확장 애니메이션
-        currentScale = Mathf.MoveTowards(currentScale, targetScale, expandSpeed * Time.deltaTime);
-        transform.localScale = Vector3.one * currentScale;
+        // 플레이어 따라다니기
+        transform.position = player.position;
 
-        // 확장 완료 시 데미지
-        if (!hasDamaged && currentScale >= targetScale * 0.9f)
+        // 자기장 시각 효과: 회전 + 깜빡임
+        transform.Rotate(0, 0, 30f * Time.deltaTime);
+        float pulse = 0.35f + Mathf.PingPong(Time.time * 0.5f, 0.15f);
+        sr.color = new Color(1f, 1f, 1f, pulse);
+
+        // 주기적 데미지
+        hitTimer -= Time.deltaTime;
+        if (hitTimer <= 0f)
         {
-            hasDamaged = true;
+            hitTimer = hitInterval;
             ApplyDamage();
         }
-
-        // 페이드 아웃
-        float alpha = Mathf.Clamp01(timer / lifetime) * 0.5f;
-        sr.color = new Color(0.3f, 0.6f, 1f, alpha);
-
-        if (timer <= 0f)
-            Destroy(gameObject);
     }
 
     private void ApplyDamage()
     {
         var enemies = Physics2D.OverlapCircleAll(transform.position, radius);
-        foreach (var col in enemies)
+        foreach (var enemy in enemies)
         {
-            if (!col.CompareTag("Enemy")) continue;
-            var eh = col.GetComponent<EnemyHealth>();
+            if (!enemy.CompareTag("Enemy")) continue;
+            var eh = enemy.GetComponent<EnemyHealth>();
             if (eh != null) eh.TakeDamage(damage);
-            var ai = col.GetComponent<EnemyAI>();
-            if (ai != null) ai.Stun(stunDuration);
         }
     }
 

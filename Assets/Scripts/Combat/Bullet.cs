@@ -36,7 +36,7 @@ public class Bullet : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 0, angle);
         }
 
-        transform.Translate(Vector3.up * speed * Time.deltaTime);
+        transform.position += (Vector3)(direction * speed * Time.deltaTime);
     }
 
     private void OnTriggerEnter2D(Collider2D other)

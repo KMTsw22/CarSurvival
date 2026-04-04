@@ -412,7 +412,7 @@ public class GameBootstrap : MonoBehaviour
         {
             sr.sprite = bulletSprite;
             sr.color = Color.white;
-            bullet.transform.localScale = new Vector3(0.3f, 0.3f, 1f);
+            bullet.transform.localScale = new Vector3(0.1f, 0.1f, 1f);
         }
         else
         {

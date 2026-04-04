@@ -6,7 +6,7 @@ public class CheatWindow : EditorWindow
 {
     // 탭
     private int selectedTab = 0;
-    private readonly string[] tabNames = { "일반", "아이템 테스트" };
+    private readonly string[] tabNames = { "일반", "아이템 테스트", "이펙트 조정" };
 
     // 몬스터 소환
     private int selectedMonsterIndex = 0;
@@ -62,6 +62,7 @@ public class CheatWindow : EditorWindow
         {
             case 0: DrawGeneralTab(); break;
             case 1: DrawItemTestTab(); break;
+            case 2: DrawEffectTab(); break;
         }
     }
 
@@ -494,6 +495,52 @@ public class CheatWindow : EditorWindow
 
         GUI.backgroundColor = oldBg;
         EditorGUILayout.EndHorizontal();
+    }
+
+    // ════════════════════════════════════════
+    // 탭 2: 이펙트 조정
+    // ════════════════════════════════════════
+    private void DrawEffectTab()
+    {
+        if (!Application.isPlaying)
+        {
+            EditorGUILayout.HelpBox("Play 모드에서만 사용 가능합니다.", MessageType.Warning);
+            return;
+        }
+
+        var flame = Object.FindFirstObjectByType<FlamethrowerEffect>();
+
+        // ─── 화염방사기 ───
+        EditorGUILayout.LabelField("화염방사기 조정", EditorStyles.boldLabel);
+        EditorGUILayout.Space(4);
+
+        if (flame == null)
+        {
+            EditorGUILayout.HelpBox("화염방사기가 장착되어 있지 않습니다.\n아이템 테스트 탭에서 Flamethrower를 장착하세요.", MessageType.Info);
+        }
+        else
+        {
+            flame.offsetDist = EditorGUILayout.Slider("오프셋 거리", flame.offsetDist, 3f, 10f);
+            flame.scaleX = EditorGUILayout.Slider("스케일 X (길이)", flame.scaleX, 0.05f, 2f);
+            flame.scaleY = EditorGUILayout.Slider("스케일 Y (폭)", flame.scaleY, 0.05f, 2f);
+            flame.alpha = EditorGUILayout.Slider("투명도", flame.alpha, 0.1f, 1f);
+            flame.burnDamage = EditorGUILayout.FloatField("화상 데미지 (총량)", flame.burnDamage);
+            flame.burnDuration = EditorGUILayout.Slider("화상 지속시간", flame.burnDuration, 0.5f, 10f);
+
+            var col = flame.GetComponent<CircleCollider2D>();
+            if (col != null)
+            {
+                float newRadius = EditorGUILayout.Slider("판정 반경", col.radius, 0.1f, 5f);
+                if (!Mathf.Approximately(newRadius, col.radius))
+                    col.radius = newRadius;
+            }
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.HelpBox(
+                $"현재값: offset={flame.offsetDist:F2} scale=({flame.scaleX:F2}, {flame.scaleY:F2}) alpha={flame.alpha:F2}\n" +
+                $"화상: {flame.burnDamage:F0} dmg / {flame.burnDuration:F1}초",
+                MessageType.Info);
+        }
     }
 
     private void ForceRecalculate(PlayerStats player)

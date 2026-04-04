@@ -9,6 +9,7 @@ public class CarController : MonoBehaviour
     private PlayerStats stats;
     private Vector2 moveInput;
     private Vector2 currentDirection;
+    public Vector2 CurrentDirection => currentDirection;
 
     [Header("Movement")]
     public float turnSpeed = 720f;
