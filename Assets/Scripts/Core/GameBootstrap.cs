@@ -204,7 +204,10 @@ public class GameBootstrap : MonoBehaviour
         sr.sprite = carSprite != null ? carSprite : CreateCarSprite(Color.cyan);
         sr.sortingOrder = 10;
         if (carSprite != null)
-            playerCar.transform.localScale = new Vector3(0.8F,0.8F,0.8F);
+        {
+            float s = (carData != null && carData.scale > 0f) ? carData.scale : 0.8f;
+            playerCar.transform.localScale = new Vector3(s, s, s);
+        }
 
         // Collider
         var col = playerCar.AddComponent<BoxCollider2D>();

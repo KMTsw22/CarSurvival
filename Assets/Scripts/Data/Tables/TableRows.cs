@@ -34,6 +34,7 @@ public class CarRow
     [Key(13)] public bool unlocked_by_default;
     [Key(14)] public string sprite_key;
     [Key(15)] public float flame_offset;      // 화염방사기 오프셋 거리 (최소 3)
+    [Key(16)] public float scale;               // 차량 스케일
 }
 
 // ============================================================

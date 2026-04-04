@@ -34,6 +34,10 @@ public class StageManager : MonoBehaviour
     // 포탈
     private GameObject portalObj;
 
+    // 배경 맵 교체용
+    private Sprite originalMapSprite;
+    private Sprite bossMapSprite;
+
     // 현재 스테이지 테이블 데이터
     private StageRow currentStage;
     private Sprite keyIconSprite;
@@ -277,6 +281,9 @@ public class StageManager : MonoBehaviour
             portalObj = null;
         }
 
+        // 배경을 보스맵으로 교체
+        SwapBackground(true);
+
         // 모든 일반 몬스터 제거
         DestroyAllEnemies();
 
@@ -458,11 +465,35 @@ public class StageManager : MonoBehaviour
         Debug.LogWarning($"[StageManager] Boss not found: {bossMonId}");
     }
 
+    /// <summary>배경 맵 교체 (보스맵 ↔ 일반맵)</summary>
+    private void SwapBackground(bool toBoss)
+    {
+        if (bossMapSprite == null)
+            bossMapSprite = Resources.Load<Sprite>("Sprites/BossMap/Map1_Boss");
+
+        var allRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
+        foreach (var sr in allRenderers)
+        {
+            if (!sr.gameObject.name.StartsWith("BG_")) continue;
+
+            if (toBoss)
+            {
+                if (originalMapSprite == null) originalMapSprite = sr.sprite;
+                if (bossMapSprite != null) sr.sprite = bossMapSprite;
+            }
+            else
+            {
+                if (originalMapSprite != null) sr.sprite = originalMapSprite;
+            }
+        }
+    }
+
     /// <summary>보스 처치 처리</summary>
     private void OnBossDefeatedHandler()
     {
         CurrentPhase = BossPhase.Defeated;
         DestroyArena();
+        SwapBackground(false);
         OnBossDefeatedEvent?.Invoke();
 
         Debug.Log("[StageManager] Boss defeated!");

@@ -47,44 +47,44 @@
         <ui:VisualElement name="weapon-slots" class="slot-container weapon-slots" style="height: 12.5%; width: 30%;">
             <ui:VisualElement name="weapon-slot-0" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
             <ui:VisualElement name="weapon-slot-1" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
             <ui:VisualElement name="weapon-slot-2" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
             <ui:VisualElement name="weapon-slot-3" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="spellbook-slots" class="slot-container spellbook-slots" style="height: 12.5%; width: 30%;">
             <ui:VisualElement name="spellbook-slot-0" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
             <ui:VisualElement name="spellbook-slot-1" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
             <ui:VisualElement name="spellbook-slot-2" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
             <ui:VisualElement name="spellbook-slot-3" class="item-slot">
                 <ui:VisualElement class="item-frame"/>
-                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 5%; padding-right: 5%; padding-top: 5%; padding-bottom: 5%;"/>
+                <ui:VisualElement name="slot-img" class="item-icon" style="border-left-width: 0; padding-left: 10%; padding-right: 10%; padding-top: 10%; padding-bottom: 5%;"/>
                 <ui:Label text="Lv.1" class="item-level"/>
             </ui:VisualElement>
         </ui:VisualElement>

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6c622f35ae9437e42ad8ee573c780092
+guid: 023cd8b376a3e0849a3217f57e331b80
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2342309401353261690
-    second: Laser Cannon-removebg_0
+      213: 506853898690649804
+    second: map_1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Laser Cannon-removebg_0
+      name: map_1_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 135
-        width: 1280
-        height: 563
+        y: 0
+        width: 1024
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 68de74272027e7fd0800000000000000
-      internalID: -2342309401353261690
+      spriteID: cce5a787fe4b80700800000000000000
+      internalID: 506853898690649804
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Laser Cannon-removebg_0: -2342309401353261690
+      map_1_0: 506853898690649804
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

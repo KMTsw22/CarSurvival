@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4bb498821df692f4c96c36c7237213e8
+guid: 5d004e51a1de3174199424afbcbe5533
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 306138797556085925
-    second: Chain Lightning-removebg_0
+      213: 1947395490961846175
+    second: map_1__0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Chain Lightning-removebg_0
+      name: map_1__0
       rect:
         serializedVersion: 2
         x: 0
-        y: 10
-        width: 1116
-        height: 688
+        y: 0
+        width: 1024
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5a4bb484d9f9f3400800000000000000
-      internalID: 306138797556085925
+      spriteID: f9f6afb91e9860b10800000000000000
+      internalID: 1947395490961846175
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Chain Lightning-removebg_0: 306138797556085925
+      map_1__0: 1947395490961846175
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

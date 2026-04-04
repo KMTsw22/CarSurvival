@@ -161,8 +161,8 @@ public class TableViewerWindow : EditorWindow
                     (WaveRow r) => new[] { r.wave_group_id, r.wave_no.ToString(), r.mon_id, r.spawn_count.ToString(), F(r.spawn_interval), r.max_enemies.ToString(), F(r.difficulty_scale), r.note });
                 break;
             case "TB_Car":
-                LoadRows(data, new[] { "car_id","car_name","car_type","base_hp","base_speed","base_atk_speed","base_damage","collision_damage","passive_type","passive_value","passive_desc","unlock_cost","unlock_currency_id","unlocked_default","sprite_key" },
-                    (CarRow r) => new[] { r.car_id, r.car_name, r.car_type, F(r.base_hp), F(r.base_speed), F(r.base_atk_speed), F(r.base_damage), F(r.collision_damage), r.passive_type, F(r.passive_value), r.passive_desc, r.unlock_cost.ToString(), r.unlock_currency_id, r.unlocked_by_default.ToString(), r.sprite_key });
+                LoadRows(data, new[] { "car_id","car_name","car_type","base_hp","base_speed","base_atk_speed","base_damage","collision_damage","passive_type","passive_value","passive_desc","unlock_cost","unlock_currency_id","unlocked_default","sprite_key","scale" },
+                    (CarRow r) => new[] { r.car_id, r.car_name, r.car_type, F(r.base_hp), F(r.base_speed), F(r.base_atk_speed), F(r.base_damage), F(r.collision_damage), r.passive_type, F(r.passive_value), r.passive_desc, r.unlock_cost.ToString(), r.unlock_currency_id, r.unlocked_by_default.ToString(), r.sprite_key, F(r.scale) });
                 break;
             case "TB_Weapon":
                 LoadRows(data, new[] { "weapon_id","weapon_name","category","damage","effect_desc","aim_type","weapon_type","cooldown","duration","max_level","drop_weight","icon_key","etc1","etc2","etc3","etc4","etc5","dmg/lv" },
