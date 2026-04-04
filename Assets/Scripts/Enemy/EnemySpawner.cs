@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,6 +45,9 @@ public class EnemySpawner : MonoBehaviour
     private Vector3 lastPlayerPos;
     private Vector3 playerMoveDir = Vector3.right;
 
+    // 포위망 스폰 (Siege Wave)
+    private bool siegeWaveActive;
+
     // 디버그용: 현재 소환된 디버그 몬스터
     private GameObject debugMonster;
 
@@ -62,6 +66,7 @@ public class EnemySpawner : MonoBehaviour
         public int clusterSize;
         public float clusterRadius;
         public float speedScale;
+        public float minSpawnGap;
     }
 
     private float elapsedTime
@@ -82,8 +87,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// 웨이브 시간표 생성:
-    /// Wave 1~6 (20초 간격), Wave 7~10 (30초 간격), Wave 11+ (40초 간격)
+    /// 웨이브 시간표 생성: 30초 고정 간격
     /// </summary>
     private void BuildWaveSchedule()
     {
@@ -91,20 +95,12 @@ public class EnemySpawner : MonoBehaviour
         if (waveRows == null || waveRows.Length == 0) return;
 
         var waveNos = waveRows.Select(w => w.wave_no).Distinct().OrderBy(n => n).ToList();
-        float time = 0f;
         for (int i = 0; i < waveNos.Count; i++)
         {
-            waveStartTimes[waveNos[i]] = time;
-            // 가변 간격
-            if (waveNos[i] < 7)
-                time += 20f;
-            else if (waveNos[i] < 11)
-                time += 30f;
-            else
-                time += 40f;
+            waveStartTimes[waveNos[i]] = i * 30f;
         }
 
-        Debug.Log($"[Wave] 시간표 생성: {waveNos.Count}개 웨이브, 총 {time}초");
+        Debug.Log($"[Wave] 시간표 생성: {waveNos.Count}개 웨이브, 총 {waveNos.Count * 30}초");
     }
 
     private void Update()
@@ -238,6 +234,8 @@ public class EnemySpawner : MonoBehaviour
         // 같은 wave_no를 가진 모든 행을 한 웨이브로 실행
         var currentWaves = waveRows.Where(w => w.wave_no == waveNo);
 
+        // 포위망 스폰은 SpawnSiegeWave()로 수동 호출 가능 (현재 자동 트리거 비활성)
+
         foreach (var row in currentWaves)
         {
             activeWaves.Add(new ActiveWave
@@ -255,6 +253,7 @@ public class EnemySpawner : MonoBehaviour
                 clusterSize = row.cluster_size > 1 ? row.cluster_size : 1,
                 clusterRadius = row.cluster_radius > 0 ? row.cluster_radius : 1.5f,
                 speedScale = row.speed_scale > 0 ? row.speed_scale : 1f,
+                minSpawnGap = row.min_spawn_gap > 0 ? row.min_spawn_gap : 1.5f,
             });
         }
 
@@ -292,6 +291,7 @@ public class EnemySpawner : MonoBehaviour
                 clusterSize = 1,
                 clusterRadius = 1.5f,
                 speedScale = 1f,
+                minSpawnGap = 1.5f,
             });
         }
     }
@@ -327,14 +327,47 @@ public class EnemySpawner : MonoBehaviour
                 angle += Random.Range(-5f, 5f) * Mathf.Deg2Rad; // 살짝 흔들림
                 float dist = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
                 Vector3 pos = player.position + new Vector3(Mathf.Cos(angle) * dist, Mathf.Sin(angle) * dist, 0f);
+                pos = AdjustForSpawnGap(pos, wave.minSpawnGap);
                 SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
             }
         }
         else
         {
             Vector3 pos = GetSpawnPosition(wave);
+            pos = AdjustForSpawnGap(pos, wave.minSpawnGap);
             SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
         }
+    }
+
+    /// <summary>
+    /// 기존 적과 겹치지 않도록 스폰 위치를 조정.
+    /// minGap 반경 내에 적이 있으면 바깥으로 밀어냄.
+    /// </summary>
+    private Vector3 AdjustForSpawnGap(Vector3 pos, float minGap)
+    {
+        if (minGap <= 0f) return pos;
+
+        float gapSq = minGap * minGap;
+        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            bool tooClose = false;
+            foreach (var e in enemies)
+            {
+                if ((e.transform.position - pos).sqrMagnitude < gapSq)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if (!tooClose) return pos;
+
+            // 겹치면 랜덤 방향으로 minGap만큼 밀기
+            Vector2 offset = Random.insideUnitCircle.normalized * minGap;
+            pos += new Vector3(offset.x, offset.y, 0f);
+        }
+        return pos;
     }
 
     private void SpawnOneEnemy(GameObject prefab, MonsterData data, Vector3 pos, float difficultyScale, float speedScale)
@@ -512,6 +545,110 @@ public class EnemySpawner : MonoBehaviour
         Debug.Log($"[EnemySpawner] BOSS spawned: {bossData.monsterName} at {elapsedTime / 60f:F1} min");
     }
 
+    // ─── SIEGE WAVE (서서히 조여드는 포위망) ───
+
+    /// <summary>
+    /// 포위망 웨이브: 소규모 그룹이 0.5~1초마다 여러 방향에서 지속 소환.
+    /// 시간이 지날수록 간격이 짧아지고 그룹이 늘어나 포위가 조여든다.
+    /// duration초 동안 지속된 후 자동 종료.
+    /// </summary>
+    public void SpawnSiegeWave(float difficultyScale)
+    {
+        if (siegeWaveActive) return;
+        StartCoroutine(SiegeWaveCoroutine(difficultyScale));
+    }
+
+    private IEnumerator SiegeWaveCoroutine(float difficultyScale)
+    {
+        siegeWaveActive = true;
+
+        // ── 포위망 설정 ──
+        float duration = 25f;            // 포위망 지속 시간 (초)
+        float spawnRadiusMin = 16f;      // 스폰 최소 거리 (화면 가장자리)
+        float spawnRadiusMax = 22f;      // 스폰 최대 거리 (화면 바로 바깥)
+        float siegeSpeedScale = 0.6f;    // 느린 이동 (돌진 없음)
+        float eliteChance = 0.10f;       // 강한 몬스터 비율 10%
+
+        // 시간에 따라 변하는 값
+        float startInterval = 0.8f;      // 초반 소환 간격 (여유 있음)
+        float endInterval = 0.25f;       // 후반 소환 간격 (빡빡함)
+        int startGroupSize = 3;          // 초반 그룹 크기
+        int endGroupSize = 6;            // 후반 그룹 크기
+        int startDirections = 3;         // 초반 동시 방향 수
+        int endDirections = 6;           // 후반 동시 방향 수
+
+        int totalSpawned = 0;
+        float elapsed = 0f;
+
+        Debug.Log($"[Siege] 포위망 시작! {duration}초간, diff={difficultyScale}");
+
+        // 약한 몬스터 인덱스 미리 구분 (기본 90% / 강한 10%)
+        var weakIndices = new List<int>();
+        var eliteIndices = new List<int>();
+        for (int i = 0; i < monsterDataList.Count; i++)
+        {
+            if (monsterDataList[i].health >= 200)
+                eliteIndices.Add(i);
+            else
+                weakIndices.Add(i);
+        }
+        // 약한 몬스터가 없으면 전부 약한 취급
+        if (weakIndices.Count == 0)
+            weakIndices.AddRange(eliteIndices);
+
+        while (elapsed < duration)
+        {
+            // 진행도 0→1
+            float t = elapsed / duration;
+
+            // 현재 프레임의 설정값 (선형 보간)
+            float interval = Mathf.Lerp(startInterval, endInterval, t);
+            int groupSize = Mathf.RoundToInt(Mathf.Lerp(startGroupSize, endGroupSize, t));
+            int directions = Mathf.RoundToInt(Mathf.Lerp(startDirections, endDirections, t));
+
+            // 여러 방향에서 동시 소환
+            for (int d = 0; d < directions; d++)
+            {
+                // 360° 균등 분배 + 랜덤 오프셋
+                float baseAngle = (360f / directions * d + Random.Range(-20f, 20f)) * Mathf.Deg2Rad;
+                float dist = Random.Range(spawnRadiusMin, spawnRadiusMax);
+                Vector3 center = player.position + new Vector3(
+                    Mathf.Cos(baseAngle) * dist,
+                    Mathf.Sin(baseAngle) * dist,
+                    0f);
+
+                // 그 방향에서 그룹 소환 (center 주변에 모여서)
+                for (int g = 0; g < groupSize; g++)
+                {
+                    Vector2 offset = Random.insideUnitCircle * 1.5f;
+                    Vector3 pos = center + new Vector3(offset.x, offset.y, 0f);
+
+                    // 90% 약한 몬스터, 10% 강한 몬스터
+                    int index;
+                    if (Random.value < eliteChance && eliteIndices.Count > 0)
+                        index = eliteIndices[Random.Range(0, eliteIndices.Count)];
+                    else
+                        index = weakIndices[Random.Range(0, weakIndices.Count)];
+
+                    SpawnOneEnemy(
+                        enemyPrefabs[index],
+                        monsterDataList[index],
+                        pos,
+                        difficultyScale,
+                        siegeSpeedScale
+                    );
+                    totalSpawned++;
+                }
+            }
+
+            yield return new WaitForSeconds(interval);
+            elapsed += interval;
+        }
+
+        siegeWaveActive = false;
+        Debug.Log($"[Siege] 포위망 종료! 총 {totalSpawned}마리 소환, {elapsed:F1}초 경과");
+    }
+
     // ─── WARNING WAVE ───
     private List<ActiveWave> warningWaves = new List<ActiveWave>();
     private WarningWaveRow[] warningWaveRows;
@@ -573,6 +710,7 @@ public class EnemySpawner : MonoBehaviour
                             clusterSize = 1,
                             clusterRadius = 1.5f,
                             speedScale = 1f,
+                            minSpawnGap = 1.5f,
                         });
                     }
                 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -106,16 +107,34 @@ public class EnemyHealth : MonoBehaviour
         }
     }
 
+    // 20% 확률로 exp를 드롭하지 않는 약한 몬스터 목록
+    private static readonly HashSet<string> weakMonsters = new HashSet<string>
+    {
+        "MON_001", "MON_027", // 타이어 좀비
+        "MON_002", "MON_028", // 오일 슬라임
+        "MON_006", "MON_032", // Cone Head
+        "MON_004", "MON_030", // 스파크 러너
+    };
+
     private void Die()
     {
         // Drop experience pickups
         if (expPickupPrefab != null)
         {
-            for (int i = 0; i < expDrop; i++)
+            // 약한 몬스터: 20% 확률로 exp 드롭 스킵
+            var identifier = GetComponent<EnemyIdentifier>();
+            bool skipExp = identifier != null
+                && weakMonsters.Contains(identifier.monId)
+                && Random.value < 0.2f;
+
+            if (!skipExp)
             {
-                Vector3 offset = Random.insideUnitCircle * 0.5f;
-                var pickup = Instantiate(expPickupPrefab, transform.position + offset, Quaternion.identity);
-                pickup.SetActive(true);
+                for (int i = 0; i < expDrop; i++)
+                {
+                    Vector3 offset = Random.insideUnitCircle * 0.5f;
+                    var pickup = Instantiate(expPickupPrefab, transform.position + offset, Quaternion.identity);
+                    pickup.SetActive(true);
+                }
             }
         }
 

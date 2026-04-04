@@ -66,7 +66,7 @@ public class EnemyAI : MonoBehaviour
 
         // Despawn if too far from player
         float dist = Vector2.Distance(transform.position, player.position);
-        if (dist > 30f)
+        if (dist > 40f)
         {
             Destroy(gameObject);
         }

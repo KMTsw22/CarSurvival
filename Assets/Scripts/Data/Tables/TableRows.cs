@@ -150,6 +150,7 @@ public class WaveRow
     [Key(11)] public int cluster_size;       // 군집 크기 (0 or 1이면 군집 없음)
     [Key(12)] public float cluster_radius;   // 군집 반경 (cluster_size > 1일 때 사용)
     [Key(13)] public float speed_scale;      // 속도 배율 (0이면 1.0 취급)
+    [Key(14)] public float min_spawn_gap;    // 최소 스폰 간격 (0이면 기본값 1.5)
 }
 
 // ============================================================
