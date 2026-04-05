@@ -451,6 +451,7 @@ public class GameBootstrap : MonoBehaviour
 
         var col = enemy.AddComponent<BoxCollider2D>();
         col.size = new Vector2(0.8f, 1.2f);
+        col.isTrigger = true;
 
         var rb = enemy.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;

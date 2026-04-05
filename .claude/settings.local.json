@@ -3,7 +3,8 @@
     "allow": [
       "Bash(xxd -l 128 \"c:/PBL/CarSurvival/Assets/Resources/Tables/TB_LangLevelUpSelect_des.bytes\")",
       "Bash(git -C \"c:/PBL/CarSurvival\" config --get core.autocrlf)",
-      "Bash(xxd -l 48 \"c:/PBL/CarSurvival/Assets/Resources/Tables/TB_LangLevelUpSelect_des.bytes\")"
+      "Bash(xxd -l 48 \"c:/PBL/CarSurvival/Assets/Resources/Tables/TB_LangLevelUpSelect_des.bytes\")",
+      "Bash(py -c ':*)"
     ]
   }
 }

@@ -158,12 +158,10 @@ public class EnemySpawner : MonoBehaviour
             wave.spawnTimer -= Time.deltaTime;
             if (wave.spawnTimer <= 0f)
             {
-                // 한 번에 spawnCount 마리 스폰
-                for (int i = 0; i < wave.spawnCount; i++)
+                if (totalEnemies < wave.maxEnemies)
                 {
-                    if (totalEnemies >= wave.maxEnemies) break;
-                    SpawnMonster(wave);
-                    totalEnemies++;
+                    SpawnArc(wave, wave.spawnCount, totalEnemies, wave.maxEnemies);
+                    totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
                 }
                 wave.spawnTimer = wave.spawnInterval;
             }
@@ -298,44 +296,40 @@ public class EnemySpawner : MonoBehaviour
 
     // ─── SPAWN ───
 
-    private void SpawnMonster(ActiveWave wave)
+    /// <summary>
+    /// 360° 분산 스폰: spawnCount 마리를 여러 거리에 360도 전방위 균등 배치.
+    /// 미리 깔려있는 느낌을 위해 전체 방향 + 다양한 거리에 분산.
+    /// </summary>
+    private void SpawnArc(ActiveWave wave, int totalCount, int currentEnemies, int maxEnemies)
     {
-        // mon_id로 몬스터 데이터/프리팹 찾기
         int index = FindMonsterIndex(wave.monId);
-        if (index < 0)
-        {
-            // mon_id 매칭 실패 시 가중치 기반 랜덤 선택
-            index = GetWeightedRandomIndex();
-        }
+        if (index < 0) index = GetWeightedRandomIndex();
         if (index < 0 || index >= enemyPrefabs.Count) return;
 
         GameObject prefab = enemyPrefabs[index];
         MonsterData data = monsterDataList[index];
 
-        // 군집 스폰: cluster_size > 1이면 전방 부채꼴(±30°)로 분산 배치
-        if (wave.clusterSize > 1)
-        {
-            float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
-            float spreadDeg = 60f; // 총 부채꼴 각도 (±30°)
-            float sliceAngle = spreadDeg / (wave.clusterSize - 1);
-            float startAngle = baseAngle - (spreadDeg * 0.5f) * Mathf.Deg2Rad;
+        // 360° 전방위에 균등 배치 + 랜덤 시작 각도
+        float randomOffset = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        float angleStep = 2f * Mathf.PI / totalCount;
 
-            for (int c = 0; c < wave.clusterSize; c++)
-            {
-                // 부채꼴 내 균등 배치 + 약간의 랜덤
-                float angle = startAngle + (sliceAngle * c) * Mathf.Deg2Rad;
-                angle += Random.Range(-5f, 5f) * Mathf.Deg2Rad; // 살짝 흔들림
-                float dist = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
-                Vector3 pos = player.position + new Vector3(Mathf.Cos(angle) * dist, Mathf.Sin(angle) * dist, 0f);
-                pos = AdjustForSpawnGap(pos, wave.minSpawnGap);
-                SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
-            }
-        }
-        else
+        for (int i = 0; i < totalCount; i++)
         {
-            Vector3 pos = GetSpawnPosition(wave);
-            pos = AdjustForSpawnGap(pos, wave.minSpawnGap);
+            if (currentEnemies >= maxEnemies) return;
+
+            float angle = randomOffset + angleStep * i;
+            angle += Random.Range(-0.2f, 0.2f); // 약간 흔들림
+
+            // 거리: min~max 범위에서 랜덤 (다양한 거리에 깔림)
+            float dist = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
+
+            Vector3 pos = player.position + new Vector3(
+                Mathf.Cos(angle) * dist,
+                Mathf.Sin(angle) * dist,
+                0f);
+
             SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
+            currentEnemies++;
         }
     }
 
@@ -722,11 +716,10 @@ public class EnemySpawner : MonoBehaviour
                 wave.spawnTimer -= Time.deltaTime;
                 if (wave.spawnTimer <= 0f)
                 {
-                    for (int i = 0; i < wave.spawnCount; i++)
+                    if (totalEnemies < wave.maxEnemies)
                     {
-                        if (totalEnemies >= wave.maxEnemies) break;
-                        SpawnMonster(wave);
-                        totalEnemies++;
+                        SpawnArc(wave, wave.spawnCount, totalEnemies, wave.maxEnemies);
+                        totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
                     }
                     wave.spawnTimer = wave.spawnInterval;
                 }
@@ -743,11 +736,10 @@ public class EnemySpawner : MonoBehaviour
                 wave.spawnTimer -= Time.deltaTime;
                 if (wave.spawnTimer <= 0f)
                 {
-                    for (int i = 0; i < wave.spawnCount; i++)
+                    if (totalEnemies < 100)
                     {
-                        if (totalEnemies >= 100) break;
-                        SpawnMonster(wave);
-                        totalEnemies++;
+                        SpawnArc(wave, wave.spawnCount, totalEnemies, 100);
+                        totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
                     }
                     wave.spawnTimer = wave.spawnInterval;
                 }
