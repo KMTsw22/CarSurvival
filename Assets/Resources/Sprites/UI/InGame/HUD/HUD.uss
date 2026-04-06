@@ -325,6 +325,36 @@
     display: none;
 }
 
+/* ─── Trophy Popup ─── */
+
+.trophy-popup {
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    translate: -50% -50%;
+    align-items: center;
+    justify-content: center;
+    display: none;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.4s;
+}
+
+.trophy-icon {
+    width: 8%;
+    height: 14%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.trophy-text {
+    font-size: 32px;
+    color: rgb(255, 215, 0);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+    margin-top: 1%;
+}
+
 /* ─── Item Slots (Weapon / SpellBook) ─── */
 
 .slot-container {

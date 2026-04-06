@@ -19,4 +19,5 @@ public class MonsterData : ScriptableObject
     public float bounceHeight = 0.25f;
     public float bounceSquash = 0.15f;
     public Color tintColor = Color.white;
+    public float fuelDropRate = 0f;
 }

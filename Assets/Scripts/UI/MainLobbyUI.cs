@@ -52,18 +52,18 @@ public class MainLobbyUI : MonoBehaviour
 
         if (isPressed)
         {
-            startBtn.transform.scale = new Vector3(0.92f, 0.92f, 1f);
+            startBtn.style.scale = new StyleScale(new Scale(new Vector3(0.92f, 0.92f, 1f)));
         }
         else if (isHovering)
         {
-            startBtn.transform.scale = new Vector3(1.08f, 1.08f, 1f);
+            startBtn.style.scale = new StyleScale(new Scale(new Vector3(1.08f, 1.08f, 1f)));
         }
         else
         {
             bounceTimer += Time.deltaTime;
             float t = (Mathf.Sin(bounceTimer / bounceCycle * Mathf.PI * 2f) + 1f) * 0.5f;
             float s = Mathf.Lerp(1f, 1.02f, t);
-            startBtn.transform.scale = new Vector3(s, s, 1f);
+            startBtn.style.scale = new StyleScale(new Scale(new Vector3(s, s, 1f)));
         }
     }
 }

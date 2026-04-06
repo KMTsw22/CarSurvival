@@ -11,6 +11,10 @@ public class ExperiencePickup : MonoBehaviour
     private PlayerStats playerStats;
     private bool isMagneted;
 
+    private static Sprite spriteGreen;
+    private static Sprite spriteBlue;
+    private static Sprite spriteRed;
+
     private void Start()
     {
         var playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -19,8 +23,27 @@ public class ExperiencePickup : MonoBehaviour
 
         playerStats = PlayerStats.Instance;
 
+        UpdateExpSprite();
+
         // Auto-destroy after 30 seconds
         Destroy(gameObject, 30f);
+    }
+
+    private void UpdateExpSprite()
+    {
+        if (spriteGreen == null) spriteGreen = Resources.Load<Sprite>("Sprites/Icons/Exp/Exp_green");
+        if (spriteBlue == null) spriteBlue = Resources.Load<Sprite>("Sprites/Icons/Exp/Exp_blue");
+        if (spriteRed == null) spriteRed = Resources.Load<Sprite>("Sprites/Icons/Exp/Exp_red");
+
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr == null) return;
+
+        if (expAmount >= 100)
+            sr.sprite = spriteRed;
+        else if (expAmount >= 50)
+            sr.sprite = spriteBlue;
+        else
+            sr.sprite = spriteGreen;
     }
 
     private void Update()

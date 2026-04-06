@@ -20,6 +20,11 @@ public class HUDManager : MonoBehaviour
     private Label countdownText;
     private Label warningText;
 
+    // Trophy popup
+    private VisualElement trophyPopup;
+    private VisualElement trophyIcon;
+    private Label trophyText;
+
     // Item Slots (4 weapons + 4 spellbooks)
     private const int SlotCount = 4;
     private VisualElement[] weaponSlots = new VisualElement[SlotCount];
@@ -52,6 +57,9 @@ public class HUDManager : MonoBehaviour
         summonBtn = root.Q<Button>("summon-btn");
         countdownText = root.Q<Label>("countdown-text");
         warningText = root.Q<Label>("warning-text");
+        trophyPopup = root.Q("trophy-popup");
+        trophyIcon = root.Q("trophy-icon");
+        trophyText = root.Q<Label>("trophy-text");
 
         // Item Slots (4 weapons + 4 spellbooks)
         for (int i = 0; i < SlotCount; i++)
@@ -84,6 +92,10 @@ public class HUDManager : MonoBehaviour
             playerStats.OnPartChanged += UpdateItemSlots;
             UpdateItemSlots();
 
+            // 초기값 즉시 반영 (Start 순서에 의존하지 않도록)
+            UpdateHealth(playerStats.currentHealth, playerStats.maxHealth);
+            UpdateExp(playerStats.currentExp, playerStats.expToNextLevel, playerStats.level);
+
             carController = playerStats.GetComponent<CarController>();
             if (carController != null)
                 carController.OnBoosterChanged += UpdateBooster;
@@ -105,6 +117,7 @@ public class HUDManager : MonoBehaviour
         stageManager.OnBossDefeatedEvent += OnBossDefeated;
         stageManager.OnForceGameOver += OnForceGameOver;
         stageManager.OnWarningWaveStart += OnWarningWaveStart;
+        stageManager.OnMiniBossKilled += OnMiniBossKilled;
 
         UpdateKeyCount(stageManager.collectedKeys, stageManager.RequiredKeys);
         UpdateKeyIcon();
@@ -315,6 +328,37 @@ public class HUDManager : MonoBehaviour
         UpdateKeyIcon();
     }
 
+    // ─── 미니보스 처치 트로피 ───
+
+    private void OnMiniBossKilled()
+    {
+        if (trophyPopup == null || stageManager == null) return;
+
+        // 현재 맵에 맞는 트로피 스프라이트 로드
+        var trophySprite = TableManager.Instance.GetTrophySprite(stageManager.currentMapId);
+        if (trophySprite == null) return;
+
+        if (trophyIcon != null)
+            trophyIcon.style.backgroundImage = new StyleBackground(trophySprite);
+
+        // 팝업 표시
+        trophyPopup.style.display = DisplayStyle.Flex;
+        trophyPopup.schedule.Execute(() =>
+        {
+            trophyPopup.style.opacity = 1f;
+        }).ExecuteLater(50);
+
+        // 2초 후 페이드아웃 → 숨김
+        trophyPopup.schedule.Execute(() =>
+        {
+            trophyPopup.style.opacity = 0f;
+            trophyPopup.schedule.Execute(() =>
+            {
+                trophyPopup.style.display = DisplayStyle.None;
+            }).ExecuteLater(400);
+        }).ExecuteLater(2000);
+    }
+
     // ─── Item Slots ───
 
     private void UpdateItemSlots()
@@ -387,6 +431,7 @@ public class HUDManager : MonoBehaviour
             stageManager.OnBossDefeatedEvent -= OnBossDefeated;
             stageManager.OnForceGameOver -= OnForceGameOver;
             stageManager.OnWarningWaveStart -= OnWarningWaveStart;
+            stageManager.OnMiniBossKilled -= OnMiniBossKilled;
         }
         if (summonBtn != null)
             summonBtn.clicked -= OnSummonBossClicked;

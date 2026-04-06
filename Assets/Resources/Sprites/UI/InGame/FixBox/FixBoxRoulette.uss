@@ -1,0 +1,97 @@
+/* ================================================
+   FixBox Roulette UI
+   UI Builder에서 편집 가능
+================================================ */
+
+* {
+    -unity-font: resource("Fonts/BlackHanSans-Regular");
+}
+
+.roulette-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding-top: 2%;
+    padding-bottom: 2%;
+}
+
+/* ===== 타이틀 배너 ===== */
+.title-banner {
+    width: 55%;
+    height: 10%;
+    background-image: resource("Sprites/UI/InGame/FixBox/ToolBoxBanner");
+    -unity-background-scale-mode: scale-to-fit;
+    margin-bottom: 2%;
+}
+
+/* ===== 카드 ===== */
+.roulette-card {
+    width: 30%;
+    height: 62%;
+    background-image: resource("Sprites/UI/InGame/FixBox/card_bg");
+    -unity-background-scale-mode: stretch-to-fill;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+    flex-direction: column;
+    padding-top: 8%;
+}
+
+/* ===== 아이콘 뷰포트 (클리핑) ===== */
+.roulette-viewport {
+    width: 65%;
+    height: 48%;
+    overflow: hidden;
+    align-items: center;
+}
+
+/* ===== 아이콘 스트립 (세로 스크롤) ===== */
+.roulette-strip {
+    flex-direction: column;
+    position: absolute;
+    align-items: center;
+}
+
+/* ===== 아이콘 하나 ===== */
+.roulette-icon {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 20px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ===== 결과 라벨 (카드 내부 하단) ===== */
+.result-label {
+    -unity-font: resource("Fonts/Rubik-VariableFont_wght");
+    font-size: 28px;
+    color: rgb(255, 230, 100);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    flex-grow: 1;
+    align-self: center;
+    width: 100%;
+    display: none;
+    white-space: normal;
+    padding-bottom: 25%;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+    letter-spacing: 2px;
+}
+
+/* ===== 터치하여 계속 (카드 밖) ===== */
+.continue-label {
+    -unity-font: resource("Fonts/Rubik-VariableFont_wght");
+    font-size: 24px;
+    color: rgb(255, 220, 150);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    position: absolute;
+    bottom: 5%;
+    align-self: center;
+    display: none;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9);
+    letter-spacing: 3px;
+}

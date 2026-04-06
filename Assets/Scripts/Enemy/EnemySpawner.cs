@@ -38,7 +38,9 @@ public class EnemySpawner : MonoBehaviour
     private List<ActiveWave> activeWaves = new List<ActiveWave>();
 
     // 보스 스폰 상태
+#pragma warning disable CS0414 // 할당되었지만 읽히지 않는 필드
     private bool bossSpawned = false;
+#pragma warning restore CS0414
     private const float BOSS_SPAWN_SEC = 600f;
 
     // 플레이어 이동 방향 추적
@@ -47,6 +49,14 @@ public class EnemySpawner : MonoBehaviour
 
     // 포위망 스폰 (Siege Wave)
     private bool siegeWaveActive;
+
+    // 미니보스 스폰
+    [Header("Mini Boss")]
+    public float miniBossInterval = 40f;         // 미니보스 스폰 간격 (초)
+    public float miniBossHealthScale = 5f;       // 체력 배율
+    public float miniBossSizeScale = 1.6f;       // 크기 배율
+    public Color miniBossTint = new Color(1f, 0.3f, 0.3f, 1f); // 붉은 색조
+    private float miniBossTimer = 0f;
 
     // 디버그용: 현재 소환된 디버그 몬스터
     private GameObject debugMonster;
@@ -134,6 +144,19 @@ public class EnemySpawner : MonoBehaviour
         if (StageManager.Instance != null && StageManager.Instance.IsBossFight)
             return;
 
+        // 미니보스 스폰 (Collecting 단계에서만, 키를 아직 다 모으지 않았을 때)
+        if (StageManager.Instance != null
+            && StageManager.Instance.CurrentPhase == StageManager.BossPhase.Collecting
+            && !StageManager.Instance.CanSummonBoss)
+        {
+            miniBossTimer += Time.deltaTime;
+            if (miniBossTimer >= miniBossInterval)
+            {
+                miniBossTimer = 0f;
+                SpawnMiniBoss();
+            }
+        }
+
         // Warning Wave: 대량 스폰
         if (StageManager.Instance != null && StageManager.Instance.IsWarningWave)
         {
@@ -152,16 +175,38 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // 각 활성 웨이브별로 스폰 처리
-        int totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+        var allEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+        int totalEnemies = allEnemies.Length;
         foreach (var wave in activeWaves)
         {
             wave.spawnTimer -= Time.deltaTime;
             if (wave.spawnTimer <= 0f)
             {
-                if (totalEnemies < wave.maxEnemies)
+                // maxEnemies가 작으면(≤5) 해당 몬스터 종류만 카운트, 크면 전체 카운트
+                int currentCount;
+                if (wave.maxEnemies <= 5)
                 {
-                    SpawnArc(wave, wave.spawnCount, totalEnemies, wave.maxEnemies);
-                    totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                    currentCount = 0;
+                    foreach (var e in allEnemies)
+                    {
+                        if (e == null) continue;
+                        var eh = e.GetComponent<EnemyHealth>();
+                        if (eh != null && e.name.Contains(wave.monId))
+                            currentCount++;
+                    }
+                }
+                else
+                {
+                    currentCount = totalEnemies;
+                }
+
+                // 한 번에 spawnCount 마리 스폰
+                for (int i = 0; i < wave.spawnCount; i++)
+                {
+                    if (currentCount >= wave.maxEnemies) break;
+                    SpawnMonster(wave);
+                    currentCount++;
+                    totalEnemies++;
                 }
                 wave.spawnTimer = wave.spawnInterval;
             }
@@ -296,40 +341,44 @@ public class EnemySpawner : MonoBehaviour
 
     // ─── SPAWN ───
 
-    /// <summary>
-    /// 360° 분산 스폰: spawnCount 마리를 여러 거리에 360도 전방위 균등 배치.
-    /// 미리 깔려있는 느낌을 위해 전체 방향 + 다양한 거리에 분산.
-    /// </summary>
-    private void SpawnArc(ActiveWave wave, int totalCount, int currentEnemies, int maxEnemies)
+    private void SpawnMonster(ActiveWave wave)
     {
+        // mon_id로 몬스터 데이터/프리팹 찾기
         int index = FindMonsterIndex(wave.monId);
-        if (index < 0) index = GetWeightedRandomIndex();
+        if (index < 0)
+        {
+            // mon_id 매칭 실패 시 가중치 기반 랜덤 선택
+            index = GetWeightedRandomIndex();
+        }
         if (index < 0 || index >= enemyPrefabs.Count) return;
 
         GameObject prefab = enemyPrefabs[index];
         MonsterData data = monsterDataList[index];
 
-        // 360° 전방위에 균등 배치 + 랜덤 시작 각도
-        float randomOffset = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        float angleStep = 2f * Mathf.PI / totalCount;
-
-        for (int i = 0; i < totalCount; i++)
+        // 군집 스폰: cluster_size > 1이면 전방 부채꼴(±30°)로 분산 배치
+        if (wave.clusterSize > 1)
         {
-            if (currentEnemies >= maxEnemies) return;
+            float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
+            float spreadDeg = 60f; // 총 부채꼴 각도 (±30°)
+            float sliceAngle = spreadDeg / (wave.clusterSize - 1);
+            float startAngle = baseAngle - (spreadDeg * 0.5f) * Mathf.Deg2Rad;
 
-            float angle = randomOffset + angleStep * i;
-            angle += Random.Range(-0.2f, 0.2f); // 약간 흔들림
-
-            // 거리: min~max 범위에서 랜덤 (다양한 거리에 깔림)
-            float dist = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
-
-            Vector3 pos = player.position + new Vector3(
-                Mathf.Cos(angle) * dist,
-                Mathf.Sin(angle) * dist,
-                0f);
-
+            for (int c = 0; c < wave.clusterSize; c++)
+            {
+                // 부채꼴 내 균등 배치 + 약간의 랜덤
+                float angle = startAngle + (sliceAngle * c) * Mathf.Deg2Rad;
+                angle += Random.Range(-5f, 5f) * Mathf.Deg2Rad; // 살짝 흔들림
+                float dist = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
+                Vector3 pos = player.position + new Vector3(Mathf.Cos(angle) * dist, Mathf.Sin(angle) * dist, 0f);
+                pos = AdjustForSpawnGap(pos, wave.minSpawnGap);
+                SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
+            }
+        }
+        else
+        {
+            Vector3 pos = GetSpawnPosition(wave);
+            pos = AdjustForSpawnGap(pos, wave.minSpawnGap);
             SpawnOneEnemy(prefab, data, pos, wave.difficultyScale, wave.speedScale);
-            currentEnemies++;
         }
     }
 
@@ -367,6 +416,7 @@ public class EnemySpawner : MonoBehaviour
     private void SpawnOneEnemy(GameObject prefab, MonsterData data, Vector3 pos, float difficultyScale, float speedScale)
     {
         GameObject enemy = Instantiate(prefab);
+        enemy.name = data.monId;
         enemy.SetActive(true);
         enemy.transform.position = pos;
         ApplyMonsterData(enemy, data, difficultyScale);
@@ -381,18 +431,38 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// 웨이브 설정에 따라 스폰 위치 결정.
-    /// forwardBias: 전방 스폰 확률, spawnDistMin/Max: 거리 범위
+    /// 플레이어 주변 적 밀도를 분석하여 적이 적은 방향에 스폰.
     /// </summary>
     private Vector3 GetSpawnPosition(ActiveWave wave)
     {
-        float baseAngle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x);
-        float angle;
+        // 플레이어 기준 적의 평균 방향 계산
+        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        Vector2 avgDir = Vector2.zero;
 
-        if (Random.value < wave.forwardBias)
-            angle = baseAngle + Random.Range(-90f, 90f) * Mathf.Deg2Rad;   // 전방 반원
+        if (enemies.Length > 0)
+        {
+            foreach (var e in enemies)
+            {
+                if (e == null) continue;
+                Vector2 toEnemy = ((Vector2)e.transform.position - (Vector2)player.position);
+                if (toEnemy.sqrMagnitude > 0.01f)
+                    avgDir += toEnemy.normalized;
+            }
+        }
+
+        float angle;
+        if (avgDir.sqrMagnitude > 0.01f)
+        {
+            // 적이 많은 방향의 반대쪽 + 랜덤 분산
+            float enemyAngle = Mathf.Atan2(avgDir.y, avgDir.x);
+            float oppositeAngle = enemyAngle + Mathf.PI;
+            angle = oppositeAngle + Random.Range(-70f, 70f) * Mathf.Deg2Rad;
+        }
         else
-            angle = baseAngle + Random.Range(90f, 270f) * Mathf.Deg2Rad;   // 후방 반원
+        {
+            // 적이 없으면 완전 랜덤
+            angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        }
 
         float distance = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
         return player.position + new Vector3(
@@ -433,6 +503,19 @@ public class EnemySpawner : MonoBehaviour
         }
 
         Debug.Log($"[Surround] {data.monsterName} x{count} at dist={distance}, diff={difficultyScale}");
+    }
+
+    /// <summary>특정 위치에 몬스터 1마리 소환</summary>
+    public void SpawnAt(string monId, Vector3 pos, float difficultyScale = 1f, float speedScale = 1f)
+    {
+        int index = FindMonsterIndex(monId);
+        if (index < 0 || index >= enemyPrefabs.Count)
+        {
+            string allIds = string.Join(", ", monsterDataList.ConvertAll(m => m.monId));
+            Debug.LogWarning($"[SpawnAt] Failed: monId={monId}, index={index}, prefabs={enemyPrefabs.Count}, monsters={monsterDataList.Count}\nLoaded: {allIds}");
+            return;
+        }
+        SpawnOneEnemy(enemyPrefabs[index], monsterDataList[index], pos, difficultyScale, speedScale);
     }
 
     /// <summary>
@@ -537,6 +620,57 @@ public class EnemySpawner : MonoBehaviour
         ApplyMonsterData(boss, bossData, 1f);
 
         Debug.Log($"[EnemySpawner] BOSS spawned: {bossData.monsterName} at {elapsedTime / 60f:F1} min");
+    }
+
+    // ─── MINI BOSS ───
+
+    public void SpawnMiniBoss()
+    {
+        if (monsterDataList.Count == 0 || enemyPrefabs.Count == 0) return;
+
+        // 랜덤 몬스터를 미니보스로 선택
+        int index = GetWeightedRandomIndex();
+        if (index < 0) return;
+
+        GameObject prefab = enemyPrefabs[index];
+        MonsterData data = monsterDataList[index];
+
+        // 플레이어 전방에 스폰
+        float angle = Mathf.Atan2(playerMoveDir.y, playerMoveDir.x) + Random.Range(-45f, 45f) * Mathf.Deg2Rad;
+        float dist = Random.Range(minSpawnDistance, maxSpawnDistance);
+        Vector3 pos = player.position + new Vector3(Mathf.Cos(angle) * dist, Mathf.Sin(angle) * dist, 0f);
+
+        GameObject enemy = Instantiate(prefab);
+        enemy.name = $"[MiniBoss] {data.monId}";
+        enemy.SetActive(true);
+        enemy.transform.position = pos;
+        ApplyMonsterData(enemy, data, 1f);
+
+        // 미니보스 강화: 체력, 크기, 색상
+        var eh = enemy.GetComponent<EnemyHealth>();
+        if (eh != null)
+        {
+            eh.maxHealth = data.health * miniBossHealthScale;
+            eh.currentHealth = eh.maxHealth;
+            eh.isMiniBoss = true;
+        }
+
+        enemy.transform.localScale = new Vector3(data.scale * miniBossSizeScale, data.scale * miniBossSizeScale, 1f);
+
+        // MonsterBounce의 baseScale도 갱신
+        var bounce = enemy.GetComponent<MonsterBounce>();
+        if (bounce != null)
+            bounce.RefreshBaseScale();
+
+        // 붉은 색조 적용
+        var renderers = enemy.GetComponentsInChildren<SpriteRenderer>();
+        foreach (var sr in renderers)
+        {
+            if (sr.enabled)
+                sr.color = miniBossTint;
+        }
+
+        Debug.Log($"[MiniBoss] Spawned: {data.monId} (HP={data.health * miniBossHealthScale}, scale={data.scale * miniBossSizeScale})");
     }
 
     // ─── SIEGE WAVE (서서히 조여드는 포위망) ───
@@ -647,7 +781,9 @@ public class EnemySpawner : MonoBehaviour
     private List<ActiveWave> warningWaves = new List<ActiveWave>();
     private WarningWaveRow[] warningWaveRows;
     private float warningWaveTime;
+#pragma warning disable CS0414
     private bool warningWaveInitialized;
+#pragma warning restore CS0414
 
     /// <summary>Warning Wave 테이블 데이터 로드 (StageManager에서 호출)</summary>
     public void InitWarningWave(string wwGroupId)
@@ -716,10 +852,11 @@ public class EnemySpawner : MonoBehaviour
                 wave.spawnTimer -= Time.deltaTime;
                 if (wave.spawnTimer <= 0f)
                 {
-                    if (totalEnemies < wave.maxEnemies)
+                    for (int i = 0; i < wave.spawnCount; i++)
                     {
-                        SpawnArc(wave, wave.spawnCount, totalEnemies, wave.maxEnemies);
-                        totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                        if (totalEnemies >= wave.maxEnemies) break;
+                        SpawnMonster(wave);
+                        totalEnemies++;
                     }
                     wave.spawnTimer = wave.spawnInterval;
                 }
@@ -736,10 +873,11 @@ public class EnemySpawner : MonoBehaviour
                 wave.spawnTimer -= Time.deltaTime;
                 if (wave.spawnTimer <= 0f)
                 {
-                    if (totalEnemies < 100)
+                    for (int i = 0; i < wave.spawnCount; i++)
                     {
-                        SpawnArc(wave, wave.spawnCount, totalEnemies, 100);
-                        totalEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                        if (totalEnemies >= 100) break;
+                        SpawnMonster(wave);
+                        totalEnemies++;
                     }
                     wave.spawnTimer = wave.spawnInterval;
                 }
@@ -788,6 +926,14 @@ public class EnemySpawner : MonoBehaviour
 
         enemy.transform.localScale = new Vector3(data.scale, data.scale, 1f);
 
+        // 스프라이트 크기에 맞게 콜라이더 자동 조정 (70%로 여유)
+        var col = enemy.GetComponent<BoxCollider2D>();
+        if (col != null && sr != null && sr.sprite != null)
+        {
+            var bounds = sr.sprite.bounds;
+            col.size = bounds.size * 0.7f;
+        }
+
         // 바운스 효과 추가
         var bounce = enemy.AddComponent<MonsterBounce>();
         bounce.bounceSpeed = data.bounceSpeed;
@@ -802,6 +948,7 @@ public class EnemySpawner : MonoBehaviour
             eh.currentHealth = eh.maxHealth;
             eh.expDrop = data.expDrop;
             eh.goldDrop = data.goldDrop;
+            eh.fuelDropRate = data.fuelDropRate;
         }
 
         var ai = enemy.GetComponent<EnemyAI>();
@@ -810,5 +957,44 @@ public class EnemySpawner : MonoBehaviour
             ai.moveSpeed = data.moveSpeed * 0.85f;
             ai.contactDamage = data.contactDamage * difficultyScale;
         }
+
+        // 신호등 몬스터: 공구상자 드롭 + 색상 변환
+        if (data.specialAbility == "TrafficLight")
+        {
+            if (eh != null)
+                eh.toolboxPickupPrefab = CreateToolboxPickupPrefab();
+            enemy.AddComponent<TrafficLightColor>();
+        }
+
+        // 스킬이 있는 몬스터: MonsterAI 부착
+        var skillRows = TableManager.Instance.GetSkillsByMonster(data.monId);
+        if (skillRows != null && skillRows.Length > 0)
+        {
+            var monsterAI = enemy.AddComponent<MonsterAI>();
+            monsterAI.Initialize(skillRows);
+        }
+    }
+
+    private static GameObject _toolboxPrefabCache;
+    private GameObject CreateToolboxPickupPrefab()
+    {
+        if (_toolboxPrefabCache != null) return _toolboxPrefabCache;
+
+        var pickup = new GameObject("ToolboxPickupPrefab");
+        pickup.SetActive(false);
+
+        var sr = pickup.AddComponent<SpriteRenderer>();
+        sr.sprite = Resources.Load<Sprite>("Sprites/Icons/Item/FixBox/FixBox");
+        sr.sortingOrder = 3;
+        pickup.transform.localScale = Vector3.one * 0.17f;
+
+        var col = pickup.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = 0.5f;
+
+        pickup.AddComponent<ToolboxPickup>();
+
+        _toolboxPrefabCache = pickup;
+        return pickup;
     }
 }

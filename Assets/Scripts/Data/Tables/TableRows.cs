@@ -118,6 +118,32 @@ public class MonsterRow
 }
 
 // ============================================================
+// TB_MonsterSkill
+// ============================================================
+[MessagePackObject]
+public class MonsterSkillRow
+{
+    [Key(0)] public string skill_id;        // 예: MSK_TRUCK_CHARGE
+    [Key(1)] public string mon_id;          // 소속 몬스터 ID
+    [Key(2)] public string skill_name;      // 스킬 이름
+    [Key(3)] public string skill_type;      // Charge / Projectile / GroundAttack
+    [Key(4)] public float damage;           // 데미지
+    [Key(5)] public float cooldown;         // 쿨타임 (초)
+    [Key(6)] public float duration;         // 지속 시간
+    [Key(7)] public float speed;            // 돌진/투사체 속도
+    [Key(8)] public float range;            // 사거리/범위
+    [Key(9)] public int count;              // 투사체/돌출 개수
+    [Key(10)] public float warning_time;    // 공격 전 경고 시간
+    [Key(11)] public string sprite_key;     // 투사체/이펙트 스프라이트
+    [Key(12)] public int priority;          // 스킬 우선순위
+    [Key(13)] public float etc_value1;      // 스킬별 추가 값 1
+    [Key(14)] public float etc_value2;      // 스킬별 추가 값 2
+    [Key(15)] public float etc_value3;      // 스킬별 추가 값 3
+    [Key(16)] public float etc_value4;      // 스킬별 추가 값 4
+    [Key(17)] public float etc_value5;      // 스킬별 추가 값 5
+}
+
+// ============================================================
 // TB_MonsterDrop
 // ============================================================
 [MessagePackObject]
@@ -128,6 +154,8 @@ public class MonsterDropRow
     [Key(2)] public int exp_amount;
     [Key(3)] public int gold_amount;
     [Key(4)] public int screw_amount;
+    [Key(5)] public float fuel_drop_rate;
+    [Key(6)] public float turret_drop_rate;
 }
 
 // ============================================================
@@ -238,4 +266,5 @@ public class MapRow
     [Key(6)] public int grid_size;
     [Key(7)] public string special_effect;
     [Key(8)] public bool unlocked_by_default;
+    [Key(9)] public string trophy_icon;         // 트로피 아이콘 스프라이트 키 (예: trophy_ch1)
 }

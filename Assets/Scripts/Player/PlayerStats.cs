@@ -10,7 +10,7 @@ public class PlayerStats : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning($"[PlayerStats] 중복 인스턴스 감지! 기존={Instance.GetInstanceID()}, 새로운={GetInstanceID()}. 새 것 파괴.");
+            Debug.LogWarning($"[PlayerStats] 중복 인스턴스 감지! 기존={Instance.GetEntityId()}, 새로운={GetEntityId()}. 새 것 파괴.");
             Destroy(this);
             return;
         }
@@ -188,6 +188,13 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
+    public void Heal(float amount)
+    {
+        if (amount <= 0f || currentHealth >= maxHealth) return;
+        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
     private int pendingLevelUps = 0;
 
     public void AddExperience(int amount)
@@ -272,7 +279,12 @@ public class PlayerStats : MonoBehaviour
     private float healthRegenPercent = 0f;
     private float regenTimer = 0f;
 
-    private void RecalculateStats()
+    public void NotifyPartChanged()
+    {
+        OnPartChanged?.Invoke();
+    }
+
+    public void RecalculateStats()
     {
         float bonusSpeed = 0f;
         float bonusAttackSpeed = 0f;

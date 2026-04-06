@@ -47,7 +47,7 @@ public class ChainLightningEffect : MonoBehaviour
         if (allEnemies.Length == 0) return result;
 
         Vector3 currentPos = origin;
-        var used = new HashSet<int>();
+        var used = new HashSet<EntityId>();
 
         for (int i = 0; i < chainCount; i++)
         {
@@ -56,7 +56,7 @@ public class ChainLightningEffect : MonoBehaviour
 
             foreach (var e in allEnemies)
             {
-                if (e == null || used.Contains(e.GetInstanceID())) continue;
+                if (e == null || used.Contains(e.GetEntityId())) continue;
                 float dist = Vector3.Distance(currentPos, e.transform.position);
                 // 첫 타격은 넓은 범위, 이후는 chainRange
                 float maxDist = i == 0 ? chainRange * 2f : chainRange;
@@ -68,7 +68,7 @@ public class ChainLightningEffect : MonoBehaviour
             }
 
             if (best == null) break;
-            used.Add(best.GetInstanceID());
+            used.Add(best.GetEntityId());
             result.Add(best.transform);
             currentPos = best.transform.position;
         }

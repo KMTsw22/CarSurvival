@@ -127,13 +127,13 @@ public class CarController : MonoBehaviour
         return moveInput.sqrMagnitude > 0.01f ? moveInput : transform.up;
     }
 
-    private void OnTriggerStay2D(Collider2D other)
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        if (other.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Enemy"))
         {
-            var ai = other.GetComponent<EnemyAI>();
+            var ai = collision.gameObject.GetComponent<EnemyAI>();
             float dmg = ai != null ? ai.contactDamage : 10f;
-            stats.TakeDamage(dmg * Time.deltaTime);
+            stats.TakeDamage(dmg * Time.fixedDeltaTime);
         }
     }
 }

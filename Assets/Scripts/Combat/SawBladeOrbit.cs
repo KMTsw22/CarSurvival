@@ -39,7 +39,7 @@ public class SawBladeOrbit : MonoBehaviour
     {
         if (!other.CompareTag("Enemy")) return;
 
-        int id = other.GetInstanceID();
+        int id = other.GetEntityId();
         if (hitTimers.ContainsKey(id) && Time.time < hitTimers[id]) return;
         hitTimers[id] = Time.time + damageInterval;
 
@@ -50,6 +50,6 @@ public class SawBladeOrbit : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        hitTimers.Remove(other.GetInstanceID());
+        hitTimers.Remove(other.GetEntityId());
     }
 }

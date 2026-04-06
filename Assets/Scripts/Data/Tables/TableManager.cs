@@ -19,6 +19,7 @@ public class TableManager
     public SpellBookRow[] SpellBooks { get; private set; }
     public PartRow[] Parts { get; private set; }
     public MonsterRow[] Monsters { get; private set; }
+    public MonsterSkillRow[] MonsterSkills { get; private set; }
     public MonsterDropRow[] MonsterDrops { get; private set; }
     public WaveRow[] Waves { get; private set; }
     public WarningWaveRow[] WarningWaves { get; private set; }
@@ -51,6 +52,7 @@ public class TableManager
         SpellBooks = Load<SpellBookRow[]>("Tables/TB_SpellBook");
         Parts = Load<PartRow[]>("Tables/TB_Part");
         Monsters = Load<MonsterRow[]>("Tables/TB_Monster");
+        MonsterSkills = Load<MonsterSkillRow[]>("Tables/TB_MonsterSkill");
         MonsterDrops = Load<MonsterDropRow[]>("Tables/TB_MonsterDrop");
         Waves = Load<WaveRow[]>("Tables/TB_Wave");
         WarningWaves = Load<WarningWaveRow[]>("Tables/TB_WarningWave");
@@ -155,6 +157,12 @@ public class TableManager
         return Waves?.Where(w => w.wave_group_id == groupId && w.wave_no == waveNo).ToArray();
     }
 
+    /// <summary>특정 몬스터의 스킬 목록 (priority 순)</summary>
+    public MonsterSkillRow[] GetSkillsByMonster(string monId)
+    {
+        return MonsterSkills?.Where(s => s.mon_id == monId).OrderBy(s => s.priority).ToArray();
+    }
+
     /// <summary>특정 챕터의 몬스터 목록</summary>
     public MonsterRow[] GetMonstersByChapter(int chapter)
     {
@@ -180,6 +188,20 @@ public class TableManager
     }
 
     public StageRow GetStageById(string stageId) => _stageDict?.GetValueOrDefault(stageId);
+
+    /// <summary>맵 ID로 트로피 스프라이트 반환</summary>
+    public Sprite GetTrophySprite(string mapId)
+    {
+        var map = GetMap(mapId);
+        if (map != null && !string.IsNullOrEmpty(map.trophy_icon))
+            return Resources.Load<Sprite>("Sprites/Icons/Trophy/" + map.trophy_icon);
+
+        // fallback: 챕터 번호로 추론
+        if (map != null)
+            return Resources.Load<Sprite>($"Sprites/Icons/Trophy/trophy_ch{map.chapter}");
+
+        return null;
+    }
 
     /// <summary>특정 그룹의 Warning Wave 전체 반환</summary>
     public WarningWaveRow[] GetWarningWavesByGroup(string groupId)

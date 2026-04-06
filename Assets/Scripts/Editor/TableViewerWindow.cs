@@ -153,8 +153,8 @@ public class TableViewerWindow : EditorWindow
                     (MonsterRow r) => new[] { r.mon_id, r.mon_name, r.is_boss.ToString(), F(r.base_hp), F(r.base_speed), F(r.contact_damage), F(r.scale), r.chapter.ToString(), r.spawn_weight.ToString(), r.special_ability, r.sprite_key, F(r.bounce_speed), F(r.bounce_height), F(r.bounce_squash) });
                 break;
             case "TB_MonsterDrop":
-                LoadRows(data, new[] { "drop_id","mon_id","exp_amount","gold_amount","screw_amount" },
-                    (MonsterDropRow r) => new[] { r.drop_id, r.mon_id, r.exp_amount.ToString(), r.gold_amount.ToString(), r.screw_amount.ToString() });
+                LoadRows(data, new[] { "drop_id","mon_id","exp_amount","gold_amount","screw_amount","fuel_drop_rate" },
+                    (MonsterDropRow r) => new[] { r.drop_id, r.mon_id, r.exp_amount.ToString(), r.gold_amount.ToString(), r.screw_amount.ToString(), F(r.fuel_drop_rate) });
                 break;
             case "TB_Wave":
                 LoadRows(data, new[] { "wave_group_id","wave_no","mon_id","spawn_count","spawn_interval","max_enemies","difficulty_scale","note" },

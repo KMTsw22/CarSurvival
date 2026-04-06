@@ -81,11 +81,9 @@ public class SceneSetup
         var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
 
         bool mainLobbyExists = false;
-        bool sampleExists = false;
         foreach (var s in scenes)
         {
             if (s.path == scenePath) mainLobbyExists = true;
-            if (s.path.Contains("SampleScene")) sampleExists = true;
         }
 
         if (!mainLobbyExists)

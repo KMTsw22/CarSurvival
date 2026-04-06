@@ -44,6 +44,10 @@
         </ui:VisualElement>
         <ui:Label name="countdown-text" class="countdown-text"/>
         <ui:Label name="warning-text" class="warning-text"/>
+        <ui:VisualElement name="trophy-popup" class="trophy-popup">
+            <ui:VisualElement name="trophy-icon" class="trophy-icon"/>
+            <ui:Label name="trophy-text" text="TROPHY!" class="trophy-text"/>
+        </ui:VisualElement>
         <ui:VisualElement name="weapon-slots" class="slot-container weapon-slots" style="height: 12.5%; width: 30%;">
             <ui:VisualElement name="weapon-slot-0" class="item-slot">
                 <ui:VisualElement class="item-frame"/>

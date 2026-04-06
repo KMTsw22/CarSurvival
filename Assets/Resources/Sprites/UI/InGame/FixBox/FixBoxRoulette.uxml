@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Sprites/UI/InGame/FixBox/FixBoxRoulette.uss?fileID=7433441132597879392&amp;guid=9520205db9682f047b8675c7dd412948&amp;type=3#FixBoxRoulette"/>
+    <ui:VisualElement name="roulette-overlay" class="roulette-overlay">
+        <ui:VisualElement name="title-banner" class="title-banner"/>
+        <ui:VisualElement name="roulette-card" class="roulette-card">
+            <ui:VisualElement name="roulette-viewport" class="roulette-viewport">
+                <ui:VisualElement name="roulette-strip" class="roulette-strip"/>
+            </ui:VisualElement>
+            <ui:Label name="result-label" text="★ Skill Lv.UP! ★" class="result-label"/>
+        </ui:VisualElement>
+        <ui:Label name="continue-label" text="터치하여 계속" class="continue-label"/>
+    </ui:VisualElement>
+</ui:UXML>

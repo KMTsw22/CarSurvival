@@ -173,6 +173,7 @@ public class GameBootstrap : MonoBehaviour
             {
                 monster.expDrop = drop.exp_amount;
                 monster.goldDrop = drop.gold_amount;
+                monster.fuelDropRate = drop.fuel_drop_rate;
             }
 
             // 스프라이트 로드 시도 (Sprites/Monsters/ 하위 폴더 우선, 없으면 원본 경로)
@@ -294,53 +295,12 @@ public class GameBootstrap : MonoBehaviour
         }
     }
 
-    // ─── Background ───
+    // ─── Background (무한 스크롤) ───
     private void CreateBackground()
     {
-        var mapSprite = Resources.Load<Sprite>("Sprites/Maps/map_1");
-
-        if (mapSprite != null)
-        {
-            // map_1 이미지를 타일링하여 배경으로 사용
-            int gridSize = 4;
-            float tileSize = mapSprite.bounds.size.x;
-
-            for (int x = -gridSize; x <= gridSize; x++)
-            {
-                for (int y = -gridSize; y <= gridSize; y++)
-                {
-                    var tile = new GameObject($"BG_{x}_{y}");
-                    tile.transform.position = new Vector3(x * tileSize, y * tileSize, 0);
-
-                    var sr = tile.AddComponent<SpriteRenderer>();
-                    sr.sprite = mapSprite;
-                    sr.sortingOrder = -10;
-                }
-            }
-        }
-        else
-        {
-            // Fallback: 단색 배경
-            int gridSize = 10;
-            float tileSize = 6f;
-
-            for (int x = -gridSize; x <= gridSize; x++)
-            {
-                for (int y = -gridSize; y <= gridSize; y++)
-                {
-                    var tile = new GameObject($"Tile_{x}_{y}");
-                    tile.transform.position = new Vector3(x * tileSize, y * tileSize, 0);
-
-                    var sr = tile.AddComponent<SpriteRenderer>();
-                    sr.sprite = CreateSquareSprite();
-                    sr.color = (x + y) % 2 == 0
-                        ? new Color(0.15f, 0.15f, 0.2f)
-                        : new Color(0.12f, 0.12f, 0.17f);
-                    sr.sortingOrder = -10;
-                    tile.transform.localScale = new Vector3(tileSize, tileSize, 1);
-                }
-            }
-        }
+        var bgObj = new GameObject("InfiniteBackground");
+        var scroller = bgObj.AddComponent<InfiniteBackground>();
+        scroller.Init();
     }
 
     // ─── UI (UI Toolkit) ───
@@ -466,6 +426,8 @@ public class GameBootstrap : MonoBehaviour
         eh.expDrop = 2;
         eh.goldDrop = 5;
         eh.expPickupPrefab = CreateExpPickupPrefab();
+        eh.fuelPickupPrefab = CreateFuelPickupPrefab();
+        // toolboxPickupPrefab은 EnemySpawner에서 신호등 몬스터에만 할당
 
         // 몬스터 이펙트: 걷는 느낌 바운스 + 그림자 
         enemy.AddComponent<BounceEffect>();
@@ -481,10 +443,9 @@ public class GameBootstrap : MonoBehaviour
         pickup.SetActive(false);
 
         var sr = pickup.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateSquareSprite();
-        sr.color = new Color(0.3f, 0.8f, 1f, 0.8f);
+        sr.sprite = Resources.Load<Sprite>("Sprites/Icons/Exp/Exp_green");
         sr.sortingOrder = 3;
-        pickup.transform.localScale = Vector3.one * 0.25f;
+        pickup.transform.localScale = Vector3.one * 0.28f;
 
         var col = pickup.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
@@ -494,6 +455,30 @@ public class GameBootstrap : MonoBehaviour
 
         return pickup;
     }
+
+    private GameObject CreateFuelPickupPrefab()
+    {
+        var pickup = new GameObject("FuelPickupPrefab");
+        pickup.SetActive(false);
+
+        var sr = pickup.AddComponent<SpriteRenderer>();
+        sr.sprite = Resources.Load<Sprite>("Sprites/Icons/Item/GasStation/OilDrum");
+        sr.sortingOrder = 3;
+        pickup.transform.localScale = Vector3.one * 0.4f;
+
+        var col = pickup.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = 0.5f;
+
+        var fuel = pickup.AddComponent<FuelPickup>();
+        fuel.clockBorderSprite = Resources.Load<Sprite>("Sprites/Icons/Item/GasStation/clock_border");
+        fuel.clockInnerSprite = Resources.Load<Sprite>("Sprites/Icons/Item/GasStation/clock_inner");
+        fuel.gasStationSprite = Resources.Load<Sprite>("Sprites/Icons/Item/GasStation/GasStation");
+
+        return pickup;
+    }
+
+    // toolbox 프리팹은 EnemySpawner.CreateToolboxPickupPrefab()에서 생성
 
     // ─── Sprite Helpers ───
     private Sprite CreateSquareSprite()

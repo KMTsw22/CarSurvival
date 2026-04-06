@@ -139,16 +139,30 @@ public class AutoAttack : MonoBehaviour
         if (bulletPrefab == null) return;
 
         Vector2 aimDir = GetMouseDirection();
-        float angle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg - 90f;
-
+        float baseAngle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg - 90f;
+        float weaponDamage = stats.damage + CalcDamage(gunPart.data, gunPart.level);
         Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position + (Vector3)aimDir * 0.5f;
-        GameObject bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
-        bullet.SetActive(true);
-        Bullet b = bullet.GetComponent<Bullet>();
-        if (b != null)
+
+        // 2레벨마다 탄 +1: Lv1=1발, Lv3=2발, Lv5=3발, Lv7=4발, Lv9=5발
+        int bulletCount = 1 + (gunPart.level - 1) / 2;
+        float spreadAngle = 45f; // 탄 사이 각도
+
+        float totalSpread = (bulletCount - 1) * spreadAngle;
+        float startAngle = baseAngle - totalSpread / 2f;
+
+        for (int i = 0; i < bulletCount; i++)
         {
-            float weaponDamage = stats.damage + CalcDamage(gunPart.data, gunPart.level);
-            b.Initialize(aimDir, bulletSpeed, weaponDamage, bulletLifetime);
+            float angle = bulletCount == 1 ? baseAngle : startAngle + i * spreadAngle;
+            float rad = (angle + 90f) * Mathf.Deg2Rad;
+            Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
+
+            GameObject bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
+            bullet.SetActive(true);
+            Bullet b = bullet.GetComponent<Bullet>();
+            if (b != null)
+            {
+                b.Initialize(dir, bulletSpeed, weaponDamage, bulletLifetime);
+            }
         }
     }
 

@@ -37,6 +37,9 @@ public class StageManager : MonoBehaviour
     // 배경 맵 교체용
     private Sprite originalMapSprite;
     private Sprite bossMapSprite;
+    private GameObject bossMapObj;
+    private Vector3 arenaCenter;
+    private float savedOrthoSize;
 
     // 현재 스테이지 테이블 데이터
     private StageRow currentStage;
@@ -55,6 +58,7 @@ public class StageManager : MonoBehaviour
     public event Action OnBossDefeatedEvent;
     public event Action OnForceSummonWarning;               // 강제 소환 임박 경고
     public event Action OnWarningWaveStart;                  // Warning Wave 시작
+    public event Action OnMiniBossKilled;                    // 미니보스 처치
 
     /// <summary>현재 스테이지에서 필요한 열쇠 개수</summary>
     public int RequiredKeys => currentStage != null ? currentStage.key_item_count : 0;
@@ -90,7 +94,7 @@ public class StageManager : MonoBehaviour
 
     private void Start()
     {
-        enemySpawner = FindObjectOfType<EnemySpawner>();
+        enemySpawner = FindFirstObjectByType<EnemySpawner>();
         LoadStage(currentMapId, currentStageNo);
     }
 
@@ -192,6 +196,12 @@ public class StageManager : MonoBehaviour
         OnKeyCountChanged?.Invoke(collectedKeys, currentStage.key_item_count);
     }
 
+    /// <summary>미니보스 처치 알림 (EnemyHealth에서 호출)</summary>
+    public void NotifyMiniBossKilled()
+    {
+        OnMiniBossKilled?.Invoke();
+    }
+
     /// <summary>보스 소환 시작 - 카운트다운 진입 (UI 버튼에서 호출)</summary>
     public void TrySummonBoss()
     {
@@ -281,18 +291,21 @@ public class StageManager : MonoBehaviour
             portalObj = null;
         }
 
-        // 배경을 보스맵으로 교체
-        SwapBackground(true);
-
         // 모든 일반 몬스터 제거
         DestroyAllEnemies();
+
+        // 플레이어를 원점(맵 중앙)으로 텔레포트
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+            player.transform.position = Vector3.zero;
 
         // 보스 소환
         SpawnBossById(currentStage.boss_mon_id);
 
-        // 아레나 생성
+        // 아레나 생성 → 보스맵 교체 (arenaCenter 필요)
         if (currentBoss != null)
             CreateArena();
+        SwapBackground(true);
 
         OnBossSummoned?.Invoke();
         Debug.Log($"[StageManager] Portal entered! Boss summoned: {currentStage.boss_mon_id}");
@@ -309,89 +322,62 @@ public class StageManager : MonoBehaviour
         Debug.Log($"[StageManager] {enemies.Length} enemies destroyed");
     }
 
-    /// <summary>보스 아레나(벽) 생성</summary>
+    /// <summary>보스 아레나(보이지 않는 사각형 벽) 생성</summary>
     private void CreateArena()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
         if (player == null || currentBoss == null) return;
 
-        // 플레이어와 보스의 중간 지점을 아레나 중심으로
-        Vector3 center = (player.transform.position + currentBoss.transform.position) / 2f;
-        float distToBoss = Vector3.Distance(player.transform.position, currentBoss.transform.position);
-        float tableRadius = currentStage != null && currentStage.arena_radius > 0
-            ? currentStage.arena_radius : 8f;
-        float radius = Mathf.Max(tableRadius, distToBoss * 0.7f);
+        // 플레이어 위치(원점)를 아레나 중심으로
+        Vector3 center = player.transform.position;
 
+        if (bossMapSprite == null)
+            bossMapSprite = Resources.Load<Sprite>("Sprites/BossMap/Map1_Boss");
+
+        // 카메라 영역 기준으로 아레나 크기 결정
+        var cam = Camera.main;
+        float halfW, halfH;
+        if (cam != null)
+        {
+            halfH = cam.orthographicSize;
+            halfW = halfH * cam.aspect;
+        }
+        else
+        {
+            halfW = 21f;
+            halfH = 12f;
+        }
+
+        arenaCenter = center;
         arenaObj = new GameObject("BossArena");
         arenaObj.transform.position = center;
 
-        // 벽 세그먼트 수
-        int segments = 32;
-        float wallThickness = 0.5f;
+        float wallThickness = 3f;
 
-        for (int i = 0; i < segments; i++)
-        {
-            float angle = (360f / segments) * i * Mathf.Deg2Rad;
-            float nextAngle = (360f / segments) * (i + 1) * Mathf.Deg2Rad;
+        // 상하좌우 4개의 보이지 않는 벽 (벽 중심을 바깥쪽으로 밀어서 맵 안쪽 공간 유지)
+        float halfT = wallThickness / 2f;
+        CreateWall("Wall_Top", center + new Vector3(0, halfH + halfT, 0), halfW * 3.3f + wallThickness * 3.3f, wallThickness);
+        CreateWall("Wall_Bottom", center + new Vector3(0, -halfH - halfT, 0), halfW * 3.3f + wallThickness * 3.3f, wallThickness);
+        CreateWall("Wall_Left", center + new Vector3(-halfW - halfT, 0, 0), wallThickness, halfH * 3.3f + wallThickness * 3.3f);
+        CreateWall("Wall_Right", center + new Vector3(halfW + halfT, 0, 0), wallThickness, halfH * 3.3f + wallThickness * 3.3f);
 
-            Vector3 pos = center + new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * radius;
+        // 카메라 클램핑 설정
+        var camFollow = Camera.main?.GetComponent<CameraFollow>();
+        if (camFollow != null)
+            camFollow.SetBounds(center, halfW, halfH);
 
-            var wall = new GameObject($"Wall_{i}");
-            wall.transform.SetParent(arenaObj.transform);
-            wall.transform.position = pos;
-
-            // 벽 콜라이더
-            var col = wall.AddComponent<BoxCollider2D>();
-            float segLength = 2f * Mathf.PI * radius / segments;
-            col.size = new Vector2(segLength, wallThickness);
-
-            // 벽의 각도 맞추기
-            float angleDeg = (360f / segments) * i + 90f;
-            wall.transform.rotation = Quaternion.Euler(0, 0, angleDeg);
-
-            // 비주얼
-            var sr = wall.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateWallSprite();
-            sr.color = new Color(1f, 0.3f, 0.2f, 0.7f);
-            sr.sortingOrder = 5;
-            wall.transform.localScale = new Vector3(segLength, wallThickness, 1f);
-        }
-
-        // 아레나 가장자리 시각 효과 (원형 라인)
-        var ring = new GameObject("ArenaRing");
-        ring.transform.SetParent(arenaObj.transform);
-        ring.transform.position = center;
-
-        var lr = ring.AddComponent<LineRenderer>();
-        lr.positionCount = segments + 1;
-        lr.startWidth = 0.15f;
-        lr.endWidth = 0.15f;
-        lr.loop = false;
-        lr.useWorldSpace = true;
-        lr.sortingOrder = 4;
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        lr.startColor = new Color(1f, 0.4f, 0.2f, 0.9f);
-        lr.endColor = new Color(1f, 0.4f, 0.2f, 0.9f);
-
-        for (int i = 0; i <= segments; i++)
-        {
-            float angle = (360f / segments) * i * Mathf.Deg2Rad;
-            Vector3 pos = center + new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * radius;
-            lr.SetPosition(i, pos);
-        }
-
-        Debug.Log($"[StageManager] Arena created at {center}, radius={radius:F1}");
+        Debug.Log($"[StageManager] Arena created at {center}, size={halfW * 3.3f:F1}x{halfH * 3.3f:F1}");
     }
 
-    private Sprite CreateWallSprite()
+    private void CreateWall(string name, Vector3 pos, float width, float height)
     {
-        var tex = new Texture2D(4, 4);
-        for (int x = 0; x < 4; x++)
-            for (int y = 0; y < 4; y++)
-                tex.SetPixel(x, y, Color.white);
-        tex.Apply();
-        tex.filterMode = FilterMode.Point;
-        return Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4);
+        var wall = new GameObject(name);
+        wall.transform.SetParent(arenaObj.transform);
+        wall.transform.position = pos;
+        var col = wall.AddComponent<BoxCollider2D>();
+        col.size = new Vector2(width, height);
+        var rb = wall.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Static;
     }
 
     /// <summary>아레나 제거</summary>
@@ -402,6 +388,11 @@ public class StageManager : MonoBehaviour
             Destroy(arenaObj);
             arenaObj = null;
         }
+
+        // 카메라 클램핑 해제
+        var camFollow = Camera.main?.GetComponent<CameraFollow>();
+        if (camFollow != null)
+            camFollow.ClearBounds();
     }
 
     private void SpawnBossById(string bossMonId)
@@ -417,9 +408,7 @@ public class StageManager : MonoBehaviour
 
                 // 보스를 플레이어 앞 적당한 거리에 소환
                 float angle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
-                float spawnRadius = currentStage != null && currentStage.arena_radius > 0
-                    ? currentStage.arena_radius : 8f;
-                float spawnDist = spawnRadius * 0.5f;
+                float spawnDist = 5f;
                 Vector3 spawnPos = player.transform.position + new Vector3(
                     Mathf.Cos(angle) * spawnDist,
                     Mathf.Sin(angle) * spawnDist, 0f);
@@ -458,6 +447,28 @@ public class StageManager : MonoBehaviour
                     ai.contactDamage = data.contactDamage;
                 }
 
+                // 스킬 AI 초기화
+                var skillRows = TableManager.Instance.GetSkillsByMonster(data.monId);
+                if (skillRows != null && skillRows.Length > 0)
+                {
+                    var monsterAI = currentBoss.AddComponent<MonsterAI>();
+                    monsterAI.Initialize(skillRows);
+                }
+
+                // 콜라이더를 차체 중심부에 맞춤
+                var col = currentBoss.GetComponent<BoxCollider2D>();
+                var bossSr = currentBoss.GetComponent<SpriteRenderer>();
+                if (col != null && bossSr != null && bossSr.sprite != null)
+                {
+                    var bounds = bossSr.sprite.bounds;
+                    col.size = new Vector2(bounds.size.x * 0.5f, bounds.size.y * 0.4f);
+                    col.offset = new Vector2(0f, -bounds.size.y * 0.1f);
+                }
+
+                // 불꽃 이펙트
+                var fireEffect = currentBoss.AddComponent<BossFireEffect>();
+                fireEffect.Initialize();
+
                 return;
             }
         }
@@ -465,25 +476,54 @@ public class StageManager : MonoBehaviour
         Debug.LogWarning($"[StageManager] Boss not found: {bossMonId}");
     }
 
-    /// <summary>배경 맵 교체 (보스맵 ↔ 일반맵)</summary>
+    /// <summary>배경 맵 교체 (보스맵 ↔ 일반맵) + 카메라 고정</summary>
     private void SwapBackground(bool toBoss)
     {
         if (bossMapSprite == null)
             bossMapSprite = Resources.Load<Sprite>("Sprites/BossMap/Map1_Boss");
 
-        var allRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
+        // 기존 타일 숨기기/보이기
+        var allRenderers = FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Exclude);
         foreach (var sr in allRenderers)
         {
             if (!sr.gameObject.name.StartsWith("BG_")) continue;
+            sr.enabled = !toBoss;
+        }
 
-            if (toBoss)
+        var cam = Camera.main;
+        var camFollow = cam != null ? cam.GetComponent<CameraFollow>() : null;
+
+        if (toBoss)
+        {
+            if (bossMapObj != null) Destroy(bossMapObj);
+
+            // 카메라를 기본 크기로 리셋
+            if (cam != null)
+                cam.orthographicSize = 12f;
+
+            bossMapObj = new GameObject("BossMap");
+            var sr2 = bossMapObj.AddComponent<SpriteRenderer>();
+            sr2.sprite = bossMapSprite;
+            sr2.sortingOrder = -10;
+            bossMapObj.transform.position = new Vector3(arenaCenter.x, arenaCenter.y, 0f);
+
+            // 카메라 영역에 딱 맞게 스케일링 (가로/세로 독립)
+            if (cam != null && bossMapSprite != null)
             {
-                if (originalMapSprite == null) originalMapSprite = sr.sprite;
-                if (bossMapSprite != null) sr.sprite = bossMapSprite;
+                float camH = cam.orthographicSize * 2f;
+                float camW = camH * cam.aspect;
+                float scaleX = camW / bossMapSprite.bounds.size.x;
+                float scaleY = camH / bossMapSprite.bounds.size.y;
+                bossMapObj.transform.localScale = new Vector3(scaleX, scaleY, 1f);
             }
-            else
+        }
+        else
+        {
+            // 보스맵 제거
+            if (bossMapObj != null)
             {
-                if (originalMapSprite != null) sr.sprite = originalMapSprite;
+                Destroy(bossMapObj);
+                bossMapObj = null;
             }
         }
     }

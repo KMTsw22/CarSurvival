@@ -305,8 +305,19 @@ public class CheatWindow : EditorWindow
             CheatAddGold();
         EditorGUILayout.EndHorizontal();
 
+        if (GUILayout.Button("즉시 보스전", GUILayout.Height(30)))
+            CheatSkipToBoss();
+        if (GUILayout.Button("연료 드롭 (주변 3개)", GUILayout.Height(25)))
+            CheatSpawnFuel();
+        if (GUILayout.Button("신호등 몬스터 소환", GUILayout.Height(25)))
+            CheatSpawnTrafficMonster();
+        if (GUILayout.Button("공구상자 드롭 (주변 10)", GUILayout.Height(25)))
+            CheatSpawnToolbox();
+        if (GUILayout.Button("미니보스 소환", GUILayout.Height(25)))
+            CheatSpawnMiniBoss();
+
         EditorGUILayout.Space(4);
-        var autoAttack = Application.isPlaying ? Object.FindFirstObjectByType<AutoAttack>() : null;
+        var autoAttack = Application.isPlaying ? Object.FindAnyObjectByType<AutoAttack>() : null;
         if (autoAttack != null)
         {
             var oldColor = GUI.backgroundColor;
@@ -508,7 +519,7 @@ public class CheatWindow : EditorWindow
             return;
         }
 
-        var flame = Object.FindFirstObjectByType<FlamethrowerEffect>();
+        var flame = Object.FindAnyObjectByType<FlamethrowerEffect>();
 
         // ─── 화염방사기 ───
         EditorGUILayout.LabelField("화염방사기 조정", EditorStyles.boldLabel);
@@ -815,6 +826,102 @@ public class CheatWindow : EditorWindow
         }
     }
 
+    private void CheatSkipToBoss()
+    {
+        if (!Application.isPlaying) return;
+        var sm = StageManager.Instance;
+        if (sm == null)
+        {
+            Debug.LogWarning("[Cheat] StageManager not found");
+            return;
+        }
+        if (sm.CurrentPhase != StageManager.BossPhase.Collecting)
+        {
+            Debug.LogWarning("[Cheat] 이미 보스전 진행 중");
+            return;
+        }
+        // 열쇠를 자동으로 채우고 소환
+        sm.collectedKeys = sm.RequiredKeys;
+        sm.TrySummonBoss();
+        Debug.Log("[Cheat] 즉시 보스전 진입!");
+    }
+
+    private void CheatSpawnTrafficMonster()
+    {
+        if (!Application.isPlaying) return;
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+
+        var spawner = Object.FindAnyObjectByType<EnemySpawner>();
+        if (spawner == null) return;
+
+        Vector3 offset = (Vector3)(Random.insideUnitCircle.normalized * 6f);
+        spawner.SpawnAt("MON_TRAFFIC", player.transform.position + offset);
+        Debug.Log("[Cheat] 신호등 몬스터 소환!");
+    }
+
+    private void CheatSpawnMiniBoss()
+    {
+        if (!Application.isPlaying) return;
+
+        var spawner = Object.FindAnyObjectByType<EnemySpawner>();
+        if (spawner == null) return;
+
+        spawner.SpawnMiniBoss();
+        Debug.Log("[Cheat] 미니보스 소환!");
+    }
+
+    private void CheatSpawnToolbox()
+    {
+        if (!Application.isPlaying) return;
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+
+        Vector3 offset = (Vector3)(Random.insideUnitCircle.normalized * 10f);
+        Vector3 pos = player.transform.position + offset;
+
+        var spawner = Object.FindAnyObjectByType<EnemySpawner>();
+        if (spawner == null) return;
+
+        // EnemySpawner의 CreateToolboxPickupPrefab은 private이므로 직접 생성
+        var pickup = new GameObject("ToolboxPickup_Cheat");
+        var sr = pickup.AddComponent<SpriteRenderer>();
+        sr.sprite = Resources.Load<Sprite>("Sprites/Icons/Item/FixBox/FixBox");
+        sr.sortingOrder = 3;
+        pickup.transform.localScale = Vector3.one * 0.5f;
+        pickup.transform.position = pos;
+
+        var col = pickup.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = 0.5f;
+
+        pickup.AddComponent<ToolboxPickup>();
+        Debug.Log("[Cheat] 공구상자 드롭!");
+    }
+
+    private void CheatSpawnFuel()
+    {
+        if (!Application.isPlaying) return;
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+
+        // EnemyHealth에서 fuelPickupPrefab 가져오기
+        var eh = Object.FindAnyObjectByType<EnemyHealth>();
+        if (eh == null || eh.fuelPickupPrefab == null)
+        {
+            Debug.LogWarning("[Cheat] fuelPickupPrefab을 찾을 수 없음");
+            return;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            Vector3 offset = (Vector3)(Random.insideUnitCircle * 2f);
+            var fuel = Instantiate(eh.fuelPickupPrefab, player.transform.position + offset, Quaternion.identity);
+            fuel.SetActive(true);
+        }
+        Debug.Log("[Cheat] 연료 3개 드롭!");
+    }
+
     // ─── Time Skip ───
 
     private void CheatTimeSkip(PlayerStats stats, float delta)
@@ -852,7 +959,7 @@ public class CheatWindow : EditorWindow
         }
 
         // HUDManager playerStats 참조 보장
-        var hud = Object.FindFirstObjectByType<HUDManager>();
+        var hud = Object.FindAnyObjectByType<HUDManager>();
         if (hud != null)
         {
             var field = typeof(HUDManager).GetField("playerStats", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -890,6 +997,6 @@ public class CheatWindow : EditorWindow
 
     private EnemySpawner FindSpawner()
     {
-        return Object.FindFirstObjectByType<EnemySpawner>();
+        return Object.FindAnyObjectByType<EnemySpawner>();
     }
 }

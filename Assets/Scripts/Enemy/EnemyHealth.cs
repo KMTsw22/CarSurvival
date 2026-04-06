@@ -8,6 +8,11 @@ public class EnemyHealth : MonoBehaviour
     public int expDrop = 1;
     public int goldDrop = 5;
     public GameObject expPickupPrefab;
+    public GameObject fuelPickupPrefab;
+    public float fuelDropRate = 0f;
+    public GameObject toolboxPickupPrefab;
+    [HideInInspector] public float damageReduction;
+    [HideInInspector] public bool isMiniBoss = false;
 
     private SpriteRenderer[] spriteRenderers;
     private Color[] originalColors;
@@ -83,6 +88,8 @@ public class EnemyHealth : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        if (damageReduction > 0f)
+            damage *= (1f - damageReduction);
         currentHealth -= damage;
 
         // 빨간색 플래시
@@ -129,12 +136,12 @@ public class EnemyHealth : MonoBehaviour
 
             if (!skipExp)
             {
-                for (int i = 0; i < expDrop; i++)
-                {
-                    Vector3 offset = Random.insideUnitCircle * 0.5f;
-                    var pickup = Instantiate(expPickupPrefab, transform.position + offset, Quaternion.identity);
-                    pickup.SetActive(true);
-                }
+                Vector3 offset = Random.insideUnitCircle * 0.3f;
+                var pickup = Instantiate(expPickupPrefab, transform.position + offset, Quaternion.identity);
+                var expComp = pickup.GetComponent<ExperiencePickup>();
+                if (expComp != null)
+                    expComp.expAmount = expDrop;
+                pickup.SetActive(true);
             }
         }
 
@@ -146,11 +153,31 @@ public class EnemyHealth : MonoBehaviour
             player.gold += goldDrop;
         }
 
-        // 열쇠 아이템 드롭 (확률)
-        if (StageManager.Instance != null && !StageManager.Instance.CanSummonBoss)
+        // 연료 아이템 드롭 (확률)
+        if (fuelPickupPrefab != null && fuelDropRate > 0f && Random.value * 100f < fuelDropRate)
         {
-            if (Random.value < 0.15f)
-                StageManager.Instance.AddKey(1);
+            Vector3 offset = Random.insideUnitCircle * 0.3f;
+            var fuel = Instantiate(fuelPickupPrefab, transform.position + offset, Quaternion.identity);
+            fuel.SetActive(true);
+        }
+
+        // 공구상자 드롭 (신호등 몬스터 전용 - 100%)
+        if (toolboxPickupPrefab != null)
+        {
+            var toolbox = Instantiate(toolboxPickupPrefab, transform.position, Quaternion.identity);
+            toolbox.SetActive(true);
+        }
+
+        // 열쇠 아이템 드롭 (미니보스 처치 시 확정)
+        if (isMiniBoss && StageManager.Instance != null && !StageManager.Instance.CanSummonBoss)
+        {
+            StageManager.Instance.AddKey(1);
+        }
+
+        // 미니보스 처치 트로피 표시
+        if (isMiniBoss && StageManager.Instance != null)
+        {
+            StageManager.Instance.NotifyMiniBossKilled();
         }
 
         Destroy(gameObject);
