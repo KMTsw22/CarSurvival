@@ -88,6 +88,11 @@ public class EnemyHealth : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        TakeDamage(damage, Vector2.zero, 0f);
+    }
+
+    public void TakeDamage(float damage, Vector2 knockbackDir, float knockbackForce)
+    {
         if (damageReduction > 0f)
             damage *= (1f - damageReduction);
         currentHealth -= damage;
@@ -108,6 +113,14 @@ public class EnemyHealth : MonoBehaviour
         isScaling = true;
         scaleTimer = scaleDuration;
 
+        // 넉백 적용
+        if (knockbackForce > 0f)
+        {
+            var ai = GetComponent<EnemyAI>();
+            if (ai != null)
+                ai.Knockback(knockbackDir, knockbackForce);
+        }
+
         if (currentHealth <= 0f)
         {
             Die();
@@ -125,6 +138,13 @@ public class EnemyHealth : MonoBehaviour
 
     private void Die()
     {
+        // 사망 파티클 폭발
+        SpawnDeathParticles();
+
+        // 콤보 등록
+        if (ComboSystem.Instance != null)
+            ComboSystem.Instance.RegisterKill();
+
         // Drop experience pickups
         if (expPickupPrefab != null)
         {
@@ -181,5 +201,40 @@ public class EnemyHealth : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    private void SpawnDeathParticles()
+    {
+        var go = new GameObject("DeathBurst");
+        go.transform.position = transform.position;
+
+        var ps = go.AddComponent<ParticleSystem>();
+        var main = ps.main;
+        main.startLifetime = 0.6f;
+        main.startSpeed = new ParticleSystem.MinMaxCurve(14f, 28f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.3f, 0.8f);
+        main.startColor = new ParticleSystem.MinMaxGradient(Color.yellow, new Color(1f, 0.2f, 0f));
+        main.maxParticles = 30;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.gravityModifier = 0.5f;
+        main.stopAction = ParticleSystemStopAction.Destroy;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 0;
+        emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 25) });
+
+        var shape = ps.shape;
+        shape.shapeType = ParticleSystemShapeType.Circle;
+        shape.radius = 0.3f;
+
+        var sizeOverLifetime = ps.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 1f, 1f, 0f));
+
+        // 기본 머티리얼 (스프라이트 없이 파티클 렌더링)
+        var renderer = go.GetComponent<ParticleSystemRenderer>();
+        renderer.material = new Material(Shader.Find("Sprites/Default"));
+
+        ps.Play();
     }
 }

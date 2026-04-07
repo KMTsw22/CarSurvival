@@ -43,8 +43,9 @@ public class AutoAttack : MonoBehaviour
     {
         if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
 
-        // 기본무기: 기관총 (항상 발동)
-        HandleMachineGun();
+        // 기본무기: 기관총 (장착 시에만 발동)
+        if (stats.equippedParts.Exists(p => p.data.weaponType == WeaponType.MachineGun))
+            HandleMachineGun();
 
         // 주무기 처리 (레이저 캐논)
         HandleMainWeapons();

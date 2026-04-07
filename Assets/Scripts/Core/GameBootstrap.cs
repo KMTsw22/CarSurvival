@@ -244,6 +244,12 @@ public class GameBootstrap : MonoBehaviour
         Camera.main.orthographicSize = 12f;
         var follow = Camera.main.gameObject.AddComponent<CameraFollow>();
         follow.target = playerCar.transform;
+
+        // ScreenEffects (히트스톱 + 저체력 경고)
+        Camera.main.gameObject.AddComponent<ScreenEffects>();
+
+        // 콤보 시스템
+        Camera.main.gameObject.AddComponent<ComboSystem>();
     }
 
     // ─── Game Manager ───

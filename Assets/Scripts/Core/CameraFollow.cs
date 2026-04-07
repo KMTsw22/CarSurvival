@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
+    public static CameraFollow Instance { get; private set; }
+
     public Transform target;
     public float smoothSpeed = 5f;
     public Vector3 offset = new Vector3(0, 0, -10f);
@@ -14,9 +16,30 @@ public class CameraFollow : MonoBehaviour
     private float boundsHalfW;
     private float boundsHalfH;
 
+    // Screen Shake
+    private float shakeDuration;
+    private float shakeMagnitude;
+    private float shakeDecay;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     private void Start()
     {
         cam = GetComponent<Camera>();
+    }
+
+    /// <summary>화면 흔들림. intensity가 클수록 강하게, duration 동안 지속</summary>
+    public void Shake(float intensity, float duration)
+    {
+        if (intensity > shakeMagnitude) // 더 강한 흔들림만 덮어씌움
+        {
+            shakeMagnitude = intensity;
+            shakeDuration = duration;
+            shakeDecay = intensity / duration;
+        }
     }
 
     /// <summary>보스전 아레나 범위 설정 — 카메라가 이 범위 밖을 비추지 않음</summary>
@@ -41,6 +64,16 @@ public class CameraFollow : MonoBehaviour
         Vector3 desired = target.position + offset;
         transform.position = Vector3.Lerp(transform.position, desired, smoothSpeed * Time.deltaTime);
 
+        // Screen Shake 적용
+        if (shakeDuration > 0f)
+        {
+            Vector2 shakeOffset = Random.insideUnitCircle * shakeMagnitude;
+            transform.position += (Vector3)shakeOffset;
+            shakeMagnitude -= shakeDecay * Time.unscaledDeltaTime;
+            shakeDuration -= Time.unscaledDeltaTime;
+            if (shakeDuration <= 0f)
+                shakeMagnitude = 0f;
+        }
 
         // 아레나 범위 내로 카메라 클램핑
         if (hasBounds && cam != null)

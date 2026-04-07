@@ -28,7 +28,7 @@ public class CarController : MonoBehaviour
     [Header("Booster")]
     public float boosterMaxGauge = 100f;
     public float boosterDrainRate = 100f / 3f;      // 3초에 100 소모
-    public float boosterRechargeRate = 100f / 10f;   // 10초에 100 충전
+    public float boosterRechargeRate = 100f / 3f;    // 3초에 100 충전
     public float boosterRechargeDelay = 1f;          // 사용 중지 후 1초 뒤 충전 시작
     public float boosterMaxSpeedMult = 2f;             // 최대 200%
     public float boosterRampUpTime = 0.5f;           // 0→150% 도달 시간
@@ -146,8 +146,14 @@ public class CarController : MonoBehaviour
     public float contactRadius = 1.0f;
     private readonly List<Collider2D> contactBuffer = new List<Collider2D>();
 
+    // 부스터 충돌 이펙트 쿨다운 (과도한 흔들림 방지)
+    private float boostImpactCooldown;
+
     private void DetectEnemyContact()
     {
+        if (boostImpactCooldown > 0f)
+            boostImpactCooldown -= Time.fixedDeltaTime;
+
         int count = Physics2D.OverlapCircle(transform.position, contactRadius, ContactFilter2D.noFilter, contactBuffer);
         for (int i = 0; i < count; i++)
         {
@@ -156,14 +162,32 @@ public class CarController : MonoBehaviour
 
             if (isBoosting)
             {
-                // 부스터 중: 무적 + 적에게 데미지
+                // 부스터 중: 적에게 데미지 + 넉백
                 var eh = col.GetComponent<EnemyHealth>();
                 if (eh != null)
-                    eh.TakeDamage(boosterDamage * Time.fixedDeltaTime);
+                {
+                    Vector2 knockDir = ((Vector2)col.transform.position - (Vector2)transform.position).normalized;
+                    eh.TakeDamage(boosterDamage * Time.fixedDeltaTime, knockDir, 60f);
+                }
+
+                // 부스터 중 피격: 데미지 50% 감소
+                var ai = col.GetComponent<EnemyAI>();
+                float dmg = ai != null ? ai.contactDamage : 10f;
+                stats.TakeDamage(dmg * 0.5f * Time.fixedDeltaTime);
+
+                // 이펙트 (쿨다운으로 프레임마다 발동 방지)
+                if (boostImpactCooldown <= 0f)
+                {
+                    if (CameraFollow.Instance != null)
+                        CameraFollow.Instance.Shake(0.8f, 0.25f);
+                    if (ScreenEffects.Instance != null)
+                        ScreenEffects.Instance.HitStop(0.06f);
+                    boostImpactCooldown = 0.2f;
+                }
             }
             else
             {
-                // 비부스터: 플레이어가 데미지 받음
+                // 비부스터: 플레이어가 데미지 받음 (100%)
                 var ai = col.GetComponent<EnemyAI>();
                 float dmg = ai != null ? ai.contactDamage : 10f;
                 stats.TakeDamage(dmg * Time.fixedDeltaTime);

@@ -160,6 +160,9 @@ public class PlayerStats : MonoBehaviour
         NotifyAll();
     }
 
+    // 피격 이펙트 쿨다운 (연속 피격 시 매 프레임 흔들리는 것 방지)
+    private float hitEffectCooldown;
+
     public void TakeDamage(float amount)
     {
         if (isInvincible) return;
@@ -168,9 +171,24 @@ public class PlayerStats : MonoBehaviour
         currentHealth -= reduced;
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
+        // 피격 시 화면 흔들림 (쿨다운 적용)
+        if (hitEffectCooldown <= 0f)
+        {
+            if (CameraFollow.Instance != null)
+                CameraFollow.Instance.Shake(0.25f, 0.1f);
+            hitEffectCooldown = 0.3f;
+        }
+        else
+        {
+            hitEffectCooldown -= Time.deltaTime;
+        }
+
         if (currentHealth <= 0f)
         {
             currentHealth = 0f;
+            // 사망 시 강한 흔들림
+            if (CameraFollow.Instance != null)
+                CameraFollow.Instance.Shake(0.8f, 0.4f);
             OnPlayerDeath?.Invoke();
             GameManager.Instance.OnPlayerDeath();
         }

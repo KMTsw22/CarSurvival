@@ -24,11 +24,24 @@ public class EnemyAI : MonoBehaviour
     private static readonly float separationForce = 12f;
     private static readonly List<Collider2D> overlapBuffer = new List<Collider2D>(16);
 
+    // 넉백
+    private Vector2 knockbackVelocity;
+    private float knockbackTimer;
+
+    // 분노 (넉백 후 더 빠르게 돌아옴)
+    private float rageMultiplier = 1f;
+    private float rageTimer;
+    private const float rageDuration = 3f;
+    private const float rageSpeedMult = 1.8f;
+
+    private SpriteRenderer cachedSR;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        cachedSR = GetComponent<SpriteRenderer>();
         // 각 몬스터마다 -40°~+40° 랜덤 오프셋 → 부채꼴로 퍼져서 포위
         chaseAngleOffset = Random.Range(-40f, 40f) * Mathf.Deg2Rad;
     }
@@ -53,6 +66,16 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
+        // 넉백 처리 (넉백 중에는 이동 불가)
+        if (knockbackTimer > 0f)
+        {
+            knockbackTimer -= Time.deltaTime;
+            // 감속하면서 날아감
+            float t = knockbackTimer > 0f ? knockbackTimer / 0.3f : 0f;
+            transform.position += (Vector3)(knockbackVelocity * t * Time.deltaTime);
+            return;
+        }
+
         // Stun check
         if (stunTimer > 0f)
         {
@@ -68,6 +91,22 @@ public class EnemyAI : MonoBehaviour
         else
         {
             slowMultiplier = 1f;
+        }
+
+        // 분노 타이머
+        if (rageTimer > 0f)
+        {
+            rageTimer -= Time.deltaTime;
+            rageMultiplier = rageSpeedMult;
+            // 분노 중 빨간 틴트
+            if (cachedSR != null)
+                cachedSR.color = Color.Lerp(Color.white, new Color(1f, 0.4f, 0.4f), 0.5f);
+        }
+        else if (rageMultiplier > 1f)
+        {
+            rageMultiplier = 1f;
+            if (cachedSR != null)
+                cachedSR.color = Color.white;
         }
 
         // Chase player — 각도 오프셋으로 포위하듯 접근
@@ -88,7 +127,7 @@ public class EnemyAI : MonoBehaviour
             direction.x * sin + direction.y * cos
         );
 
-        Vector2 move = offsetDir * moveSpeed * slowMultiplier * Time.deltaTime;
+        Vector2 move = offsetDir * moveSpeed * slowMultiplier * rageMultiplier * Time.deltaTime;
 
         // 몬스터 겹침 방지: 가까운 적과 서로 밀어냄
         int count = Physics2D.OverlapCircle(myPos, separationRadius, new ContactFilter2D().NoFilter(), overlapBuffer);
@@ -112,9 +151,8 @@ public class EnemyAI : MonoBehaviour
         transform.position += (Vector3)move;
 
         // 좌우 플립
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr != null && direction.x != 0f)
-            sr.flipX = direction.x < 0;
+        if (cachedSR != null && direction.x != 0f)
+            cachedSR.flipX = direction.x < 0;
 
         // Despawn if too far from player
         float despawnDist = Vector2.Distance(transform.position, player.position);
@@ -133,5 +171,14 @@ public class EnemyAI : MonoBehaviour
     {
         slowMultiplier = multiplier;
         slowTimer = duration;
+    }
+
+    /// <summary>넉백: direction 방향으로 force 세기만큼 밀려남. 넉백 후 분노 상태 진입</summary>
+    public void Knockback(Vector2 direction, float force)
+    {
+        knockbackVelocity = direction.normalized * force;
+        knockbackTimer = 0.5f;
+        // 넉백 후 분노: 더 빨리 돌아옴
+        rageTimer = rageDuration;
     }
 }
