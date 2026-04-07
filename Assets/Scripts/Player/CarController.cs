@@ -52,6 +52,7 @@ public class CarController : MonoBehaviour
         stats = GetComponent<PlayerStats>();
         rb.gravityScale = 0f;
         rb.linearDamping = 0f;
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         boosterGauge = boosterMaxGauge;
         facingAngle = 90f; // 초기 방향: 위쪽
         CreateShieldVisual();

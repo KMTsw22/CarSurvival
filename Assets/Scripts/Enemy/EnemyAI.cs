@@ -28,6 +28,7 @@ public class EnemyAI : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         // 각 몬스터마다 -40°~+40° 랜덤 오프셋 → 부채꼴로 퍼져서 포위
         chaseAngleOffset = Random.Range(-40f, 40f) * Mathf.Deg2Rad;
     }

@@ -4,7 +4,7 @@ public class ExperiencePickup : MonoBehaviour
 {
     public int expAmount = 1;
     public float baseMagnetRange = 3f;
-    public float magnetSpeed = 10f;
+    public float magnetSpeed = 25f;
     public float collectRange = 1f;
 
     private Transform player;
