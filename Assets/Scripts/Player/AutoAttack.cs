@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 public class AutoAttack : MonoBehaviour
 {
-    [Header("Machine Gun (Default Weapon)")]
+    [Header("Projectile")]
     public GameObject bulletPrefab;
-    public float baseCooldown = 0.3f;
     public float bulletSpeed = 15f;
     public float bulletLifetime = 2f;
 
@@ -13,8 +12,11 @@ public class AutoAttack : MonoBehaviour
     public Transform firePoint;
 
     private PlayerStats stats;
-    private float cooldownTimer;
+    private CarController carController;
     private Dictionary<WeaponType, float> subWeaponTimers = new Dictionary<WeaponType, float>();
+
+    // 기관총 기본무기 쿨타임
+    private float machineGunTimer;
 
     // 회전 톱날 관리
     private List<GameObject> activeSawBlades = new List<GameObject>();
@@ -34,20 +36,24 @@ public class AutoAttack : MonoBehaviour
     private void Awake()
     {
         stats = GetComponent<PlayerStats>();
+        carController = GetComponent<CarController>();
     }
 
     private void Update()
     {
         if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing) return;
 
-        // 주무기 처리
+        // 기본무기: 기관총 (항상 발동)
+        HandleMachineGun();
+
+        // 주무기 처리 (레이저 캐논)
         HandleMainWeapons();
 
-        // 보조무기 — 각자 쿨타임으로 자동 발동
+        // 무기 — 각자 쿨타임으로 자동 발동
         foreach (var part in stats.equippedParts)
         {
-            if (part.data.aimType != AimType.Auto) continue;
             if (part.data.weaponType == WeaponType.None) continue;
+            if (part.data.weaponType != WeaponType.MachineGun && part.data.aimType != AimType.Auto) continue;
 
             var type = part.data.weaponType;
 
@@ -94,18 +100,6 @@ public class AutoAttack : MonoBehaviour
 
     private void HandleMainWeapons()
     {
-        // 기관총
-        var gunPart = stats.equippedParts.Find(p => p.data.weaponType == WeaponType.MachineGun);
-        if (gunPart != null)
-        {
-            cooldownTimer -= Time.deltaTime;
-            if (cooldownTimer <= 0f)
-            {
-                FireMachineGun(gunPart);
-                cooldownTimer = baseCooldown / stats.attackSpeed;
-            }
-        }
-
         // 레이저 캐논
         var laserPart = stats.equippedParts.Find(p => p.data.weaponType == WeaponType.LaserCannon);
         if (laserPart != null)
@@ -120,32 +114,34 @@ public class AutoAttack : MonoBehaviour
         }
     }
 
-    private Vector2 GetMouseDirection()
+    // ─── 기관총: 기본무기 (장착 불필요, 항상 발동) ───
+    private void HandleMachineGun()
     {
-        if (Camera.main == null) return transform.up;
-        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorld.z = 0f;
-        Vector2 dir = (mouseWorld - transform.position).normalized;
-        return dir.sqrMagnitude > 0.01f ? dir : (Vector2)transform.up;
+        machineGunTimer -= Time.deltaTime;
+        if (machineGunTimer <= 0f)
+        {
+            // 장착된 기관총 파츠가 있으면 그 레벨 사용, 없으면 Lv1
+            var gunPart = stats.equippedParts.Find(p => p.data.weaponType == WeaponType.MachineGun);
+            int level = gunPart != null ? gunPart.level : 1;
+            float weaponDamage = stats.damage + (gunPart != null ? CalcDamage(gunPart.data, level) : 0f);
+            FireMachineGun(level, weaponDamage);
+
+            float cd = gunPart != null && gunPart.data.cooldown > 0 ? gunPart.data.cooldown : 0.3f;
+            machineGunTimer = cd / stats.attackSpeed;
+        }
     }
 
-    private float CalcDamage(PartsData data, int level)
-    {
-        return data.damage + data.damagePerLevel * (level - 1);
-    }
-
-    private void FireMachineGun(OwnedPart gunPart)
+    private void FireMachineGun(int level, float weaponDamage)
     {
         if (bulletPrefab == null) return;
 
-        Vector2 aimDir = GetMouseDirection();
+        Vector2 aimDir = GetNearestEnemyDirection();
         float baseAngle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg - 90f;
-        float weaponDamage = stats.damage + CalcDamage(gunPart.data, gunPart.level);
         Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position + (Vector3)aimDir * 0.5f;
 
         // 2레벨마다 탄 +1: Lv1=1발, Lv3=2발, Lv5=3발, Lv7=4발, Lv9=5발
-        int bulletCount = 1 + (gunPart.level - 1) / 2;
-        float spreadAngle = 45f; // 탄 사이 각도
+        int bulletCount = 1 + (level - 1) / 2;
+        float spreadAngle = 45f;
 
         float totalSpread = (bulletCount - 1) * spreadAngle;
         float startAngle = baseAngle - totalSpread / 2f;
@@ -164,6 +160,31 @@ public class AutoAttack : MonoBehaviour
                 b.Initialize(dir, bulletSpeed, weaponDamage, bulletLifetime);
             }
         }
+    }
+
+    private Vector2 GetNearestEnemyDirection()
+    {
+        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        if (enemies.Length == 0)
+            return carController != null ? carController.CurrentDirection : (Vector2)transform.up;
+
+        GameObject nearest = null;
+        float minDist = float.MaxValue;
+        foreach (var e in enemies)
+        {
+            float d = Vector2.Distance(transform.position, e.transform.position);
+            if (d < minDist) { minDist = d; nearest = e; }
+        }
+
+        if (nearest == null)
+            return carController != null ? carController.CurrentDirection : (Vector2)transform.up;
+
+        return ((Vector2)(nearest.transform.position - transform.position)).normalized;
+    }
+
+    private float CalcDamage(PartsData data, int level)
+    {
+        return data.damage + data.damagePerLevel * (level - 1);
     }
 
     private void FireWeapon(WeaponType type, int level, PartsData data)

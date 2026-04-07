@@ -94,7 +94,7 @@ public class StageManager : MonoBehaviour
 
     private void Start()
     {
-        enemySpawner = FindFirstObjectByType<EnemySpawner>();
+        enemySpawner = FindAnyObjectByType<EnemySpawner>();
         LoadStage(currentMapId, currentStageNo);
     }
 

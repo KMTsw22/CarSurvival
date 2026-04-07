@@ -66,7 +66,7 @@ public class PlayerStats : MonoBehaviour
         if (carData != null)
         {
             baseMaxHealth = carData.base_hp;
-            baseMoveSpeed = carData.base_speed * 1f;
+            baseMoveSpeed = carData.base_speed * 4f;
             baseAtkSpeed = carData.base_atk_speed;
             baseDamage = carData.base_damage;
 
@@ -90,18 +90,6 @@ public class PlayerStats : MonoBehaviour
             expToNextLevel = levelData.required_exp_gap;
 
         currentHealth = maxHealth;
-
-        // 기본 무기(MachineGun)를 equippedParts에 등록
-        if (GameManager.Instance != null && GameManager.Instance.partsDatabase != null)
-        {
-            var defaultWeapon = GameManager.Instance.partsDatabase.allParts
-                .Find(p => p.weaponType == WeaponType.MachineGun);
-            if (defaultWeapon != null && equippedParts.Find(p => p.data == defaultWeapon) == null)
-            {
-                equippedParts.Add(new OwnedPart { data = defaultWeapon, level = 1 });
-                OnPartChanged?.Invoke();
-            }
-        }
 
         NotifyAll();
     }
@@ -140,7 +128,7 @@ public class PlayerStats : MonoBehaviour
         if (carData == null) return;
 
         baseMaxHealth = carData.base_hp;
-        baseMoveSpeed = carData.base_speed * 0.5f;
+        baseMoveSpeed = carData.base_speed * 1f;
         baseAtkSpeed = carData.base_atk_speed;
         baseDamage = carData.base_damage;
 

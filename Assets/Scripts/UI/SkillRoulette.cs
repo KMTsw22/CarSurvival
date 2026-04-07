@@ -92,7 +92,7 @@ public class SkillRoulette : MonoBehaviour
         uiDoc = gameObject.AddComponent<UIDocument>();
 
         // 기존 UIDocument에서 panelSettings 가져오기 (FindAnyObjectByType은 uiDoc 자체를 반환할 수 있음)
-        var allDocs = Object.FindObjectsByType<UIDocument>(FindObjectsSortMode.None);
+        var allDocs = Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude);
         foreach (var doc in allDocs)
         {
             if (doc != uiDoc && doc.panelSettings != null)

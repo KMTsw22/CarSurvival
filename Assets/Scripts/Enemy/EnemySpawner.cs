@@ -426,7 +426,7 @@ public class EnemySpawner : MonoBehaviour
         {
             var ai = enemy.GetComponent<EnemyAI>();
             if (ai != null)
-                ai.moveSpeed = data.moveSpeed * speedScale;
+                ai.moveSpeed = data.moveSpeed * speedScale * 2f;
         }
     }
 
@@ -954,7 +954,7 @@ public class EnemySpawner : MonoBehaviour
         var ai = enemy.GetComponent<EnemyAI>();
         if (ai != null)
         {
-            ai.moveSpeed = data.moveSpeed * 0.85f;
+            ai.moveSpeed = data.moveSpeed * 0.85f * 2f;
             ai.contactDamage = data.contactDamage * difficultyScale;
         }
 

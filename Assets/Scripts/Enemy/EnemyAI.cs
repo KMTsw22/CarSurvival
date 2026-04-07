@@ -1,9 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class EnemyAI : MonoBehaviour
 {
-    public float moveSpeed = 3f;
+    public float moveSpeed = 6f;
     public float contactDamage = 10f;
 
     private Transform player;
@@ -21,7 +22,7 @@ public class EnemyAI : MonoBehaviour
     // 몬스터 겹침 방지
     private static readonly float separationRadius = 2.0f;
     private static readonly float separationForce = 12f;
-    private static readonly Collider2D[] overlapBuffer = new Collider2D[16];
+    private static readonly List<Collider2D> overlapBuffer = new List<Collider2D>(16);
 
     private void Awake()
     {
@@ -89,7 +90,7 @@ public class EnemyAI : MonoBehaviour
         Vector2 move = offsetDir * moveSpeed * slowMultiplier * Time.deltaTime;
 
         // 몬스터 겹침 방지: 가까운 적과 서로 밀어냄
-        int count = Physics2D.OverlapCircleNonAlloc(myPos, separationRadius, overlapBuffer);
+        int count = Physics2D.OverlapCircle(myPos, separationRadius, new ContactFilter2D().NoFilter(), overlapBuffer);
         Vector2 separation = Vector2.zero;
         for (int i = 0; i < count; i++)
         {

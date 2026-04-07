@@ -446,7 +446,7 @@ public class MonsterAI : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
 
         // EnemySpawner를 통해 소환
-        var spawner = FindFirstObjectByType<EnemySpawner>();
+        var spawner = FindAnyObjectByType<EnemySpawner>();
         if (spawner != null)
         {
             // etc_value1: 0=플레이어 주변 원형, 1=아레나 내 랜덤
