@@ -351,10 +351,13 @@ public class PlayerStats : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
+    // 기본 체력 회복 (1초당)
+    public const float BaseHealthRegen = 1f;
+
     private float GetTotalHealthRegen()
     {
-        // 1초당 healthRegenPercent 고정값 회복 (레벨 * base_value)
-        return healthRegenPercent;
+        // 기본 1/s + 마법서 보너스
+        return BaseHealthRegen + healthRegenPercent;
     }
 
     private void NotifyAll()

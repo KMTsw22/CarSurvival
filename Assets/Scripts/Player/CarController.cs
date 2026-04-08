@@ -15,7 +15,7 @@ public class CarController : MonoBehaviour
     public Vector2 CurrentDirection => currentDirection;
 
     [Header("Movement")]
-    public float turnSpeed = 210f;          // 회전 속도 (도/초)
+    public float turnSpeed = 300f;          // 회전 속도 (도/초)
     public float reverseSpeedRatio = 0.5f;  // 후진 속도 비율
 
     [Header("Visual")]

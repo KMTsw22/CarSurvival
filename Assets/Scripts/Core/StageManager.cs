@@ -17,7 +17,7 @@ public class StageManager : MonoBehaviour
 
     [Header("Settings")]
     public float countdownDuration = 3f;        // 소환 카운트다운 (초)
-    public float forceSummonTime = 600f;         // 강제 소환 시간 (10분)
+    public float forceSummonTime = 480f;         // 강제 소환 시간 (8분)
 
     // 상태
     public enum BossPhase { Collecting, Countdown, WarningWave, Fighting, Defeated }

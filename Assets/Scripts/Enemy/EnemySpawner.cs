@@ -41,7 +41,7 @@ public class EnemySpawner : MonoBehaviour
 #pragma warning disable CS0414 // 할당되었지만 읽히지 않는 필드
     private bool bossSpawned = false;
 #pragma warning restore CS0414
-    private const float BOSS_SPAWN_SEC = 600f;
+    private const float BOSS_SPAWN_SEC = 480f;
 
     // 플레이어 이동 방향 추적
     private Vector3 lastPlayerPos;
@@ -432,36 +432,44 @@ public class EnemySpawner : MonoBehaviour
 
     /// <summary>
     /// 플레이어 주변 적 밀도를 분석하여 적이 적은 방향에 스폰.
+    /// forward_bias >= 0.9 이면 시야 밖 360° 완전 분산 모드 (Surge 전용).
     /// </summary>
     private Vector3 GetSpawnPosition(ActiveWave wave)
     {
-        // 플레이어 기준 적의 평균 방향 계산
-        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        Vector2 avgDir = Vector2.zero;
-
-        if (enemies.Length > 0)
-        {
-            foreach (var e in enemies)
-            {
-                if (e == null) continue;
-                Vector2 toEnemy = ((Vector2)e.transform.position - (Vector2)player.position);
-                if (toEnemy.sqrMagnitude > 0.01f)
-                    avgDir += toEnemy.normalized;
-            }
-        }
-
         float angle;
-        if (avgDir.sqrMagnitude > 0.01f)
+
+        // Surge 모드: 시야 밖 360° 완전 분산 (forward_bias >= 0.9 이 신호)
+        if (wave.forwardBias >= 0.9f)
         {
-            // 적이 많은 방향의 반대쪽 + 랜덤 분산
-            float enemyAngle = Mathf.Atan2(avgDir.y, avgDir.x);
-            float oppositeAngle = enemyAngle + Mathf.PI;
-            angle = oppositeAngle + Random.Range(-70f, 70f) * Mathf.Deg2Rad;
+            angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
         }
         else
         {
-            // 적이 없으면 완전 랜덤
-            angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            // 일반 모드: 적 밀도 반대쪽 + ±70° 분산
+            var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            Vector2 avgDir = Vector2.zero;
+
+            if (enemies.Length > 0)
+            {
+                foreach (var e in enemies)
+                {
+                    if (e == null) continue;
+                    Vector2 toEnemy = (Vector2)e.transform.position - (Vector2)player.position;
+                    if (toEnemy.sqrMagnitude > 0.01f)
+                        avgDir += toEnemy.normalized;
+                }
+            }
+
+            if (avgDir.sqrMagnitude > 0.01f)
+            {
+                float enemyAngle = Mathf.Atan2(avgDir.y, avgDir.x);
+                float oppositeAngle = enemyAngle + Mathf.PI;
+                angle = oppositeAngle + Random.Range(-70f, 70f) * Mathf.Deg2Rad;
+            }
+            else
+            {
+                angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            }
         }
 
         float distance = Random.Range(wave.spawnDistMin, wave.spawnDistMax);
