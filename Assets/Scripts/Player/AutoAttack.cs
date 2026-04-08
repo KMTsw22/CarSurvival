@@ -128,7 +128,7 @@ public class AutoAttack : MonoBehaviour
             FireMachineGun(level, weaponDamage);
 
             float cd = gunPart != null && gunPart.data.cooldown > 0 ? gunPart.data.cooldown : 0.3f;
-            machineGunTimer = cd / stats.attackSpeed;
+            machineGunTimer = (cd * 15f) / stats.attackSpeed;
         }
     }
 

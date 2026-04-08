@@ -91,6 +91,17 @@ public class PlayerStats : MonoBehaviour
 
         currentHealth = maxHealth;
 
+        // 기관총 기본 장착
+        var gm = GameManager.Instance;
+        if (gm != null && gm.partsDatabase != null)
+        {
+            var machineGun = gm.partsDatabase.allParts.Find(p => p.weaponType == WeaponType.MachineGun);
+            if (machineGun != null && !equippedParts.Exists(p => p.data == machineGun))
+            {
+                equippedParts.Add(new OwnedPart { data = machineGun, level = 1 });
+            }
+        }
+
         NotifyAll();
     }
 
@@ -170,6 +181,10 @@ public class PlayerStats : MonoBehaviour
         float reduced = amount * (1f - defense);
         currentHealth -= reduced;
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        // 데미지 받으면 콤보 초기화
+        if (ComboSystem.Instance != null)
+            ComboSystem.Instance.ResetCombo();
 
         // 피격 시 화면 흔들림 (쿨다운 적용)
         if (hitEffectCooldown <= 0f)

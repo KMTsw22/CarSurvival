@@ -15,14 +15,14 @@ public class CarController : MonoBehaviour
     public Vector2 CurrentDirection => currentDirection;
 
     [Header("Movement")]
-    public float turnSpeed = 180f;          // 회전 속도 (도/초)
+    public float turnSpeed = 210f;          // 회전 속도 (도/초)
     public float reverseSpeedRatio = 0.5f;  // 후진 속도 비율
 
     [Header("Visual")]
     public Transform spriteTransform;
 
     [Header("Booster Shield")]
-    public float boosterDamage = 400f;          // 돌진 시 적에게 주는 데미지
+    public float boosterDamage = 1500f;         // 돌진 시 적에게 주는 데미지
     public float boosterShieldRadius = 6.0f;     // 방어막 크기
 
     [Header("Booster")]
@@ -168,12 +168,13 @@ public class CarController : MonoBehaviour
                 {
                     Vector2 knockDir = ((Vector2)col.transform.position - (Vector2)transform.position).normalized;
                     eh.TakeDamage(boosterDamage * Time.fixedDeltaTime, knockDir, 60f);
+
+                    // 박치기 콤보 등록 (같은 적은 한 번만 카운트)
+                    if (ComboSystem.Instance != null)
+                        ComboSystem.Instance.RegisterRamHit(col.GetInstanceID());
                 }
 
-                // 부스터 중 피격: 데미지 50% 감소
-                var ai = col.GetComponent<EnemyAI>();
-                float dmg = ai != null ? ai.contactDamage : 10f;
-                stats.TakeDamage(dmg * 0.5f * Time.fixedDeltaTime);
+                // 부스터 중: 무적 (데미지 없음)
 
                 // 이펙트 (쿨다운으로 프레임마다 발동 방지)
                 if (boostImpactCooldown <= 0f)

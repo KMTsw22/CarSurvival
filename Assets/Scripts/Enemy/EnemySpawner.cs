@@ -12,8 +12,8 @@ public class EnemySpawner : MonoBehaviour
     public List<MonsterData> bossDataList = new List<MonsterData>();
 
     [Header("Spawn Settings")]
-    public float minSpawnDistance = 12f;
-    public float maxSpawnDistance = 15f;
+    public float minSpawnDistance = 25f;
+    public float maxSpawnDistance = 35f;
 
     [Header("=== DEBUG MODE ===")]
     public bool debugMode = false;

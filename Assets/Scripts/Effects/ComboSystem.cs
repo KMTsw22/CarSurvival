@@ -1,7 +1,8 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
-/// 연속 킬 콤보 시스템. 적 처치 시 콤보 카운트 증가, 일정 시간 내 추가 킬 없으면 리셋.
+/// 박치기 콤보 시스템. 부스터로 적을 성공적으로 들이받으면 콤보 증가, 데미지를 받으면 즉시 리셋.
 /// 화면 중앙 상단에 콤보 텍스트 표시.
 /// </summary>
 public class ComboSystem : MonoBehaviour
@@ -9,8 +10,9 @@ public class ComboSystem : MonoBehaviour
     public static ComboSystem Instance { get; private set; }
 
     private int comboCount;
-    private float comboTimer;
-    private const float comboTimeout = 2.5f; // 2.5초 안에 다음 킬이 없으면 리셋
+
+    // 이미 콤보 카운트한 적 추적 (같은 적 중복 카운트 방지)
+    private readonly HashSet<int> countedEnemies = new HashSet<int>();
 
     // 콤보 텍스트 표시용
     private GUIStyle comboStyle;
@@ -18,17 +20,22 @@ public class ComboSystem : MonoBehaviour
     private float displayScale = 1f;
     private float punchTimer; // 숫자가 커지는 펀치 효과
 
+    // 콤보 리셋 시 페이드아웃
+    private bool isFadingOut;
+
     private void Awake()
     {
         Instance = this;
     }
 
-    /// <summary>적 처치 시 호출</summary>
-    public void RegisterKill()
+    /// <summary>부스터 박치기로 적 접촉 시 호출. 같은 적은 한 번만 카운트.</summary>
+    public void RegisterRamHit(int enemyInstanceId)
     {
+        if (!countedEnemies.Add(enemyInstanceId)) return; // 이미 카운트한 적
+
         comboCount++;
-        comboTimer = comboTimeout;
         displayAlpha = 1f;
+        isFadingOut = false;
 
         // 펀치 효과: 콤보 올라갈 때 크기가 확 커졌다 줄어듦
         punchTimer = 0.2f;
@@ -39,19 +46,25 @@ public class ComboSystem : MonoBehaviour
             CameraFollow.Instance.Shake(0.3f, 0.1f);
     }
 
-    private void Update()
+    /// <summary>플레이어가 데미지를 받으면 호출 — 콤보 즉시 리셋</summary>
+    public void ResetCombo()
     {
         if (comboCount <= 0) return;
+        isFadingOut = true;
+        countedEnemies.Clear();
+    }
 
-        comboTimer -= Time.deltaTime;
-        if (comboTimer <= 0f)
+    private void Update()
+    {
+        // 페이드아웃 처리
+        if (isFadingOut)
         {
-            // 콤보 종료 — 페이드아웃
             displayAlpha -= Time.deltaTime * 3f;
             if (displayAlpha <= 0f)
             {
                 comboCount = 0;
                 displayAlpha = 0f;
+                isFadingOut = false;
             }
         }
 

@@ -141,9 +141,7 @@ public class EnemyHealth : MonoBehaviour
         // 사망 파티클 폭발
         SpawnDeathParticles();
 
-        // 콤보 등록
-        if (ComboSystem.Instance != null)
-            ComboSystem.Instance.RegisterKill();
+        // 콤보: 킬 기반이 아니므로 별도 등록 없음
 
         // Drop experience pickups
         if (expPickupPrefab != null)
